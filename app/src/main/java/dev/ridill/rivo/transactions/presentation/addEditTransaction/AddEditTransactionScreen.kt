@@ -552,7 +552,13 @@ private fun TransactionTypeSelector(
                             contentDescription = it
                         }
                     },
-                label = { Text(stringResource(type.labelRes)) }
+                label = { Text(stringResource(type.labelRes)) },
+                icon = {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(type.iconRes),
+                        contentDescription = null
+                    )
+                }
             )
         }
     }
