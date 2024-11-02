@@ -45,7 +45,11 @@ class AllTransactionsViewModel @Inject constructor(
         .asStateFlow(viewModelScope, LocalDate.now() to LocalDate.now())
 
     private val dateRangeSteps = dateLimits.mapLatest { (start, end) ->
-        Period.between(start, end).toTotalMonths()
+        val period = Period.between(start, end)
+        val totalMonths = period.toTotalMonths()
+        if (totalMonths > 0) return@mapLatest totalMonths
+        else if (end.monthValue != start.monthValue) 1L
+        else 0L
     }.distinctUntilChanged()
     private val dateLimitsAsClosedFloatRange = dateRangeSteps
         .mapLatest { Float.Zero.rangeTo(it.toFloat()) }

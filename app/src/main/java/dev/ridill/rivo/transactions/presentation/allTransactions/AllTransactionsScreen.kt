@@ -75,6 +75,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.orZero
 import dev.ridill.rivo.core.ui.components.AmountWithArrow
 import dev.ridill.rivo.core.ui.components.BackArrowButton
@@ -662,6 +663,9 @@ private fun FilterOptionsSheet(
     onShowExcludedToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val showDateFilter by remember(dateLimitFloatRange) {
+        derivedStateOf { dateLimitFloatRange.endInclusive > Float.One }
+    }
     RivoModalBottomSheet(
         onDismissRequest = onDismissRequest,
         modifier = modifier
@@ -687,14 +691,16 @@ private fun FilterOptionsSheet(
                 )
             }
 
-            DateFilterSection(
-                dateLimitFloatRange = dateLimitFloatRange,
-                selectedDates = selectedDates,
-                selectedFloatRange = selectedFloatRange,
-                dateRangeSteps = dateRangeSteps,
-                onDateRangeChange = onDateRangeChange,
-                onDateFilterClear = onDateFilterClear
-            )
+            if (showDateFilter) {
+                DateFilterSection(
+                    dateLimitFloatRange = dateLimitFloatRange,
+                    selectedDates = selectedDates,
+                    selectedFloatRange = selectedFloatRange,
+                    dateRangeSteps = dateRangeSteps,
+                    onDateRangeChange = onDateRangeChange,
+                    onDateFilterClear = onDateFilterClear
+                )
+            }
 
             TypeFilterSection(
                 selectedTypeFilter = selectedTypeFilter,
