@@ -9,16 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -54,7 +47,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
@@ -358,17 +350,9 @@ fun ListSearchSheet(
     additionalEndContent: @Composable (ColumnScope.() -> Unit)? = null,
     content: LazyListScope.() -> Unit
 ) {
-    val insetsExcludingBottom = BottomSheetDefaults.windowInsets.exclude(
-        WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
-    )
-    val bottomInsetPadding = BottomSheetDefaults.windowInsets
-        .only(WindowInsetsSides.Bottom)
-        .asPaddingValues()
-    val layoutDirection = LocalLayoutDirection.current
     RivoModalBottomSheet(
         onDismissRequest = onDismiss,
         modifier = modifier,
-        contentWindowInsets = { insetsExcludingBottom }
     ) {
         Column(
             modifier = Modifier
@@ -393,12 +377,7 @@ fun ListSearchSheet(
             )
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(
-                    top = contentPadding.calculateTopPadding(),
-                    bottom = contentPadding.calculateBottomPadding() + bottomInsetPadding.calculateBottomPadding(),
-                    start = contentPadding.calculateStartPadding(layoutDirection),
-                    end = contentPadding.calculateEndPadding(layoutDirection)
-                ),
+                contentPadding = contentPadding,
                 reverseLayout = reverseLayout,
                 verticalArrangement = verticalArrangement,
                 horizontalAlignment = horizontalAlignment,
