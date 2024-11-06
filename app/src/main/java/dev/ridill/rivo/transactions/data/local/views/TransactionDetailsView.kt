@@ -24,25 +24,19 @@ import java.time.LocalDateTime
         LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id""",
     viewName = "transaction_details_view"
 )
-//tx.is_excluded AS isTransactionExcluded,
-//tag.is_excluded AS isTagExcluded,
-//folder.is_excluded AS isFolderExcluded,
 data class TransactionDetailsView(
     val transactionId: Long,
     val transactionNote: String,
     val transactionAmount: Double,
     val transactionTimestamp: LocalDateTime,
     val transactionType: TransactionType,
-//    val isTransactionExcluded: Boolean,
     val tagId: Long?,
     val tagName: String?,
     val tagColorCode: Int?,
     val tagCreatedTimestamp: LocalDateTime?,
-//    val isTagExcluded: Boolean?,
     val folderId: Long?,
     val folderName: String?,
     val folderCreatedTimestamp: LocalDateTime?,
-//    val isFolderExcluded: Boolean?,
     val scheduleId: Long?,
     val excluded: Boolean
 )
