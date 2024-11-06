@@ -2,7 +2,6 @@ package dev.ridill.rivo.folders.domain.repository
 
 import androidx.paging.PagingData
 import dev.ridill.rivo.folders.domain.model.FolderDetails
-import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import kotlinx.coroutines.flow.Flow
 
@@ -16,5 +15,5 @@ interface FolderDetailsRepository {
 
     suspend fun addTransactionsToFolderByIds(folderId: Long, transactionIds: Set<Long>)
     suspend fun removeTransactionFromFolderById(transactionId: Long)
-    suspend fun addTransactionToFolder(transaction: TransactionListItem)
+    suspend fun addTransactionToFolder(transaction: TransactionListItemUIModel.TransactionItem)
 }

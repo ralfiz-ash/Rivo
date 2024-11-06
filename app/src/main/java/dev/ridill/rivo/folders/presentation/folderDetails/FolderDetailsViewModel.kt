@@ -16,6 +16,7 @@ import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.folders.domain.model.AggregateType
 import dev.ridill.rivo.folders.domain.repository.FolderDetailsRepository
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
+import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -110,21 +111,21 @@ class FolderDetailsViewModel @Inject constructor(
         }
     }
 
-    override fun onTransactionSwipeToDismiss(transaction: TransactionListItem) {
+    override fun onTransactionSwipeToDismiss(transaction: TransactionListItemUIModel.TransactionItem) {
         viewModelScope.launch {
             repo.removeTransactionFromFolderById(transaction.id)
             eventBus.send(FolderDetailsEvent.TransactionRemovedFromGroup(transaction))
         }
     }
 
-    fun onRemoveTransactionUndo(transaction: TransactionListItem) = viewModelScope.launch {
+    fun onRemoveTransactionUndo(transaction: TransactionListItemUIModel.TransactionItem) = viewModelScope.launch {
         repo.addTransactionToFolder(transaction)
     }
 
     sealed interface FolderDetailsEvent {
         data class ShowUiMessage(val uiText: UiText) : FolderDetailsEvent
         data object FolderDeleted : FolderDetailsEvent
-        data class TransactionRemovedFromGroup(val transaction: TransactionListItem) :
+        data class TransactionRemovedFromGroup(val transaction: TransactionListItemUIModel.TransactionItem) :
             FolderDetailsEvent
     }
 }

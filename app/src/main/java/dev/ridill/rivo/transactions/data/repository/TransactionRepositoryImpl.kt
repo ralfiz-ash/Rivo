@@ -69,13 +69,13 @@ class TransactionRepositoryImpl(
         pagingData
             .insertSeparators<TransactionListItemUIModel.TransactionItem, TransactionListItemUIModel>
             { before, after ->
-                if (before?.transaction?.timestamp
+                if (before?.timestamp
                         ?.withDayOfMonth(1)
                         ?.toLocalDate()
-                    != after?.transaction?.timestamp
+                    != after?.timestamp
                         ?.withDayOfMonth(1)
                         ?.toLocalDate()
-                ) after?.transaction?.timestamp
+                ) after?.timestamp
                     ?.withDayOfMonth(1)
                     ?.toLocalDate()
                     ?.let { localDate ->

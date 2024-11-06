@@ -7,7 +7,6 @@ import dev.ridill.rivo.folders.domain.model.FolderDetails
 import dev.ridill.rivo.folders.domain.repository.FolderDetailsRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.toEntity
-import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +48,7 @@ class FolderDetailsRepositoryImpl(
             transactionDao.setFolderIdToTransactionsByIds(setOf(transactionId), null)
         }
 
-    override suspend fun addTransactionToFolder(transaction: TransactionListItem) {
+    override suspend fun addTransactionToFolder(transaction: TransactionListItemUIModel.TransactionItem) {
         withContext(Dispatchers.IO) {
             transactionDao.upsert(transaction.toEntity())
         }

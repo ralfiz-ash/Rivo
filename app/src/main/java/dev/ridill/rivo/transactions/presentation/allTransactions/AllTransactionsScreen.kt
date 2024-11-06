@@ -256,41 +256,41 @@ fun AllTransactionsScreen(
 
                         is TransactionListItemUIModel.TransactionItem -> {
                             item(
-                                key = item.transaction.id,
+                                key = item.id,
                                 contentType = "TransactionListItem"
                             ) {
                                 val selected = remember(state.selectedTransactionIds) {
-                                    item.transaction.id in state.selectedTransactionIds
+                                    item.id in state.selectedTransactionIds
                                 }
                                 val clickableModifier =
                                     if (state.transactionMultiSelectionModeActive) Modifier
                                         .toggleable(
                                             value = selected,
                                             onValueChange = {
-                                                actions.onTransactionSelectionChange(item.transaction.id)
+                                                actions.onTransactionSelectionChange(item.id)
                                             }
                                         )
                                     else Modifier.combinedClickable(
                                         role = Role.Button,
                                         onClick = {
-                                            navigateToAddEditTransaction(item.transaction.id)
+                                            navigateToAddEditTransaction(item.id)
                                         },
                                         onClickLabel = stringResource(R.string.cd_tap_to_edit_transaction),
                                         onLongClick = {
                                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            actions.onTransactionLongPress(item.transaction.id)
+                                            actions.onTransactionLongPress(item.id)
                                         },
                                         onLongClickLabel = stringResource(R.string.cd_long_press_to_toggle_selection)
                                     )
 
                                 TransactionListItem(
-                                    note = item.transaction.note,
-                                    amount = item.transaction.amountFormatted,
-                                    date = item.transaction.date,
-                                    type = item.transaction.type,
-                                    tag = item.transaction.tag,
-                                    folder = item.transaction.folder,
-                                    excluded = item.transaction.excluded,
+                                    note = item.note,
+                                    amount = TextFormat.currencyAmount(item.amount),
+                                    date = item.timestamp.toLocalDate(),
+                                    type = item.type,
+                                    tag = item.tag,
+                                    folder = item.folder,
+                                    excluded = item.excluded,
                                     tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
                                     modifier = Modifier
                                         .then(clickableModifier)

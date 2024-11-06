@@ -172,12 +172,11 @@ fun FolderDetailsScreen(
 
                         is TransactionListItemUIModel.TransactionItem -> {
                             item(
-                                key = item.transaction.id,
+                                key = item.id,
                                 contentType = "TransactionListItem"
                             ) {
                                 SwipeToDismissContainer(
-                                    item = item.transaction,
-                                    onDismiss = actions::onTransactionSwipeToDismiss,
+                                    onDismiss = { actions.onTransactionSwipeToDismiss(item) },
                                     backgroundContent = {
                                         DismissBackground(
                                             swipeDismissState = it,
@@ -193,15 +192,15 @@ fun FolderDetailsScreen(
                                         .animateItem()
                                 ) {
                                     Card(
-                                        onClick = { navigateToAddEditTransaction(item.transaction.id) }
+                                        onClick = { navigateToAddEditTransaction(item.id) }
                                     ) {
                                         TransactionListItem(
-                                            note = item.transaction.note,
-                                            amount = item.transaction.amountFormatted,
-                                            date = item.transaction.date,
-                                            type = item.transaction.type,
-                                            tag = item.transaction.tag,
-                                            excluded = item.transaction.excluded
+                                            note = item.note,
+                                            amount = TextFormat.currencyAmount(item.amount),
+                                            date = item.timestamp.toLocalDate(),
+                                            type = item.type,
+                                            tag = item.tag,
+                                            excluded = item.excluded
                                         )
                                     }
                                 }

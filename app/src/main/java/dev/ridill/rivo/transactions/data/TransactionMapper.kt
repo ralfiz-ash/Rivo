@@ -9,6 +9,7 @@ import dev.ridill.rivo.transactions.domain.model.FolderIndicator
 import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
+import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 
 fun TransactionEntity.toTransaction(): Transaction = Transaction(
     id = id,
@@ -70,7 +71,7 @@ fun TransactionDetailsView.toTransactionListItem(): TransactionListItem {
     )
 }
 
-fun TransactionListItem.toEntity(): TransactionEntity = TransactionEntity(
+fun TransactionListItemUIModel.TransactionItem.toEntity(): TransactionEntity = TransactionEntity(
     id = id,
     note = note,
     amount = amount,

@@ -29,15 +29,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.delay
 
 @Composable
-fun <T> SwipeToDismissContainer(
-    item: T,
-    onDismiss: (T) -> Unit,
+fun SwipeToDismissContainer(
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     animationDuration: Int = DEFAULT_ANIM_DURATION,
     enableDismissFromStartToEnd: Boolean = true,
     enableDismissFromEndToStart: Boolean = true,
     backgroundContent: @Composable RowScope.(SwipeToDismissBoxState) -> Unit = {},
-    content: @Composable RowScope.(T) -> Unit
+    content: @Composable RowScope.() -> Unit
 ) {
     var isRemoved by remember { mutableStateOf(false) }
     val state = rememberSwipeToDismissBoxState(
@@ -72,7 +71,7 @@ fun <T> SwipeToDismissContainer(
     LaunchedEffect(isRemoved) {
         if (isRemoved) {
             delay(animationDuration.toLong())
-            onDismiss(item)
+            onDismiss()
         }
     }
 
@@ -89,7 +88,7 @@ fun <T> SwipeToDismissContainer(
             enableDismissFromStartToEnd = true,
             enableDismissFromEndToStart = true,
             backgroundContent = { backgroundContent(state) },
-            content = { content(item) }
+            content = content
         )
     }
 }
