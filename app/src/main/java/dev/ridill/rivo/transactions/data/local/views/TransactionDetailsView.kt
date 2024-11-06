@@ -10,39 +10,39 @@ import java.time.LocalDateTime
         tx.amount AS transactionAmount,
         tx.timestamp AS transactionTimestamp,
         tx.type AS transactionType,
-        tx.is_excluded AS isTransactionExcluded,
         tag.id AS tagId,
         tag.name AS tagName,
         tag.color_code AS tagColorCode,
         tag.created_timestamp AS tagCreatedTimestamp,
-        tag.is_excluded AS isTagExcluded,
         folder.id AS folderId,
         folder.name AS folderName,
         folder.created_timestamp AS folderCreatedTimestamp,
         tx.schedule_id as scheduleId,
-        folder.is_excluded AS isFolderExcluded,
-        (CASE WHEN 1 IN (tx.is_excluded, tag.is_excluded, folder.is_excluded) THEN 1 ELSE 0 END) AS overallExcluded
+        (CASE WHEN 1 IN (tx.is_excluded, tag.is_excluded, folder.is_excluded) THEN 1 ELSE 0 END) AS excluded
         FROM transaction_table tx
         LEFT OUTER JOIN tag_table tag ON tx.tag_id = tag.id
         LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id""",
     viewName = "transaction_details_view"
 )
+//tx.is_excluded AS isTransactionExcluded,
+//tag.is_excluded AS isTagExcluded,
+//folder.is_excluded AS isFolderExcluded,
 data class TransactionDetailsView(
     val transactionId: Long,
     val transactionNote: String,
     val transactionAmount: Double,
     val transactionTimestamp: LocalDateTime,
     val transactionType: TransactionType,
-    val isTransactionExcluded: Boolean,
+//    val isTransactionExcluded: Boolean,
     val tagId: Long?,
     val tagName: String?,
     val tagColorCode: Int?,
     val tagCreatedTimestamp: LocalDateTime?,
-    val isTagExcluded: Boolean?,
+//    val isTagExcluded: Boolean?,
     val folderId: Long?,
     val folderName: String?,
     val folderCreatedTimestamp: LocalDateTime?,
-    val isFolderExcluded: Boolean?,
+//    val isFolderExcluded: Boolean?,
     val scheduleId: Long?,
-    val overallExcluded: Boolean
+    val excluded: Boolean
 )

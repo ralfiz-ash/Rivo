@@ -1,11 +1,12 @@
 package dev.ridill.rivo.transactions.data
 
+import androidx.compose.ui.graphics.Color
 import dev.ridill.rivo.core.domain.util.orZero
 import dev.ridill.rivo.core.ui.util.TextFormat
-import dev.ridill.rivo.folders.domain.model.Folder
-import dev.ridill.rivo.tags.domain.model.Tag
 import dev.ridill.rivo.transactions.data.local.entity.TransactionEntity
 import dev.ridill.rivo.transactions.data.local.views.TransactionDetailsView
+import dev.ridill.rivo.transactions.domain.model.FolderIndicator
+import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 
@@ -42,23 +43,18 @@ fun TransactionDetailsView.toTransactionListItem(): TransactionListItem {
         && tagName != null
         && tagColorCode != null
         && tagCreatedTimestamp != null
-    ) Tag(
+    ) TagIndicator(
         id = tagId,
         name = tagName,
-        colorCode = tagColorCode,
-        createdTimestamp = tagCreatedTimestamp,
-        excluded = isTagExcluded == true
-    )
-    else null
+        color = Color(tagColorCode)
+    ) else null
 
     val folder = if (folderId != null
         && folderName != null
         && folderCreatedTimestamp != null
-    ) Folder(
+    ) FolderIndicator(
         id = folderId,
         name = folderName,
-        createdTimestamp = folderCreatedTimestamp,
-        excluded = isFolderExcluded == true
     ) else null
 
     return TransactionListItem(
@@ -67,7 +63,7 @@ fun TransactionDetailsView.toTransactionListItem(): TransactionListItem {
         amount = transactionAmount,
         timestamp = transactionTimestamp,
         type = transactionType,
-        isTransactionExcluded = isTransactionExcluded,
+        excluded = excluded,
         tag = tag,
         folder = folder,
         scheduleId = scheduleId
@@ -80,7 +76,7 @@ fun TransactionListItem.toEntity(): TransactionEntity = TransactionEntity(
     amount = amount,
     timestamp = timestamp,
     type = type,
-    isExcluded = isTransactionExcluded,
+    isExcluded = excluded,
     tagId = tag?.id,
     folderId = folder?.id,
     scheduleId = scheduleId

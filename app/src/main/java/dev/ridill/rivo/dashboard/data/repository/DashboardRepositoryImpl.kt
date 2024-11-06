@@ -1,13 +1,9 @@
 package dev.ridill.rivo.dashboard.data.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.map
 import dev.ridill.rivo.account.domain.model.AuthState
 import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.core.domain.util.DateUtil
-import dev.ridill.rivo.core.domain.util.UtilConstants
 import dev.ridill.rivo.dashboard.domain.repository.DashboardRepository
 import dev.ridill.rivo.schedules.data.local.SchedulesDao
 import dev.ridill.rivo.schedules.data.local.entity.ScheduleEntity
@@ -15,10 +11,9 @@ import dev.ridill.rivo.schedules.data.toActiveSchedule
 import dev.ridill.rivo.schedules.domain.model.ActiveSchedule
 import dev.ridill.rivo.settings.domain.repositoty.BudgetPreferenceRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
-import dev.ridill.rivo.transactions.data.local.views.TransactionDetailsView
-import dev.ridill.rivo.transactions.data.toTransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionType
+import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +29,7 @@ class DashboardRepositoryImpl(
     private val authRepo: AuthRepository,
     private val budgetRepo: BudgetPreferenceRepository,
     private val transactionDao: TransactionDao,
+    private val transactionRepo: TransactionRepository,
     private val schedulesDao: SchedulesDao
 ) : DashboardRepository {
 
@@ -82,27 +78,21 @@ class DashboardRepositoryImpl(
         .map { it.absoluteValue }
         .distinctUntilChanged()
 
-    override fun getSchedulesActiveThisMonth(): Flow<List<ActiveSchedule>> =
-        currentDate.asStateFlow()
-            .flatMapLatest {
-                schedulesDao.getSchedulesForMonth(it)
-            }
-            .map { entities -> entities.map(ScheduleEntity::toActiveSchedule) }
+    override fun getSchedulesActiveThisMonth(): Flow<List<ActiveSchedule>> = currentDate
+        .asStateFlow()
+        .flatMapLatest {
+            schedulesDao.getSchedulesForMonth(it)
+        }.map { entities -> entities.map(ScheduleEntity::toActiveSchedule) }
 
-    override fun getRecentSpends(): Flow<PagingData<TransactionListItem>> =
-        currentDate.asStateFlow().flatMapLatest {
-            Pager(
-                config = PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE)
-            ) {
-                transactionDao.getTransactionsPaged(
-                    startDate = it.withDayOfMonth(1),
-                    endDate = it.with(TemporalAdjusters.lastDayOfMonth()),
-                    type = TransactionType.DEBIT,
-                    showExcluded = false,
-                    tagIds = null,
-                    folderId = null
-                )
-            }.flow
+    override fun getRecentSpends(): Flow<PagingData<TransactionListItem>> = currentDate
+        .asStateFlow()
+        .flatMapLatest {
+            transactionRepo.getAllTransactionsPaged(
+                dateRange = it.withDayOfMonth(1) to it.with(TemporalAdjusters.lastDayOfMonth()),
+                type = TransactionType.DEBIT,
+                showExcluded = false,
+                tagIds = null,
+                folderId = null
+            )
         }
-            .map { it.map(TransactionDetailsView::toTransactionListItem) }
 }

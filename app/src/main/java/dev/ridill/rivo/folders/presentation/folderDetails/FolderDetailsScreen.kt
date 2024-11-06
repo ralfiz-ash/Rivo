@@ -39,7 +39,7 @@ import androidx.paging.compose.LazyPagingItems
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.One
-import dev.ridill.rivo.core.ui.components.AmountWithArrow
+import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
 import dev.ridill.rivo.core.ui.components.DismissBackground
@@ -371,7 +371,7 @@ private fun AggregateAmount(
                 .weight(weight = Float.One, fill = false)
                 .alignBy(LastBaseline)
         ) {
-            AmountWithArrow(
+            AmountWithTypeIndicator(
                 value = TextFormat.currencyAmount(it.absoluteValue),
                 type = type
             )

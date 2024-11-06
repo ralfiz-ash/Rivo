@@ -86,9 +86,9 @@ import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.core.ui.util.isEmpty
 import dev.ridill.rivo.core.ui.util.mergedContentDescription
-import dev.ridill.rivo.folders.domain.model.Folder
 import dev.ridill.rivo.schedules.domain.model.ActiveSchedule
-import dev.ridill.rivo.tags.domain.model.Tag
+import dev.ridill.rivo.transactions.domain.model.FolderIndicator
+import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
@@ -585,8 +585,8 @@ private fun RecentSpendCard(
     amount: String,
     date: LocalDate,
     type: TransactionType,
-    tag: Tag?,
-    folder: Folder?,
+    tag: TagIndicator?,
+    folder: FolderIndicator?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) = Card(

@@ -197,7 +197,7 @@ fun ListLabel(
 }
 
 @Composable
-fun AmountWithArrow(
+fun AmountWithTypeIndicator(
     value: Double,
     modifier: Modifier = Modifier,
     showTypeIndicator: Boolean = true,
@@ -236,7 +236,7 @@ fun AmountWithArrow(
 }
 
 @Composable
-fun AmountWithArrow(
+fun AmountWithTypeIndicator(
     value: String,
     type: TransactionType?,
     modifier: Modifier = Modifier,
@@ -269,7 +269,7 @@ fun AmountWithArrow(
 }
 
 @Composable
-fun AmountWithArrow(
+fun AmountWithTypeIndicator(
     value: String,
     type: AggregateType,
     modifier: Modifier = Modifier,

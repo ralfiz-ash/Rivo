@@ -77,7 +77,7 @@ import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.orZero
-import dev.ridill.rivo.core.ui.components.AmountWithArrow
+import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
 import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
@@ -500,7 +500,7 @@ private fun TagInfoCard(
 
             SpacerSmall()
 
-            AmountWithArrow(
+            AmountWithTypeIndicator(
                 value = TextFormat.currencyAmount(aggregateAmount.absoluteValue),
                 type = aggregateType
             )
@@ -587,7 +587,7 @@ private fun ListLabelAndAggAmount(
 
         AnimatedVisibility(visible = isAggValid) {
             VerticalNumberSpinnerContent(aggregateAmount.orZero()) { amount ->
-                AmountWithArrow(
+                AmountWithTypeIndicator(
                     value = TextFormat.currencyAmount(amount.absoluteValue),
                     type = aggType ?: AggregateType.BALANCED
                 )

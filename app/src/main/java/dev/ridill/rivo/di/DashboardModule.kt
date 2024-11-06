@@ -12,6 +12,7 @@ import dev.ridill.rivo.dashboard.presentation.DashboardViewModel
 import dev.ridill.rivo.schedules.data.local.SchedulesDao
 import dev.ridill.rivo.settings.domain.repositoty.BudgetPreferenceRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
+import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -21,11 +22,13 @@ object DashboardModule {
         authRepo: AuthRepository,
         budgetRepo: BudgetPreferenceRepository,
         transactionDao: TransactionDao,
+        transactionRepo: TransactionRepository,
         schedulesDao: SchedulesDao
     ): DashboardRepository = DashboardRepositoryImpl(
         authRepo = authRepo,
         budgetRepo = budgetRepo,
         transactionDao = transactionDao,
+        transactionRepo = transactionRepo,
         schedulesDao = schedulesDao
     )
 

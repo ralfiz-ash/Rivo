@@ -15,6 +15,7 @@ import dev.ridill.rivo.transactions.data.repository.AddEditTransactionRepository
 import dev.ridill.rivo.transactions.data.repository.AllTransactionsRepositoryImpl
 import dev.ridill.rivo.transactions.domain.repository.AddEditTransactionRepository
 import dev.ridill.rivo.transactions.domain.repository.AllTransactionsRepository
+import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import dev.ridill.rivo.transactions.presentation.addEditTransaction.AddEditTransactionViewModel
 import dev.ridill.rivo.transactions.presentation.allTransactions.AllTransactionsViewModel
 
@@ -43,11 +44,13 @@ object TransactionViewModelModule {
     fun provideAllTransactionsRepository(
         db: RivoDatabase,
         dao: TransactionDao,
+        transactionRepo: TransactionRepository,
         preferencesManager: PreferencesManager,
         currencyPreferenceRepository: CurrencyPreferenceRepository
     ): AllTransactionsRepository = AllTransactionsRepositoryImpl(
         db = db,
         dao = dao,
+        repo = transactionRepo,
         preferencesManager = preferencesManager,
         currencyPrefRepo = currencyPreferenceRepository
     )

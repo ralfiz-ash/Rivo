@@ -32,7 +32,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.compose.LazyPagingItems
 import dev.ridill.rivo.R
-import dev.ridill.rivo.core.ui.components.AmountWithArrow
+import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.EmptyListIndicator
 import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
@@ -229,7 +229,7 @@ private fun FolderCard(
             ) {
                 TitleMediumText(stringResource(R.string.aggregate_abr))
                 SpacerSmall()
-                AmountWithArrow(
+                AmountWithTypeIndicator(
                     value = aggregateAmount,
                     type = aggregateType
                 )

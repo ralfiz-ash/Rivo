@@ -16,6 +16,7 @@ import dev.ridill.rivo.folders.domain.repository.FolderListRepository
 import dev.ridill.rivo.folders.presentation.addEditFolder.AddEditFolderViewModel
 import dev.ridill.rivo.folders.presentation.folderDetails.FolderDetailsViewModel
 import dev.ridill.rivo.transactions.data.local.TransactionDao
+import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -34,10 +35,12 @@ object FolderModule {
     @Provides
     fun provideFolderDetailsRepository(
         folderDao: FolderDao,
-        transactionDao: TransactionDao
+        transactionDao: TransactionDao,
+        transactionRepo: TransactionRepository
     ): FolderDetailsRepository = FolderDetailsRepositoryImpl(
         dao = folderDao,
-        transactionDao = transactionDao
+        transactionDao = transactionDao,
+        transactionRepo = transactionRepo
     )
 
     @Provides

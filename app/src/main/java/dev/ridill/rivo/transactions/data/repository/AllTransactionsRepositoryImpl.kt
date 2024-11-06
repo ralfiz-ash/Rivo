@@ -1,24 +1,18 @@
 package dev.ridill.rivo.transactions.data.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.insertSeparators
-import androidx.paging.map
 import androidx.room.withTransaction
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.domain.util.Empty
-import dev.ridill.rivo.core.domain.util.UtilConstants
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.local.entity.TransactionEntity
-import dev.ridill.rivo.transactions.data.local.views.TransactionDetailsView
-import dev.ridill.rivo.transactions.data.toTransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.domain.repository.AllTransactionsRepository
+import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -32,6 +26,7 @@ import kotlin.math.absoluteValue
 class AllTransactionsRepositoryImpl(
     private val db: RivoDatabase,
     private val dao: TransactionDao,
+    private val repo: TransactionRepository,
     private val preferencesManager: PreferencesManager,
     private val currencyPrefRepo: CurrencyPreferenceRepository
 ) : AllTransactionsRepository {
@@ -67,40 +62,13 @@ class AllTransactionsRepositoryImpl(
         showExcluded: Boolean,
         tagIds: Set<Long>?,
         folderId: Long?
-    ): Flow<PagingData<TransactionListItemUIModel>> = Pager(
-        config = PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE)
-    ) {
-        dao.getTransactionsPaged(
-            startDate = dateRange?.first,
-            endDate = dateRange?.second,
-            type = transactionType,
-            showExcluded = showExcluded,
-            tagIds = tagIds?.takeIf { it.isNotEmpty() },
-            folderId = folderId
-        )
-    }.flow
-        .map { it.map(TransactionDetailsView::toTransactionListItem) }
-        .map { pagingData ->
-            pagingData.map { TransactionListItemUIModel.TransactionItem(it) }
-        }
-        .map { pagingData ->
-            pagingData
-                .insertSeparators<TransactionListItemUIModel.TransactionItem, TransactionListItemUIModel>
-                { before, after ->
-                    if (before?.transaction?.timestamp
-                            ?.withDayOfMonth(1)
-                            ?.toLocalDate()
-                        != after?.transaction?.timestamp
-                            ?.withDayOfMonth(1)
-                            ?.toLocalDate()
-                    ) after?.transaction?.timestamp
-                        ?.withDayOfMonth(1)
-                        ?.toLocalDate()
-                        ?.let { localDate ->
-                            TransactionListItemUIModel.DateSeparator(localDate)
-                        } else null
-                }
-        }
+    ): Flow<PagingData<TransactionListItemUIModel>> = repo.getDateSeparatedTransactions(
+        dateRange = dateRange,
+        type = transactionType,
+        showExcluded = showExcluded,
+        tagIds = tagIds,
+        folderId = folderId
+    )
 
     override suspend fun setTagIdToTransactions(
         tagId: Long?,

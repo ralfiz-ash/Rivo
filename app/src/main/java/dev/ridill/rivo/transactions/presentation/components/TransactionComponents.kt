@@ -37,7 +37,7 @@ import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.WhiteSpace
-import dev.ridill.rivo.core.ui.components.AmountWithArrow
+import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BodyMediumText
 import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
@@ -46,10 +46,11 @@ import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.exclusionGraphicsLayer
-import dev.ridill.rivo.folders.domain.model.Folder
-import dev.ridill.rivo.tags.domain.model.Tag
+import dev.ridill.rivo.transactions.domain.model.FolderIndicator
+import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDate
+import kotlin.text.ifEmpty
 
 @Composable
 fun TransactionListItem(
@@ -58,8 +59,8 @@ fun TransactionListItem(
     date: LocalDate,
     type: TransactionType,
     modifier: Modifier = Modifier,
-    tag: Tag? = null,
-    folder: Folder? = null,
+    tag: TagIndicator? = null,
+    folder: FolderIndicator? = null,
     excluded: Boolean = false,
     overlineContent: @Composable (() -> Unit)? = null,
     colors: ListItemColors = ListItemDefaults.colors(),
@@ -96,29 +97,22 @@ fun TransactionListItem(
     }
     ListItem(
         headlineContent = {
-
-
-            if (note.isEmpty() && (tag != null || folder != null)) {
-                TagAndFolderIndicator(tag = tag, folder = folder)
-            } else {
-                Text(
-                    text = note
-                        .ifEmpty { stringResource(type.labelRes) },
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    color = LocalContentColor.current.copy(
-                        alpha = if (note.isEmpty()) ContentAlpha.SUB_CONTENT
-                        else Float.One
-                    ),
-                    style = LocalTextStyle.current.copy(
-                        fontStyle = if (note.isEmpty()) FontStyle.Italic
-                        else null
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+            ) {
+                if (note.isEmpty() && (tag != null || folder != null)) {
+                    TagAndFolderIndicator(
+                        tag = tag,
+                        folder = folder
                     )
-                )
+                } else {
+                    NoteText(
+                        note = note,
+                        type = type
+                    )
+                }
             }
-            // FIXME: note text not visible if amount text is too long
         },
         leadingContent = {
             ListItemLeadingContentContainer(
@@ -139,7 +133,7 @@ fun TransactionListItem(
                 if (excluded) {
                     ExcludedIndicatorSmall()
                 }
-                AmountWithArrow(
+                AmountWithTypeIndicator(
                     value = amount,
                     type = type
                 )
@@ -170,9 +164,32 @@ fun TransactionListItem(
 }
 
 @Composable
+private fun NoteText(
+    note: String,
+    type: TransactionType,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = note
+            .ifEmpty { stringResource(type.labelRes) },
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+        color = LocalContentColor.current.copy(
+            alpha = if (note.isEmpty()) ContentAlpha.SUB_CONTENT
+            else Float.One
+        ),
+        style = LocalTextStyle.current.copy(
+            fontStyle = if (note.isEmpty()) FontStyle.Italic
+            else null
+        )
+    )
+}
+
+@Composable
 private fun TagAndFolderIndicator(
-    tag: Tag?,
-    folder: Folder?,
+    tag: TagIndicator?,
+    folder: FolderIndicator?,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -183,7 +200,7 @@ private fun TagAndFolderIndicator(
         tag?.let {
             TagIndicator(
                 name = it.name,
-                color = Color(it.colorCode),
+                color = it.color,
                 modifier = Modifier
                     .weight(weight = Float.One, fill = false)
             )
