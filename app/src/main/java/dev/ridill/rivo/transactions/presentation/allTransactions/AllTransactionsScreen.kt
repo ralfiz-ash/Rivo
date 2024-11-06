@@ -289,11 +289,12 @@ fun AllTransactionsScreen(
                                     date = item.transaction.date,
                                     type = item.transaction.type,
                                     tag = item.transaction.tag,
+                                    folder = item.transaction.folder,
                                     excluded = item.transaction.excluded,
                                     tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
                                     modifier = Modifier
                                         .then(clickableModifier)
-                                        .animateItem(),
+                                        .animateItem()
                                 )
                             }
                         }

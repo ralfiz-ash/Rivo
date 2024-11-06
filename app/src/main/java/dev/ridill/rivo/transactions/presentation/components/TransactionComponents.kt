@@ -194,7 +194,7 @@ private fun TagAndFolderIndicator(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
         modifier = modifier
     ) {
         tag?.let {
