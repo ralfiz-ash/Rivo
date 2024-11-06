@@ -3,6 +3,7 @@ package dev.ridill.rivo.transactions.domain.repository
 import androidx.paging.PagingData
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
@@ -13,6 +14,7 @@ import java.time.LocalDateTime
 
 interface TransactionRepository {
     fun getAllTransactionsPaged(
+        query: String = String.Empty,
         dateRange: Pair<LocalDate, LocalDate>? = null,
         type: TransactionType? = null,
         showExcluded: Boolean = true,
@@ -21,6 +23,7 @@ interface TransactionRepository {
     ): Flow<PagingData<TransactionListItem>>
 
     fun getDateSeparatedTransactions(
+        query: String = String.Empty,
         dateRange: Pair<LocalDate, LocalDate>? = null,
         type: TransactionType? = null,
         showExcluded: Boolean = true,

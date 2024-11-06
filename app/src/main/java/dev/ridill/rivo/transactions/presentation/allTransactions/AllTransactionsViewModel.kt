@@ -8,6 +8,7 @@ import com.zhuinden.flowcombinetuplekt.combineTuple
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.addOrRemove
@@ -40,6 +41,7 @@ class AllTransactionsViewModel @Inject constructor(
     private val eventBus: EventBus<AllTransactionsEvent>
 ) : ViewModel(), AllTransactionsActions {
 
+    val searchQuery = savedStateHandle.getStateFlow(SEARCH_QUERY, String.Empty)
     private val dateLimits = transactionRepo.getDateLimits()
         .distinctUntilChanged()
         .asStateFlow(viewModelScope, LocalDate.now() to LocalDate.now())
@@ -258,6 +260,10 @@ class AllTransactionsViewModel @Inject constructor(
     }.asStateFlow(viewModelScope, AllTransactionsState())
 
     val events = eventBus.eventFlow
+
+    override fun onSearchQueryChange(value: String) {
+        savedStateHandle[SEARCH_QUERY] = value
+    }
 
     override fun onClearAllFiltersClick() {
         savedStateHandle[SELECTED_DATE_RANGE_FLOATS] = null
@@ -508,6 +514,7 @@ class AllTransactionsViewModel @Inject constructor(
     }
 }
 
+private const val SEARCH_QUERY = "SEARCH_QUERY"
 private const val SELECTED_DATE_RANGE_FLOATS = "SELECTED_DATE_RANGE_FLOATS"
 private const val TRANSACTION_TYPE_FILTER = "TRANSACTION_TYPE_FILTER"
 private const val SELECTED_TAG_IDS = "SELECTED_TAG_IDS"

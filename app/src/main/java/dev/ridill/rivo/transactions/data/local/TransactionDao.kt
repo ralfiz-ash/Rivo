@@ -40,7 +40,8 @@ interface TransactionDao : BaseDao<TransactionEntity> {
     @Query(
         """
         SELECT * FROM transaction_details_view
-        WHERE ((:startDate IS NULL OR :endDate IS NULL) OR (DATETIME(transactionTimestamp) BETWEEN DATETIME(:startDate) AND DATETIME(:endDate)))
+        WHERE (transactionNote LIKE '%' || :query || '%')
+            AND ((:startDate IS NULL OR :endDate IS NULL) OR (DATETIME(transactionTimestamp) BETWEEN DATETIME(:startDate) AND DATETIME(:endDate)))
             AND (:type IS NULL OR transactionType = :type)
             AND (COALESCE(:tagIds, 0) = 0 OR tagId IN (:tagIds))
             AND (:folderId IS NULL OR folderId = :folderId)
@@ -49,6 +50,7 @@ interface TransactionDao : BaseDao<TransactionEntity> {
         """
     )
     fun getTransactionsPaged(
+        query: String,
         startDate: LocalDateTime?,
         endDate: LocalDateTime?,
         type: TransactionType?,

@@ -27,6 +27,7 @@ class TransactionRepositoryImpl(
     private val dao: TransactionDao
 ) : TransactionRepository {
     override fun getAllTransactionsPaged(
+        query: String,
         dateRange: Pair<LocalDate, LocalDate>?,
         type: TransactionType?,
         showExcluded: Boolean,
@@ -36,6 +37,7 @@ class TransactionRepositoryImpl(
         config = PagingConfig(pageSize = UtilConstants.DEFAULT_PAGE_SIZE),
         pagingSourceFactory = {
             dao.getTransactionsPaged(
+                query = query,
                 startDate = dateRange?.first?.atStartOfDay(),
                 endDate = dateRange?.second?.plusDays(1L)?.atStartOfDay(),
                 type = type,
@@ -48,12 +50,14 @@ class TransactionRepositoryImpl(
         .map { it.map(TransactionDetailsView::toTransactionListItem) }
 
     override fun getDateSeparatedTransactions(
+        query: String,
         dateRange: Pair<LocalDate, LocalDate>?,
         type: TransactionType?,
         showExcluded: Boolean,
         tagIds: Set<Long>?,
         folderId: Long?
     ): Flow<PagingData<TransactionListItemUIModel>> = getAllTransactionsPaged(
+        query = query,
         dateRange = dateRange,
         type = type,
         showExcluded = showExcluded,
