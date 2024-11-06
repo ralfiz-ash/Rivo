@@ -12,6 +12,7 @@ import dev.ridill.rivo.transactions.domain.model.TransactionDateLimits
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Dao
 interface TransactionDao : BaseDao<TransactionEntity> {
@@ -39,17 +40,17 @@ interface TransactionDao : BaseDao<TransactionEntity> {
     @Query(
         """
         SELECT * FROM transaction_details_view
-        WHERE ((:startDate IS NULL OR :endDate IS NULL) OR DATE(transactionTimestamp) BETWEEN DATE(:startDate) AND DATE(:endDate))
+        WHERE ((:startDate IS NULL OR :endDate IS NULL) OR (DATETIME(transactionTimestamp) BETWEEN DATETIME(:startDate) AND DATETIME(:endDate)))
             AND (:type IS NULL OR transactionType = :type)
             AND (COALESCE(:tagIds, 0) = 0 OR tagId IN (:tagIds))
             AND (:folderId IS NULL OR folderId = :folderId)
-            AND (:showExcluded = 1 OR overallExcluded = 0)
-        ORDER BY datetime(transactionTimestamp) DESC, transactionNote DESC, tagName DESC, folderName DESC
+            AND (:showExcluded = 1 OR excluded = 0)
+        ORDER BY DATETIME(transactionTimestamp) DESC, transactionNote DESC, tagName DESC, folderName DESC
         """
     )
     fun getTransactionsPaged(
-        startDate: LocalDate?,
-        endDate: LocalDate?,
+        startDate: LocalDateTime?,
+        endDate: LocalDateTime?,
         type: TransactionType?,
         showExcluded: Boolean,
         tagIds: Set<Long>?,
@@ -68,7 +69,7 @@ interface TransactionDao : BaseDao<TransactionEntity> {
         WHERE (:type IS NULL OR transactionType = :type)
             AND ((:startDate IS NULL OR :endDate IS NULL) OR DATE(transactionTimestamp) BETWEEN DATE(:startDate) AND DATE(:endDate))
             AND (COALESCE(:tagIds, 0) = 0 OR tagId IN (:tagIds))
-            AND (:showExcluded = 1 OR overallExcluded = 0)
+            AND (:showExcluded = 1 OR excluded = 0)
             AND (COALESCE(:selectedTxIds, 0) = 0 OR transactionId IN (:selectedTxIds))
     """
     )
