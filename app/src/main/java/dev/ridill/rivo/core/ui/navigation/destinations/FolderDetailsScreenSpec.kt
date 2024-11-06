@@ -88,7 +88,7 @@ data object FolderDetailsScreenSpec : ScreenSpec {
                         actionLabel = context.getString(R.string.action_undo),
                         onSnackbarResult = {
                             if (it == SnackbarResult.ActionPerformed) {
-                                viewModel.onRemoveTransactionUndo(event.transaction)
+                                viewModel.onRemoveTransactionUndo(event.txId)
                             }
                         }
                     )

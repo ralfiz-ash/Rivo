@@ -12,11 +12,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Card
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +62,7 @@ import dev.ridill.rivo.core.ui.util.isEmpty
 import dev.ridill.rivo.core.ui.util.mergedContentDescription
 import dev.ridill.rivo.folders.domain.model.AggregateType
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
+import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
 import dev.ridill.rivo.transactions.presentation.components.TransactionListItem
 import kotlin.math.absoluteValue
 
@@ -105,6 +104,9 @@ fun FolderDetailsScreen(
                 scrollBehavior = topAppBarScrollBehavior
             )
         },
+        floatingActionButton = {
+            NewTransactionFab(onClick = { navigateToAddEditTransaction(null) })
+        },
         snackbarController = snackbarController,
         modifier = Modifier
             .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
@@ -140,13 +142,16 @@ fun FolderDetailsScreen(
                 key = "TransactionListHeader",
                 contentType = "TransactionListHeader"
             ) {
-                TransactionListHeader(
-                    onNewTransactionClick = { navigateToAddEditTransaction(null) },
+                ListLabel(
+                    text = stringResource(R.string.transactions),
                     modifier = Modifier
-                        .fillParentMaxWidth()
-                        .padding(horizontal = MaterialTheme.spacing.medium)
+                        .padding(
+                            horizontal = MaterialTheme.spacing.medium,
+                            vertical = MaterialTheme.spacing.small
+                        )
                         .animateItem()
                 )
+
             }
 
             listEmptyIndicator(
@@ -176,7 +181,7 @@ fun FolderDetailsScreen(
                                 contentType = "TransactionListItem"
                             ) {
                                 SwipeToDismissContainer(
-                                    onDismiss = { actions.onTransactionSwipeToDismiss(item) },
+                                    onDismiss = { actions.onTransactionSwipeToDismiss(item.id) },
                                     backgroundContent = {
                                         DismissBackground(
                                             swipeDismissState = it,
@@ -323,26 +328,6 @@ private fun FolderCreatedDate(
             imageVector = Icons.Outlined.CalendarClock,
             contentDescription = stringResource(R.string.cd_folder_created_date)
         )
-    }
-}
-
-@Composable
-private fun TransactionListHeader(
-    onNewTransactionClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        ListLabel(stringResource(R.string.transactions))
-        FilledTonalIconButton(onClick = onNewTransactionClick) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = stringResource(R.string.cd_new_transaction_fab)
-            )
-        }
     }
 }
 

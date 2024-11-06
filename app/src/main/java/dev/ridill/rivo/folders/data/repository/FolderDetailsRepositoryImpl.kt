@@ -6,7 +6,6 @@ import dev.ridill.rivo.folders.data.toFolderDetails
 import dev.ridill.rivo.folders.domain.model.FolderDetails
 import dev.ridill.rivo.folders.domain.repository.FolderDetailsRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
-import dev.ridill.rivo.transactions.data.toEntity
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
@@ -43,14 +42,22 @@ class FolderDetailsRepositoryImpl(
         dao.deleteFolderAndTransactionsById(id)
     }
 
-    override suspend fun removeTransactionFromFolderById(transactionId: Long) =
-        withContext(Dispatchers.IO) {
-            transactionDao.setFolderIdToTransactionsByIds(setOf(transactionId), null)
-        }
+    override suspend fun removeTransactionFromFolderById(
+        transactionId: Long
+    ) = withContext(Dispatchers.IO) {
+        transactionDao.setFolderIdToTransactionsByIds(
+            ids = setOf(transactionId),
+            folderId = null
+        )
+    }
 
-    override suspend fun addTransactionToFolder(transaction: TransactionListItemUIModel.TransactionItem) {
-        withContext(Dispatchers.IO) {
-            transactionDao.upsert(transaction.toEntity())
-        }
+    override suspend fun addTransactionToFolder(
+        txId: Long,
+        folderId: Long
+    ) = withContext(Dispatchers.IO) {
+        transactionDao.setFolderIdToTransactionsByIds(
+            ids = setOf(txId),
+            folderId = folderId
+        )
     }
 }

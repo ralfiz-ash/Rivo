@@ -15,5 +15,5 @@ interface FolderDetailsRepository {
 
     suspend fun addTransactionsToFolderByIds(folderId: Long, transactionIds: Set<Long>)
     suspend fun removeTransactionFromFolderById(transactionId: Long)
-    suspend fun addTransactionToFolder(transaction: TransactionListItemUIModel.TransactionItem)
+    suspend fun addTransactionToFolder(txId: Long, folderId: Long)
 }

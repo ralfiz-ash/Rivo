@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingActionButtonElevation
@@ -279,7 +278,7 @@ fun NewTransactionFab(
         modifier = modifier
     ) {
         Icon(
-            imageVector = Icons.Default.Add,
+            imageVector = ImageVector.vectorResource(R.drawable.ic_outline_money_add),
             contentDescription = stringResource(R.string.cd_new_transaction_fab)
         )
     }
