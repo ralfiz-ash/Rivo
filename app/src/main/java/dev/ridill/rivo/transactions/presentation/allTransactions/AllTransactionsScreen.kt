@@ -2,6 +2,7 @@ package dev.ridill.rivo.transactions.presentation.allTransactions
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.combinedClickable
@@ -41,6 +42,8 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -94,7 +97,6 @@ import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.components.slideInHorizontallyWithFadeIn
 import dev.ridill.rivo.core.ui.components.slideOutHorizontallyWithFadeOut
 import dev.ridill.rivo.core.ui.navigation.destinations.AllTagsScreenSpec
-import dev.ridill.rivo.core.ui.navigation.destinations.AllTransactionsScreenSpec
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.contentColor
@@ -124,6 +126,7 @@ fun AllTransactionsScreen(
     snackbarController: SnackbarController,
     tagsPagingItems: LazyPagingItems<TagInfo>,
     transactionsLazyPagingItems: LazyPagingItems<TransactionListItemUIModel>,
+    searchQuery: () -> String,
     searchResultsLazyPagingItems: LazyPagingItems<TransactionListItem>,
     state: AllTransactionsState,
     actions: AllTransactionsActions,
@@ -141,50 +144,28 @@ fun AllTransactionsScreen(
         onBack = actions::onDismissMultiSelectionMode
     )
 
+    BackHandler(
+        enabled = state.searchModeActive,
+        onBack = { actions.onSearchModeToggle(false) }
+    )
+
     val topAppBarScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     RivoScaffold(
         snackbarController = snackbarController,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (state.transactionMultiSelectionModeActive)
-                            stringResource(
-                                R.string.count_selected,
-                                state.selectedTransactionIds.size
-                            )
-                        else stringResource(AllTransactionsScreenSpec.labelRes)
-                    )
-                },
-                navigationIcon = {
-                    if (state.transactionMultiSelectionModeActive) {
-                        IconButton(onClick = actions::onDismissMultiSelectionMode) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = stringResource(R.string.cd_clear_transaction_selection)
-                            )
-                        }
-                    } else {
-                        BackArrowButton(onClick = navigateUp)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = actions::onFilterOptionsClick) {
-                        Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = stringResource(id = R.string.cd_filter_options)
-                        )
-                    }
-                    AnimatedVisibility(visible = state.transactionMultiSelectionModeActive) {
-                        IconButton(onClick = actions::onMultiSelectionOptionsClick) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.cd_options)
-                            )
-                        }
-                    }
-                },
-                scrollBehavior = topAppBarScrollBehavior
+            AllTransactionsTopAppBar(
+                searchModeActive = state.searchModeActive,
+                onSearchModeToggle = actions::onSearchModeToggle,
+                searchQuery = searchQuery,
+                onSearchQueryChange = actions::onSearchQueryChange,
+                onClearSearchQuery = actions::onClearSearchQuery,
+                searchResults = searchResultsLazyPagingItems,
+                onFilterOptionsClick = actions::onFilterOptionsClick,
+                multiSelectionModeActive = state.transactionMultiSelectionModeActive,
+                selectionCount = state.selectedTransactionIds.size,
+                onDismissMultiSelectionMode = actions::onDismissMultiSelectionMode,
+                onMultiSelectionOptionsClick = actions::onMultiSelectionOptionsClick,
+                navigateUp = navigateUp
             )
         },
         floatingActionButton = {
@@ -350,6 +331,158 @@ fun AllTransactionsScreen(
             onChangeTagSelectionClick = actions::onChangeTagFiltersClick,
         )
     }
+}
+
+@Composable
+private fun AllTransactionsTopAppBar(
+    searchModeActive: Boolean,
+    onSearchModeToggle: (Boolean) -> Unit,
+    searchQuery: () -> String,
+    onSearchQueryChange: (String) -> Unit,
+    onClearSearchQuery: () -> Unit,
+    searchResults: LazyPagingItems<TransactionListItem>,
+    onFilterOptionsClick: () -> Unit,
+    multiSelectionModeActive: Boolean,
+    selectionCount: Int,
+    onDismissMultiSelectionMode: () -> Unit,
+    onMultiSelectionOptionsClick: () -> Unit,
+    navigateUp: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    SearchBar(
+        inputField = {
+            AnimatedContent(
+                targetState = multiSelectionModeActive,
+                label = "MultiSelectionModeActiveContent"
+            ) { active ->
+                if (active) {
+                    TopAppBar(
+                        title = { Text(stringResource(R.string.count_selected, selectionCount)) },
+                        navigationIcon = {
+                            IconButton(onClick = onDismissMultiSelectionMode) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = stringResource(R.string.cd_clear_transaction_selection)
+                                )
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = onMultiSelectionOptionsClick) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = stringResource(R.string.cd_options)
+                                )
+                            }
+                        },
+//                        scrollBehavior = topAppBarScrollBehavior
+                    )
+                } else {
+                    SearchBarDefaults.InputField(
+                        query = searchQuery(),
+                        onQueryChange = onSearchQueryChange,
+                        onSearch = {},
+                        expanded = searchModeActive,
+                        onExpandedChange = onSearchModeToggle,
+                        leadingIcon = {
+                            BackArrowButton(
+                                onClick = {
+                                    if (searchModeActive) onSearchModeToggle(false)
+                                    else navigateUp()
+                                }
+                            )
+                        },
+                        trailingIcon = {
+                            if (searchModeActive) {
+                                IconButton(onClick = onClearSearchQuery) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = stringResource(R.string.cd_clear_search_query)
+                                    )
+                                }
+                            } else {
+                                IconButton(onClick = onFilterOptionsClick) {
+                                    Icon(
+                                        imageVector = Icons.Default.FilterList,
+                                        contentDescription = stringResource(id = R.string.cd_filter_options)
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+        },
+        expanded = searchModeActive,
+        onExpandedChange = onSearchModeToggle,
+        modifier = modifier
+    ) {
+        LazyColumn(
+            contentPadding = PaddingValues(
+                top = MaterialTheme.spacing.medium,
+                bottom = PaddingScrollEnd
+            )
+        ) {
+            items(
+                count = searchResults.itemCount,
+                key = searchResults.itemKey { it.id },
+                contentType = searchResults.itemContentType { "SearchResultTransactionItem" }
+            ) { index ->
+                searchResults[index]?.let { item ->
+                    TransactionListItem(
+                        note = item.note,
+                        amount = item.amountFormatted,
+                        date = item.date,
+                        type = item.type,
+                        tag = item.tag,
+                        folder = item.folder,
+                        modifier = Modifier
+                            .animateItem()
+                    )
+                }
+            }
+        }
+    }
+    //            TopAppBar(
+//                title = {
+//                    Text(
+//                        text = if (state.transactionMultiSelectionModeActive)
+//                            stringResource(
+//                                R.string.count_selected,
+//                                state.selectedTransactionIds.size
+//                            )
+//                        else stringResource(AllTransactionsScreenSpec.labelRes)
+//                    )
+//                },
+//                navigationIcon = {
+//                    if (state.transactionMultiSelectionModeActive) {
+//                        IconButton(onClick = actions::onDismissMultiSelectionMode) {
+//                            Icon(
+//                                imageVector = Icons.Rounded.Close,
+//                                contentDescription = stringResource(R.string.cd_clear_transaction_selection)
+//                            )
+//                        }
+//                    } else {
+//                        BackArrowButton(onClick = navigateUp)
+//                    }
+//                },
+//                actions = {
+//                    IconButton(onClick = actions::onFilterOptionsClick) {
+//                        Icon(
+//                            imageVector = Icons.Default.FilterList,
+//                            contentDescription = stringResource(id = R.string.cd_filter_options)
+//                        )
+//                    }
+//                    AnimatedVisibility(visible = state.transactionMultiSelectionModeActive) {
+//                        IconButton(onClick = actions::onMultiSelectionOptionsClick) {
+//                            Icon(
+//                                imageVector = Icons.Default.MoreVert,
+//                                contentDescription = stringResource(R.string.cd_options)
+//                            )
+//                        }
+//                    }
+//                },
+//                scrollBehavior = topAppBarScrollBehavior
+//            )
 }
 
 private val TagsRowMinHeight = 100.dp

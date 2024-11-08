@@ -276,13 +276,19 @@ class AllTransactionsViewModel @Inject constructor(
         savedStateHandle[SEARCH_MODE_ACTIVE] = true
     }
 
-    override fun onSearchDismiss() {
-        savedStateHandle[SEARCH_MODE_ACTIVE] = false
-        savedStateHandle[SEARCH_QUERY] = null
+    override fun onSearchModeToggle(active: Boolean) {
+        savedStateHandle[SEARCH_MODE_ACTIVE] = active
+        if (!active) {
+            savedStateHandle[SEARCH_QUERY] = null
+        }
     }
 
     override fun onSearchQueryChange(value: String) {
         savedStateHandle[SEARCH_QUERY] = value
+    }
+
+    override fun onClearSearchQuery() {
+        savedStateHandle[SEARCH_QUERY] = null
     }
 
     override fun onClearAllFiltersClick() {
