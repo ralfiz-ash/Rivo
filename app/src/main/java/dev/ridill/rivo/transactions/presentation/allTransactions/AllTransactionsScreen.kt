@@ -188,18 +188,20 @@ fun AllTransactionsScreen(
                 bottom = paddingValues.calculateBottomPadding() + PaddingScrollEnd
             )
         ) {
-            item(
-                key = "TagsHorizontalList",
-                contentType = "TagsHorizontalList"
-            ) {
-                TagsInfoList(
-                    tagsPagingItems = tagsPagingItems,
-                    onAllTagsClick = navigateToAllTags,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = TagsRowMinHeight)
-                        .animateItem()
-                )
+            if (!state.transactionMultiSelectionModeActive) {
+                item(
+                    key = "TagsHorizontalList",
+                    contentType = "TagsHorizontalList"
+                ) {
+                    TagsInfoList(
+                        tagsPagingItems = tagsPagingItems,
+                        onAllTagsClick = navigateToAllTags,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = TagsRowMinHeight)
+                            .animateItem()
+                    )
+                }
             }
 
             stickyHeader(
