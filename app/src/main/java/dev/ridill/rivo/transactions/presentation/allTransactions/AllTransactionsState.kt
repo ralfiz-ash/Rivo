@@ -9,6 +9,7 @@ import dev.ridill.rivo.transactions.domain.model.TransactionTypeFilter
 import java.time.LocalDate
 
 data class AllTransactionsState(
+    val searchModeActive: Boolean = false,
     val dateLimitsFloatRange: ClosedFloatingPointRange<Float> = Float.Zero.rangeTo(Float.Zero),
     val dateRangeSteps: Long = Long.Zero,
     val selectedDateRange: ClosedFloatingPointRange<Float> = Float.Zero.rangeTo(Float.Zero),

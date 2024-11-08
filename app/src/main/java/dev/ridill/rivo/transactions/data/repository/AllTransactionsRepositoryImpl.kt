@@ -9,6 +9,7 @@ import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.local.entity.TransactionEntity
+import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.domain.repository.AllTransactionsRepository
@@ -69,6 +70,9 @@ class AllTransactionsRepositoryImpl(
         tagIds = tagIds,
         folderId = folderId
     )
+
+    override fun getSearchResults(query: String?): Flow<PagingData<TransactionListItem>> = repo
+        .getAllTransactionsPaged(query = query)
 
     override suspend fun setTagIdToTransactions(
         tagId: Long?,

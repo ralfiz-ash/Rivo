@@ -111,6 +111,7 @@ import dev.ridill.rivo.tags.domain.model.Tag
 import dev.ridill.rivo.tags.domain.model.TagInfo
 import dev.ridill.rivo.tags.presentation.components.ElevatedTagChip
 import dev.ridill.rivo.transactions.domain.model.AllTransactionsMultiSelectionOption
+import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionTypeFilter
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
@@ -123,6 +124,7 @@ fun AllTransactionsScreen(
     snackbarController: SnackbarController,
     tagsPagingItems: LazyPagingItems<TagInfo>,
     transactionsLazyPagingItems: LazyPagingItems<TransactionListItemUIModel>,
+    searchResultsLazyPagingItems: LazyPagingItems<TransactionListItem>,
     state: AllTransactionsState,
     actions: AllTransactionsActions,
     navigateToAllTags: () -> Unit,

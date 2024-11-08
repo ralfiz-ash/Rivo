@@ -4,6 +4,8 @@ import dev.ridill.rivo.transactions.domain.model.AllTransactionsMultiSelectionOp
 import dev.ridill.rivo.transactions.domain.model.TransactionTypeFilter
 
 interface AllTransactionsActions {
+    fun onSearchClick()
+    fun onSearchDismiss()
     fun onSearchQueryChange(value: String)
     fun onClearAllFiltersClick()
     fun onDateFilterRangeChange(range: ClosedFloatingPointRange<Float>)
