@@ -7,8 +7,12 @@ sealed interface BottomNavDestination : NavDestination {
         val bottomNavDestinations: List<BottomNavDestination>
             get() = NavDestination.allDestinations
                 .filterIsInstance<BottomNavDestination>()
+                .sortedBy { it.precedence }
     }
 
     @get:DrawableRes
     val iconRes: Int
+
+    val precedence: Int
+        get() = 0
 }
