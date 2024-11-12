@@ -12,6 +12,9 @@ data object SchedulesGraphSpec : NavGraphSpec, BottomNavDestination {
     override val iconRes: Int
         get() = R.drawable.ic_outline_schedule
 
+    override val precedence: Int
+        get() = 1
+
     override val children: List<NavDestination>
         get() = listOf(
         AllSchedulesScreenSpec

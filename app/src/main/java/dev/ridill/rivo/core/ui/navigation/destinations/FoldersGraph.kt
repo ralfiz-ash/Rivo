@@ -12,6 +12,9 @@ object FoldersGraph : NavGraphSpec, BottomNavDestination {
     override val iconRes: Int
         get() = R.drawable.ic_outline_folder
 
+    override val precedence: Int
+        get() = 2
+
     override val children: List<NavDestination>
         get() = listOf(
             AllFoldersScreenSpec,
