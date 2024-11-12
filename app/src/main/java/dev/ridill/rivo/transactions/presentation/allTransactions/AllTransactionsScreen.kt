@@ -2,8 +2,12 @@ package dev.ridill.rivo.transactions.presentation.allTransactions
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,10 +42,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -60,6 +68,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -69,6 +78,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
@@ -76,11 +86,13 @@ import androidx.paging.compose.itemKey
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.One
+import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.orZero
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
 import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
+import dev.ridill.rivo.core.ui.components.FadedVisibility
 import dev.ridill.rivo.core.ui.components.ListLabel
 import dev.ridill.rivo.core.ui.components.ListSeparator
 import dev.ridill.rivo.core.ui.components.RivoModalBottomSheet
@@ -92,7 +104,9 @@ import dev.ridill.rivo.core.ui.components.SpacerSmall
 import dev.ridill.rivo.core.ui.components.VerticalNumberSpinnerContent
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.components.slideInHorizontallyWithFadeIn
+import dev.ridill.rivo.core.ui.components.slideInVerticallyWithFadeIn
 import dev.ridill.rivo.core.ui.components.slideOutHorizontallyWithFadeOut
+import dev.ridill.rivo.core.ui.components.slideOutVerticallyWithFadeOut
 import dev.ridill.rivo.core.ui.navigation.destinations.AllTagsScreenSpec
 import dev.ridill.rivo.core.ui.navigation.destinations.AllTransactionsScreenSpec
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
@@ -111,6 +125,7 @@ import dev.ridill.rivo.tags.domain.model.Tag
 import dev.ridill.rivo.tags.domain.model.TagInfo
 import dev.ridill.rivo.tags.presentation.components.ElevatedTagChip
 import dev.ridill.rivo.transactions.domain.model.AllTransactionsMultiSelectionOption
+import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionTypeFilter
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
@@ -123,6 +138,8 @@ fun AllTransactionsScreen(
     snackbarController: SnackbarController,
     tagsPagingItems: LazyPagingItems<TagInfo>,
     transactionsLazyPagingItems: LazyPagingItems<TransactionListItemUIModel>,
+    searchQuery: () -> String,
+    searchResultsLazyPagingItems: LazyPagingItems<TransactionListItem>,
     state: AllTransactionsState,
     actions: AllTransactionsActions,
     navigateToAllTags: () -> Unit,
@@ -139,54 +156,35 @@ fun AllTransactionsScreen(
         onBack = actions::onDismissMultiSelectionMode
     )
 
+    BackHandler(
+        enabled = state.searchModeActive,
+        onBack = { actions.onSearchModeToggle(false) }
+    )
+
     val topAppBarScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     RivoScaffold(
         snackbarController = snackbarController,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (state.transactionMultiSelectionModeActive)
-                            stringResource(
-                                R.string.count_selected,
-                                state.selectedTransactionIds.size
-                            )
-                        else stringResource(AllTransactionsScreenSpec.labelRes)
-                    )
-                },
-                navigationIcon = {
-                    if (state.transactionMultiSelectionModeActive) {
-                        IconButton(onClick = actions::onDismissMultiSelectionMode) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = stringResource(R.string.cd_clear_transaction_selection)
-                            )
-                        }
-                    } else {
-                        BackArrowButton(onClick = navigateUp)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = actions::onFilterOptionsClick) {
-                        Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = stringResource(id = R.string.cd_filter_options)
-                        )
-                    }
-                    AnimatedVisibility(visible = state.transactionMultiSelectionModeActive) {
-                        IconButton(onClick = actions::onMultiSelectionOptionsClick) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.cd_options)
-                            )
-                        }
-                    }
-                },
-                scrollBehavior = topAppBarScrollBehavior
+            AllTransactionsTopAppBar(
+                searchModeActive = state.searchModeActive,
+                onSearchModeToggle = actions::onSearchModeToggle,
+                searchQuery = searchQuery,
+                onSearchQueryChange = actions::onSearchQueryChange,
+                onClearSearchQuery = actions::onClearSearchQuery,
+                searchResults = searchResultsLazyPagingItems,
+                onFilterOptionsClick = actions::onFilterOptionsClick,
+                multiSelectionModeActive = state.transactionMultiSelectionModeActive,
+                selectionCount = state.selectedTransactionIds.size,
+                onDismissMultiSelectionMode = actions::onDismissMultiSelectionMode,
+                onMultiSelectionOptionsClick = actions::onMultiSelectionOptionsClick,
+                onSearchItemClick = { navigateToAddEditTransaction(it) },
+                navigateUp = navigateUp
             )
         },
         floatingActionButton = {
-            NewTransactionFab(onClick = { navigateToAddEditTransaction(null) })
+            FadedVisibility(!state.searchModeActive) {
+                NewTransactionFab(onClick = { navigateToAddEditTransaction(null) })
+            }
         },
         modifier = Modifier
             .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
@@ -205,18 +203,20 @@ fun AllTransactionsScreen(
                 bottom = paddingValues.calculateBottomPadding() + PaddingScrollEnd
             )
         ) {
-            item(
-                key = "TagsHorizontalList",
-                contentType = "TagsHorizontalList"
-            ) {
-                TagsInfoList(
-                    tagsPagingItems = tagsPagingItems,
-                    onAllTagsClick = navigateToAllTags,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = TagsRowMinHeight)
-                        .animateItem()
-                )
+            if (!state.transactionMultiSelectionModeActive) {
+                item(
+                    key = "TagsHorizontalList",
+                    contentType = "TagsHorizontalList"
+                ) {
+                    TagsInfoList(
+                        tagsPagingItems = tagsPagingItems,
+                        onAllTagsClick = navigateToAllTags,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = TagsRowMinHeight)
+                            .animateItem()
+                    )
+                }
             }
 
             stickyHeader(
@@ -347,6 +347,173 @@ fun AllTransactionsScreen(
             onClearTagSelectionClick = actions::onClearTagFilterClick,
             onChangeTagSelectionClick = actions::onChangeTagFiltersClick,
         )
+    }
+}
+
+@Composable
+private fun AllTransactionsTopAppBar(
+    searchModeActive: Boolean,
+    onSearchModeToggle: (Boolean) -> Unit,
+    searchQuery: () -> String,
+    onSearchQueryChange: (String) -> Unit,
+    onClearSearchQuery: () -> Unit,
+    searchResults: LazyPagingItems<TransactionListItem>,
+    onFilterOptionsClick: () -> Unit,
+    multiSelectionModeActive: Boolean,
+    selectionCount: Int,
+    onDismissMultiSelectionMode: () -> Unit,
+    onMultiSelectionOptionsClick: () -> Unit,
+    onSearchItemClick: (Long) -> Unit,
+    navigateUp: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isQueryNotEmpty by remember {
+        derivedStateOf { searchQuery().isNotEmpty() }
+    }
+    val searchBarHorizontalPadding by animateDpAsState(
+        targetValue = if (searchModeActive) Dp.Zero else MaterialTheme.spacing.medium,
+        label = "SearchBarHorizontalPadding"
+    )
+    AnimatedContent(
+        targetState = multiSelectionModeActive,
+        transitionSpec = {
+            if (targetState) {
+                slideInVerticallyWithFadeIn { it / 2 }
+                    .togetherWith(
+                        slideOutVerticallyWithFadeOut { -it / 2 }
+                    )
+            } else {
+                slideInVerticallyWithFadeIn { -it / 2 }
+                    .togetherWith(
+                        slideOutVerticallyWithFadeOut { it / 2 }
+                    )
+            }
+        },
+        label = "MultiSelectionModeActive",
+        modifier = modifier
+    ) { active ->
+        if (active) {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(
+                            R.string.count_selected,
+                            selectionCount
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismissMultiSelectionMode) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = stringResource(R.string.cd_clear_transaction_selection)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onMultiSelectionOptionsClick) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.cd_options)
+                        )
+                    }
+                }
+            )
+        } else {
+            SearchBar(
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = searchQuery(),
+                        onQueryChange = onSearchQueryChange,
+                        onSearch = {},
+                        expanded = searchModeActive,
+                        onExpandedChange = onSearchModeToggle,
+                        leadingIcon = {
+                            BackArrowButton(
+                                onClick = {
+                                    if (searchModeActive) onSearchModeToggle(false)
+                                    else navigateUp()
+                                }
+                            )
+                        },
+                        trailingIcon = {
+                            if (searchModeActive) {
+                                FadedVisibility(
+                                    visible = isQueryNotEmpty,
+                                    label = "ClearQueryButton"
+                                ) {
+                                    IconButton(onClick = onClearSearchQuery) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Close,
+                                            contentDescription = stringResource(R.string.cd_clear_search_query)
+                                        )
+                                    }
+                                }
+                            } else {
+                                IconButton(onClick = onFilterOptionsClick) {
+                                    Icon(
+                                        imageVector = Icons.Default.FilterList,
+                                        contentDescription = stringResource(id = R.string.cd_filter_options)
+                                    )
+                                }
+                            }
+                        },
+                        placeholder = { Text(stringResource(AllTransactionsScreenSpec.labelRes)) },
+                    )
+                },
+                expanded = searchModeActive,
+                onExpandedChange = onSearchModeToggle,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .imePadding()
+                    .layout { measurable, constraints ->
+                        val searchbarWidth =
+                            constraints.maxWidth - (searchBarHorizontalPadding * 2f).roundToPx()
+                        val searchBarPlaceable = measurable.measure(
+                            constraints = constraints.copy(
+                                maxWidth = searchbarWidth,
+                                minWidth = searchbarWidth
+                            )
+                        )
+                        layout(searchBarPlaceable.width, searchBarPlaceable.height) {
+                            searchBarPlaceable.placeRelative(0, 0)
+                        }
+                    }
+            ) {
+                LazyColumn(
+                    contentPadding = PaddingValues(
+                        top = MaterialTheme.spacing.medium,
+                        bottom = PaddingScrollEnd
+                    )
+                ) {
+                    items(
+                        count = searchResults.itemCount,
+                        key = searchResults.itemKey { it.id },
+                        contentType = searchResults.itemContentType { "SearchResultTransactionItem" }
+                    ) { index ->
+                        searchResults[index]?.let { item ->
+                            TransactionListItem(
+                                note = item.note,
+                                amount = item.amountFormatted,
+                                date = item.date,
+                                type = item.type,
+                                tag = item.tag,
+                                folder = item.folder,
+                                colors = ListItemDefaults.colors(
+                                    containerColor = SearchBarDefaults.colors().containerColor
+                                ),
+                                tonalElevation = MaterialTheme.elevation.level1,
+                                modifier = Modifier
+                                    .clickable(
+                                        onClick = { onSearchItemClick(item.id) }
+                                    )
+                                    .animateItem()
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 
 interface TransactionRepository {
     fun getAllTransactionsPaged(
-        query: String = String.Empty,
+        query: String? = String.Empty,
         dateRange: Pair<LocalDate, LocalDate>? = null,
         type: TransactionType? = null,
         showExcluded: Boolean = true,
@@ -23,7 +23,7 @@ interface TransactionRepository {
     ): Flow<PagingData<TransactionListItem>>
 
     fun getDateSeparatedTransactions(
-        query: String = String.Empty,
+        query: String? = String.Empty,
         dateRange: Pair<LocalDate, LocalDate>? = null,
         type: TransactionType? = null,
         showExcluded: Boolean = true,

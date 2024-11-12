@@ -27,7 +27,7 @@ class TransactionRepositoryImpl(
     private val dao: TransactionDao
 ) : TransactionRepository {
     override fun getAllTransactionsPaged(
-        query: String,
+        query: String?,
         dateRange: Pair<LocalDate, LocalDate>?,
         type: TransactionType?,
         showExcluded: Boolean,
@@ -50,7 +50,7 @@ class TransactionRepositoryImpl(
         .map { it.map(TransactionDetailsView::toTransactionListItem) }
 
     override fun getDateSeparatedTransactions(
-        query: String,
+        query: String?,
         dateRange: Pair<LocalDate, LocalDate>?,
         type: TransactionType?,
         showExcluded: Boolean,

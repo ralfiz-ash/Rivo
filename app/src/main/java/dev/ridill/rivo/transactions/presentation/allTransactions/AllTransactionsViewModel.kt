@@ -8,8 +8,8 @@ import com.zhuinden.flowcombinetuplekt.combineTuple
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
-import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.core.domain.util.EventBus
+import dev.ridill.rivo.core.domain.util.UtilConstants
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.addOrRemove
 import dev.ridill.rivo.core.domain.util.asStateFlow
@@ -21,6 +21,7 @@ import dev.ridill.rivo.tags.domain.repository.TagsRepository
 import dev.ridill.rivo.transactions.domain.model.AllTransactionsMultiSelectionOption
 import dev.ridill.rivo.transactions.domain.model.TransactionTypeFilter
 import dev.ridill.rivo.transactions.domain.repository.AllTransactionsRepository
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -41,7 +42,8 @@ class AllTransactionsViewModel @Inject constructor(
     private val eventBus: EventBus<AllTransactionsEvent>
 ) : ViewModel(), AllTransactionsActions {
 
-    val searchQuery = savedStateHandle.getStateFlow(SEARCH_QUERY, String.Empty)
+    private val searchModeActive = savedStateHandle.getStateFlow(SEARCH_MODE_ACTIVE, false)
+    val searchQuery = savedStateHandle.getStateFlow<String?>(SEARCH_QUERY, null)
     private val dateLimits = transactionRepo.getDateLimits()
         .distinctUntilChanged()
         .asStateFlow(viewModelScope, LocalDate.now() to LocalDate.now())
@@ -129,6 +131,12 @@ class AllTransactionsViewModel @Inject constructor(
         )
     }.cachedIn(viewModelScope)
 
+    val searchResults = searchQuery
+        .debounce(UtilConstants.DEBOUNCE_TIMEOUT)
+        .flatMapLatest { query ->
+            transactionRepo.getSearchResults(query)
+        }.cachedIn(viewModelScope)
+
     private val isDateFilterActive = combineTuple(
         dateLimitsAsClosedFloatRange,
         selectedDateRangeAsClosedFloatRange
@@ -208,6 +216,7 @@ class AllTransactionsViewModel @Inject constructor(
         .getStateFlow(SHOW_FILTER_OPTIONS, false)
 
     val state = combineTuple(
+        searchModeActive,
         dateLimitsAsClosedFloatRange,
         dateRangeSteps,
         selectedDateRangeAsClosedFloatRange,
@@ -224,6 +233,7 @@ class AllTransactionsViewModel @Inject constructor(
         showFilterOptions,
         selectedTags
     ).map { (
+                searchModeActive,
                 dateLimitsAsClosedFloatRange,
                 dateRangeSteps,
                 selectedDateRangeAsClosedFloatRange,
@@ -241,6 +251,7 @@ class AllTransactionsViewModel @Inject constructor(
                 selectedTags
             ) ->
         AllTransactionsState(
+            searchModeActive = searchModeActive,
             dateLimitsFloatRange = dateLimitsAsClosedFloatRange,
             dateRangeSteps = dateRangeSteps,
             selectedDateRange = selectedDateRangeAsClosedFloatRange,
@@ -261,8 +272,23 @@ class AllTransactionsViewModel @Inject constructor(
 
     val events = eventBus.eventFlow
 
+    override fun onSearchClick() {
+        savedStateHandle[SEARCH_MODE_ACTIVE] = true
+    }
+
+    override fun onSearchModeToggle(active: Boolean) {
+        savedStateHandle[SEARCH_MODE_ACTIVE] = active
+        if (!active) {
+            savedStateHandle[SEARCH_QUERY] = null
+        }
+    }
+
     override fun onSearchQueryChange(value: String) {
         savedStateHandle[SEARCH_QUERY] = value
+    }
+
+    override fun onClearSearchQuery() {
+        savedStateHandle[SEARCH_QUERY] = null
     }
 
     override fun onClearAllFiltersClick() {
@@ -515,6 +541,7 @@ class AllTransactionsViewModel @Inject constructor(
 }
 
 private const val SEARCH_QUERY = "SEARCH_QUERY"
+private const val SEARCH_MODE_ACTIVE = "SEARCH_MODE_ACTIVE"
 private const val SELECTED_DATE_RANGE_FLOATS = "SELECTED_DATE_RANGE_FLOATS"
 private const val TRANSACTION_TYPE_FILTER = "TRANSACTION_TYPE_FILTER"
 private const val SELECTED_TAG_IDS = "SELECTED_TAG_IDS"

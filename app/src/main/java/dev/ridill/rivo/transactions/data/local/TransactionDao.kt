@@ -40,7 +40,7 @@ interface TransactionDao : BaseDao<TransactionEntity> {
     @Query(
         """
         SELECT * FROM transaction_details_view
-        WHERE (transactionNote LIKE '%' || :query || '%')
+        WHERE (:query IS NOT NULL AND transactionNote LIKE '%' || :query || '%')
             AND ((:startDate IS NULL OR :endDate IS NULL) OR (DATETIME(transactionTimestamp) BETWEEN DATETIME(:startDate) AND DATETIME(:endDate)))
             AND (:type IS NULL OR transactionType = :type)
             AND (COALESCE(:tagIds, 0) = 0 OR tagId IN (:tagIds))
@@ -50,7 +50,7 @@ interface TransactionDao : BaseDao<TransactionEntity> {
         """
     )
     fun getTransactionsPaged(
-        query: String,
+        query: String?,
         startDate: LocalDateTime?,
         endDate: LocalDateTime?,
         type: TransactionType?,

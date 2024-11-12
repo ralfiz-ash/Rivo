@@ -1,6 +1,7 @@
 package dev.ridill.rivo.transactions.domain.repository
 
 import androidx.paging.PagingData
+import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,10 @@ interface AllTransactionsRepository {
         tagIds: Set<Long>? = null,
         folderId: Long? = null
     ): Flow<PagingData<TransactionListItemUIModel>>
+
+    fun getSearchResults(
+        query: String?
+    ): Flow<PagingData<TransactionListItem>>
 
     suspend fun setTagIdToTransactions(tagId: Long?, transactionIds: Set<Long>)
     fun getShowExcludedOption(): Flow<Boolean>

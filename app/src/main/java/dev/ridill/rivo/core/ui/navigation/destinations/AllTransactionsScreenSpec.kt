@@ -37,6 +37,8 @@ data object AllTransactionsScreenSpec : ScreenSpec {
         val state by viewModel.state.collectAsStateWithLifecycle()
         val transactionsLazyPagingItems =
             viewModel.transactionsPagingData.collectAsLazyPagingItems()
+        val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
+        val searchResults = viewModel.searchResults.collectAsLazyPagingItems()
 
         val context = LocalContext.current
         val snackbarController = rememberSnackbarController()
@@ -112,6 +114,8 @@ data object AllTransactionsScreenSpec : ScreenSpec {
             snackbarController = snackbarController,
             tagsPagingItems = tagInfoLazyPagingItems,
             transactionsLazyPagingItems = transactionsLazyPagingItems,
+            searchQuery = { searchQuery.value.orEmpty() },
+            searchResultsLazyPagingItems = searchResults,
             state = state,
             actions = viewModel,
             navigateUp = navController::navigateUp,
