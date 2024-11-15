@@ -6,6 +6,7 @@ import dev.ridill.rivo.core.data.util.trySuspend
 import dev.ridill.rivo.core.domain.service.ReceiverService
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.schedules.data.local.SchedulesDao
+import dev.ridill.rivo.schedules.data.local.entity.ScheduleEntity
 import dev.ridill.rivo.schedules.data.toEntity
 import dev.ridill.rivo.schedules.data.toSchedule
 import dev.ridill.rivo.schedules.domain.model.Schedule
@@ -108,10 +109,9 @@ class SchedulesRepositoryImpl(
     }
 
     override suspend fun setAllFutureScheduleReminders() = withContext(Dispatchers.IO) {
-        dao.getAllSchedulesAfterDate(DateUtil.dateNow())
-            .forEach { entity ->
-                scheduler.setReminder(entity.toSchedule())
-            }
+        dao.getAllSchedulesAfterTimestamp(DateUtil.now())
+            .map(ScheduleEntity::toSchedule)
+            .forEach(scheduler::setReminder)
     }
 
     override suspend fun deleteSchedulesByIds(ids: Set<Long>) {

@@ -29,8 +29,8 @@ interface SchedulesDao : BaseDao<ScheduleEntity> {
     @Query("SELECT * FROM schedules_table WHERE id = :id")
     suspend fun getScheduleById(id: Long): ScheduleEntity?
 
-    @Query("SELECT * FROM schedules_table WHERE next_reminder_timestamp > :date")
-    suspend fun getAllSchedulesAfterDate(date: LocalDate): List<ScheduleEntity>
+    @Query("SELECT * FROM schedules_table WHERE DATETIME(next_reminder_timestamp) > DATETIME(:timestamp)")
+    suspend fun getAllSchedulesAfterTimestamp(timestamp: LocalDateTime): List<ScheduleEntity>
 
     @Query("SELECT MAX(DATETIME(timestamp)) FROM transaction_table WHERE schedule_id = :id")
     suspend fun getLastTransactionTimestampForSchedule(id: Long): LocalDateTime?

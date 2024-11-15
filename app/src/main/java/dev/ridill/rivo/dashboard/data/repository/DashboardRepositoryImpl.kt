@@ -33,10 +33,11 @@ class DashboardRepositoryImpl(
     private val schedulesDao: SchedulesDao
 ) : DashboardRepository {
 
-    private val currentDate = MutableStateFlow(DateUtil.dateNow())
+    private val _currentDate = MutableStateFlow(DateUtil.dateNow())
+    private val currentDate = _currentDate.asStateFlow()
 
     override fun refreshCurrentDate() {
-        currentDate.update { DateUtil.dateNow() }
+        _currentDate.update { DateUtil.dateNow() }
     }
 
     override fun getUsername(): Flow<String?> = authRepo.getAuthState().mapLatest { state ->
@@ -46,11 +47,12 @@ class DashboardRepositoryImpl(
         }
     }.distinctUntilChanged()
 
-    override fun getCurrentBudget(): Flow<Long> = currentDate.asStateFlow().flatMapLatest {
-        budgetRepo.getBudgetPreferenceForMonth(it)
-    }.distinctUntilChanged()
+    override fun getCurrentBudget(): Flow<Long> = currentDate
+        .flatMapLatest {
+            budgetRepo.getBudgetPreferenceForMonth(it)
+        }.distinctUntilChanged()
 
-    override fun getTotalDebitsForCurrentMonth(): Flow<Double> = currentDate.asStateFlow()
+    override fun getTotalDebitsForCurrentMonth(): Flow<Double> = currentDate
         .flatMapLatest {
             transactionDao.getAmountAggregate(
                 startDate = it.withDayOfMonth(1),
@@ -64,7 +66,7 @@ class DashboardRepositoryImpl(
         .map { it.absoluteValue }
         .distinctUntilChanged()
 
-    override fun getTotalCreditsForCurrentMonth(): Flow<Double> = currentDate.asStateFlow()
+    override fun getTotalCreditsForCurrentMonth(): Flow<Double> = currentDate
         .flatMapLatest {
             transactionDao.getAmountAggregate(
                 startDate = it.withDayOfMonth(1),
@@ -79,13 +81,10 @@ class DashboardRepositoryImpl(
         .distinctUntilChanged()
 
     override fun getSchedulesActiveThisMonth(): Flow<List<ActiveSchedule>> = currentDate
-        .asStateFlow()
-        .flatMapLatest {
-            schedulesDao.getSchedulesForMonth(it)
-        }.map { entities -> entities.map(ScheduleEntity::toActiveSchedule) }
+        .flatMapLatest { schedulesDao.getSchedulesForMonth(it) }
+        .map { entities -> entities.map(ScheduleEntity::toActiveSchedule) }
 
     override fun getRecentSpends(): Flow<PagingData<TransactionListItem>> = currentDate
-        .asStateFlow()
         .flatMapLatest {
             transactionRepo.getAllTransactionsPaged(
                 dateRange = it.withDayOfMonth(1) to it.with(TemporalAdjusters.lastDayOfMonth()),
