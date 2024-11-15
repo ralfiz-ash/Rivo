@@ -32,9 +32,9 @@ data class ScheduleEntity(
     @ColumnInfo(name = "repetition")
     val repetition: ScheduleRepetition,
 
-    @ColumnInfo(name = "next_reminder_date")
-    val nextReminderDate: LocalDateTime?,
+    @ColumnInfo(name = "last_payment_timestamp")
+    val lastPaymentTimestamp: LocalDateTime?,
 
-    @ColumnInfo(name = "last_paid_date")
-    val lastPaidDate: LocalDateTime?
+    @ColumnInfo(name = "next_reminder_timestamp")
+    val nextReminderTimestamp: LocalDateTime?
 )

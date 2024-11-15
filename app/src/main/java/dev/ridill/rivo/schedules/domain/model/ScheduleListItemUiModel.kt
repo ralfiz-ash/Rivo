@@ -1,8 +1,46 @@
 package dev.ridill.rivo.schedules.domain.model
 
+import androidx.compose.runtime.Composable
+import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.core.ui.util.UiText
+import dev.ridill.rivo.schedules.data.local.entity.ScheduleEntity
+import dev.ridill.rivo.transactions.domain.model.TransactionType
+import java.time.LocalDateTime
 
 sealed class ScheduleListItemUiModel {
-    data class ScheduleItem(val scheduleItem: ScheduleListItem) : ScheduleListItemUiModel()
+    data class ScheduleItem(
+        val id: Long,
+        val amount: Double,
+        val note: String?,
+        val type: TransactionType,
+        val lastPaymentTimestamp: LocalDateTime?,
+        val nextReminderTimestamp: LocalDateTime?,
+        val canMarkPaid: Boolean
+    ) : ScheduleListItemUiModel() {
+        constructor(
+            scheduleItem: ScheduleEntity,
+            canMarkPaid: Boolean
+        ) : this(
+            id = scheduleItem.id,
+            amount = scheduleItem.amount,
+            note = scheduleItem.note,
+            type = scheduleItem.type,
+            lastPaymentTimestamp = scheduleItem.lastPaymentTimestamp,
+            nextReminderTimestamp = scheduleItem.nextReminderTimestamp,
+            canMarkPaid = canMarkPaid
+        )
+
+        val amountFormatted: String
+            @Composable
+            get() = TextFormat.currencyAmount(amount)
+
+        val nextReminderDateFormatted: String?
+            get() = nextReminderTimestamp?.format(DateUtil.Formatters.localizedDateMedium)
+
+        val lastPaymentDateFormatted: String?
+            get() = lastPaymentTimestamp?.format(DateUtil.Formatters.localizedDateMedium)
+    }
+
     data class TypeSeparator(val label: UiText) : ScheduleListItemUiModel()
 }

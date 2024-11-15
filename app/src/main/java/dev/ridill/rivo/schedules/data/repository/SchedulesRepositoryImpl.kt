@@ -2,9 +2,9 @@ package dev.ridill.rivo.schedules.data.repository
 
 import androidx.room.withTransaction
 import dev.ridill.rivo.core.data.db.RivoDatabase
+import dev.ridill.rivo.core.data.util.trySuspend
 import dev.ridill.rivo.core.domain.service.ReceiverService
 import dev.ridill.rivo.core.domain.util.DateUtil
-import dev.ridill.rivo.core.domain.util.logE
 import dev.ridill.rivo.schedules.data.local.SchedulesDao
 import dev.ridill.rivo.schedules.data.toEntity
 import dev.ridill.rivo.schedules.data.toSchedule
@@ -24,10 +24,11 @@ class SchedulesRepositoryImpl(
     private val scheduler: ScheduleReminder,
     private val receiverService: ReceiverService
 ) : SchedulesRepository {
-    override suspend fun getScheduleById(id: Long): Schedule? =
-        withContext(Dispatchers.IO) {
-            dao.getScheduleById(id)?.toSchedule()
-        }
+    override suspend fun getScheduleById(
+        id: Long
+    ): Schedule? = withContext(Dispatchers.IO) {
+        dao.getScheduleById(id)?.toSchedule()
+    }
 
     override fun getNextReminderFromDate(
         dateTime: LocalDateTime,
@@ -51,19 +52,20 @@ class SchedulesRepositoryImpl(
         ScheduleRepetition.YEARLY -> dateTime.minusYears(1)
     }
 
-    override suspend fun saveScheduleAndSetReminder(schedule: Schedule) {
-        withContext(Dispatchers.IO) {
-            val insertedId = dao.upsert(schedule.toEntity()).first()
-                .takeIf { it > RivoDatabase.DEFAULT_ID_LONG }
-                ?: schedule.id
-            scheduler.setReminder(
-                schedule.copy(id = insertedId)
-            )
-            receiverService.toggleBootAndTimeSetReceivers(true)
-        }
+    override suspend fun saveScheduleAndSetReminder(
+        schedule: Schedule
+    ) = withContext(Dispatchers.IO) {
+        val insertedId = dao.upsert(schedule.toEntity()).first()
+            .takeIf { it > RivoDatabase.DEFAULT_ID_LONG }
+            ?: schedule.id
+        scheduler.cancel(insertedId)
+        scheduler.setReminder(
+            schedule.copy(id = insertedId)
+        )
+        receiverService.toggleBootAndTimeSetReceivers(true)
     }
 
-    override suspend fun createTransactionForScheduleAndSetNextReminder(
+    override suspend fun createTransactionFromScheduleAndSetNextReminder(
         schedule: Schedule,
         dateTime: LocalDateTime
     ) = withContext(Dispatchers.IO) {
@@ -89,8 +91,11 @@ class SchedulesRepositoryImpl(
         }
     }
 
-    override suspend fun getLastTransactionTimestampForSchedule(id: Long): LocalDateTime? =
-        withContext(Dispatchers.IO) { dao.getLastTransactionTimestampForSchedule(id) }
+    override suspend fun getLastTransactionTimestampForSchedule(
+        id: Long
+    ): LocalDateTime? = withContext(Dispatchers.IO) {
+        dao.getLastTransactionTimestampForSchedule(id)
+    }
 
     override suspend fun deleteScheduleById(id: Long) = withContext(Dispatchers.IO) {
         val entity = dao.getScheduleById(id) ?: return@withContext
@@ -109,12 +114,12 @@ class SchedulesRepositoryImpl(
             }
     }
 
-    override suspend fun deleteSchedulesByIds(ids: Set<Long>) = withContext(Dispatchers.IO) {
-        try {
-            ids.forEach { scheduler.cancel(it) }
-            dao.deleteSchedulesById(ids)
-        } catch (t: Throwable) {
-            logE(t) { "Delete schedules error" }
+    override suspend fun deleteSchedulesByIds(ids: Set<Long>) {
+        withContext(Dispatchers.IO) {
+            trySuspend {
+                ids.forEach { scheduler.cancel(it) }
+                dao.deleteSchedulesById(ids)
+            }
         }
     }
 }

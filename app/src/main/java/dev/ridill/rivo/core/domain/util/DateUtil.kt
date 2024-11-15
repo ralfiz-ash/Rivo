@@ -176,6 +176,12 @@ object DateUtil {
     }
 }
 
+fun LocalDateTime.isSameMonthAs(other: LocalDateTime): Boolean =
+    year == other.year && month == other.month
+
+fun LocalDateTime.isSameMonthAs(other: LocalDate): Boolean =
+    year == other.year && month == other.month
+
 enum class PartOfDay(
     @StringRes val labelRes: Int
 ) {

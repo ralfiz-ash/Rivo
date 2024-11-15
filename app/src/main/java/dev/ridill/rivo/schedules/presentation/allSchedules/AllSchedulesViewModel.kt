@@ -14,6 +14,7 @@ import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.schedules.domain.repository.AllSchedulesRepository
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,7 +28,7 @@ class AllSchedulesViewModel @Inject constructor(
     private val showNotificationRationale = savedStateHandle
         .getStateFlow(SHOW_NOTIFICATION_RATIONALE, false)
 
-    val schedulesPagingData = repo.getAllSchedules()
+    val schedulesPagingData = repo.getSchedulesPagingData()
         .cachedIn(viewModelScope)
 
     private val selectedScheduleIds = savedStateHandle
@@ -56,7 +57,9 @@ class AllSchedulesViewModel @Inject constructor(
             selectedScheduleIds = selectedScheduleIds,
             showDeleteSelectedSchedulesConfirmation = showDeleteSelectedSchedulesConfirmation
         )
-    }.asStateFlow(viewModelScope, AllSchedulesState())
+    }
+        .onStart { repo.refreshCurrentDate() }
+        .asStateFlow(viewModelScope, AllSchedulesState())
 
     val events = eventBus.eventFlow
 
@@ -117,6 +120,7 @@ class AllSchedulesViewModel @Inject constructor(
         viewModelScope.launch {
             repo.deleteSchedulesById(selectedScheduleIds.value)
             savedStateHandle[SHOW_DELETE_SELECTED_SCHEDULES_CONFIRMATION] = false
+            savedStateHandle[SELECTED_SCHEDULE_IDS] = emptySet<Long>()
         }
     }
 

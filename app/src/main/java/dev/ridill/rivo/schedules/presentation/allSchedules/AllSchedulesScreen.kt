@@ -2,55 +2,35 @@ package dev.ridill.rivo.schedules.presentation.allSchedules
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.rounded.NotificationsOff
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.compose.LazyPagingItems
 import dev.ridill.rivo.R
-import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.CancelButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
@@ -61,14 +41,13 @@ import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
-import dev.ridill.rivo.core.ui.theme.BorderWidthStandard
-import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.isEmpty
-import dev.ridill.rivo.core.ui.util.mergedContentDescription
 import dev.ridill.rivo.schedules.domain.model.ScheduleListItemUiModel
+import dev.ridill.rivo.schedules.presentation.components.ScheduleListItem
+import dev.ridill.rivo.transactions.domain.model.TransactionType
 
 @Composable
 fun AllSchedulesScreen(
@@ -172,27 +151,27 @@ fun AllSchedulesScreen(
 
                         is ScheduleListItemUiModel.ScheduleItem -> {
                             item(
-                                key = item.scheduleItem.id,
+                                key = item.id,
                                 contentType = "ScheduleListItem"
                             ) {
                                 val selected by remember(state.selectedScheduleIds) {
-                                    derivedStateOf { item.scheduleItem.id in state.selectedScheduleIds }
+                                    derivedStateOf { item.id in state.selectedScheduleIds }
                                 }
                                 ScheduleListItemCard(
-                                    amount = item.scheduleItem.amountFormatted,
-                                    note = item.scheduleItem.note,
-                                    nextReminderDate = item.scheduleItem.nextReminderDateFormatted,
-                                    lastPaymentTimestamp = item.scheduleItem.lastPaymentDateFormatted,
-                                    onClick = { navigateToAddEditSchedule(item.scheduleItem.id) },
-                                    onMarkPaidClick = { actions.onMarkSchedulePaidClick(item.scheduleItem.id) },
-                                    canMarkPaid = item.scheduleItem.canMarkPaid,
-                                    modifier = Modifier
-                                        .padding(horizontal = MaterialTheme.spacing.small)
-                                        .animateItem(),
+                                    amount = item.amountFormatted,
+                                    note = item.note,
+                                    type = item.type,
+                                    nextReminderDate = item.nextReminderDateFormatted,
+                                    lastPaymentTimestamp = item.lastPaymentDateFormatted,
+                                    canMarkPaid = item.canMarkPaid,
+                                    onMarkPaidClick = { actions.onMarkSchedulePaidClick(item.id) },
+                                    onClick = { navigateToAddEditSchedule(item.id) },
+                                    onLongPress = { actions.onScheduleLongPress(item.id) },
                                     selectionModeActive = state.multiSelectionModeActive,
                                     selected = selected,
-                                    onLongPress = { actions.onScheduleLongPress(item.scheduleItem.id) },
-                                    onSelectionToggle = { actions.onScheduleSelectionToggle(item.scheduleItem.id) }
+                                    onSelectionToggle = { actions.onScheduleSelectionToggle(item.id) },
+                                    modifier = Modifier
+                                        .animateItem()
                                 )
                             }
                         }
@@ -243,16 +222,17 @@ private fun NotificationPermissionWarning(
 @Composable
 private fun ScheduleListItemCard(
     selectionModeActive: Boolean,
-    selected: Boolean,
     amount: String,
     note: String?,
+    type: TransactionType,
     nextReminderDate: String?,
     lastPaymentTimestamp: String?,
+    canMarkPaid: Boolean,
+    onMarkPaidClick: () -> Unit,
     onClick: () -> Unit,
     onLongPress: () -> Unit,
     onSelectionToggle: () -> Unit,
-    canMarkPaid: Boolean,
-    onMarkPaidClick: () -> Unit,
+    selected: Boolean,
     modifier: Modifier = Modifier
 ) {
     val clickModifier = remember(selectionModeActive) {
@@ -267,104 +247,16 @@ private fun ScheduleListItemCard(
             )
     }
 
-    val contentDescriptionText = stringResource(
-        R.string.cd_schedule_of_amount_for_date,
-        amount,
-        nextReminderDate.orEmpty()
-    )
-
-    val borderColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onSurface
-            .copy(alpha = ContentAlpha.PERCENT_32)
-        else Color.Transparent,
-        label = "CardBorderColor"
-    )
-
-    Card(
+    ScheduleListItem(
+        note = note,
+        amount = amount,
+        type = type,
+        nextReminderTimestamp = nextReminderDate,
+        lastPaymentTimestamp = lastPaymentTimestamp,
+        tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
         modifier = modifier
-            .mergedContentDescription(contentDescriptionText)
-            .then(clickModifier),
-        border = BorderStroke(
-            width = BorderWidthStandard,
-            color = borderColor
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
-    ) {
-        Column {
-            ListItem(
-                headlineContent = {
-                    val isNoteNullOrEmpty = remember(note) { note.isNullOrEmpty() }
-                    Text(
-                        text = note.orEmpty()
-                            .ifEmpty { stringResource(R.string.generic_schedule_title) },
-                        fontStyle = if (isNoteNullOrEmpty) FontStyle.Italic
-                        else null,
-                        color = LocalContentColor.current
-                            .copy(
-                                alpha = if (isNoteNullOrEmpty) ContentAlpha.SUB_CONTENT
-                                else Float.One
-                            )
-                    )
-                },
-                trailingContent = {
-                    Text(
-                        text = amount,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                supportingContent = {
-                    nextReminderDate?.let { date ->
-                        AssistChip(
-                            onClick = {},
-                            label = {
-                                Crossfade(targetState = date, label = "ReminderDate") {
-                                    Text(text = it)
-                                }
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Alarm,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .clip(CardDefaults.shape),
-                tonalElevation = MaterialTheme.elevation.level1
-            )
-            HorizontalDivider()
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = MaterialTheme.spacing.small)
-            ) {
-                lastPaymentTimestamp?.let {
-                    Text(
-                        text = stringResource(R.string.last_paid_date, it),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .padding(MaterialTheme.spacing.extraSmall)
-                            .weight(Float.One)
-                    )
-                }
-
-                if (!selectionModeActive && canMarkPaid) {
-                    TextButton(onClick = onMarkPaidClick) {
-                        Text(stringResource(R.string.mark_paid))
-                    }
-                }
-            }
-        }
-    }
+            .then(clickModifier)
+    )
 }
 
 @Preview(showBackground = true)
@@ -384,7 +276,8 @@ private fun PreviewScheduleListItemCard() {
             selectionModeActive = false,
             onLongPress = {},
             onSelectionToggle = {},
-            selected = true
+            selected = true,
+            type = TransactionType.DEBIT
         )
     }
 }

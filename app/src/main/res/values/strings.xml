@@ -436,7 +436,6 @@
     <string name="schedule_marked_as_paid">Schedule marked as paid</string>
     <string name="generic_schedule_title">~Schedule</string>
     <string name="retired">Retired</string>
-    <string name="last_paid_date">Last paid: %s</string>
     <string name="this_month">This Month</string>
     <string name="upcoming">Upcoming</string>
     <string name="schedules_empty_message">The schedules you create will appear here</string>
@@ -473,4 +472,6 @@
     <string name="clear_selection">Clear Selection</string>
     <string name="select_schedule_repetition">Select Schedule Repetition</string>
     <string name="clear_all">Clear All</string>
+    <string name="next_payment_on_colon">Next payment on:</string>
+    <string name="last_payment_colon">Last payment:</string>
 </resources>

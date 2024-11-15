@@ -15,8 +15,8 @@ class AlarmManagerScheduleReminder(
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
     override fun setReminder(schedule: Schedule) {
-        val timeMillis = schedule.nextReminderDate?.let { DateUtil.toMillis(it) }
-            ?: return
+        val timeMillis = schedule.nextReminderDate
+            ?.let { DateUtil.toMillis(it) } ?: return
         val intent = Intent(context, ScheduleReminderReceiver::class.java).apply {
             action = ScheduleReminder.ACTION
             putExtra(ScheduleReminder.EXTRA_SCHEDULE_ID, schedule.id)

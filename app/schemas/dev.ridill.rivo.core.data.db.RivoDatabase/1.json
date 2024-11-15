@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ec37f14d45f3b66b63019693189bca19",
+    "identityHash": "83162f194c335509961441f18192baa0",
     "entities": [
       {
         "tableName": "budget_preference_table",
@@ -253,7 +253,7 @@
       },
       {
         "tableName": "schedules_table",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` REAL NOT NULL, `note` TEXT, `type` TEXT NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `repetition` TEXT NOT NULL, `next_reminder_date` TEXT, `last_paid_date` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` REAL NOT NULL, `note` TEXT, `type` TEXT NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `repetition` TEXT NOT NULL, `last_payment_timestamp` TEXT, `next_reminder_timestamp` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -298,14 +298,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "nextReminderDate",
-            "columnName": "next_reminder_date",
+            "fieldPath": "lastPaymentTimestamp",
+            "columnName": "last_payment_timestamp",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "lastPaidDate",
-            "columnName": "last_paid_date",
+            "fieldPath": "nextReminderTimestamp",
+            "columnName": "next_reminder_timestamp",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -410,7 +410,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ec37f14d45f3b66b63019693189bca19')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '83162f194c335509961441f18192baa0')"
     ]
   }
 }
