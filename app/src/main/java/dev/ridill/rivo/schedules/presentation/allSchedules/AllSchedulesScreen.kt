@@ -161,7 +161,7 @@ fun AllSchedulesScreen(
                                     amount = item.amountFormatted,
                                     note = item.note,
                                     type = item.type,
-                                    nextReminderDate = item.nextReminderDateFormatted,
+                                    nextReminderDate = item.nextPaymentTimestampFormatted,
                                     lastPaymentTimestamp = item.lastPaymentDateFormatted,
                                     canMarkPaid = item.canMarkPaid,
                                     onMarkPaidClick = { actions.onMarkSchedulePaidClick(item.id) },
@@ -254,6 +254,8 @@ private fun ScheduleListItemCard(
         nextReminderTimestamp = nextReminderDate,
         lastPaymentTimestamp = lastPaymentTimestamp,
         tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
+        canMarkPaid = !selectionModeActive && canMarkPaid,
+        onMarkPaidClick = onMarkPaidClick,
         modifier = modifier
             .then(clickModifier)
     )

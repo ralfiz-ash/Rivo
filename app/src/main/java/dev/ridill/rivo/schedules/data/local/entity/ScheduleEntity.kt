@@ -35,6 +35,6 @@ data class ScheduleEntity(
     @ColumnInfo(name = "last_payment_timestamp")
     val lastPaymentTimestamp: LocalDateTime?,
 
-    @ColumnInfo(name = "next_reminder_timestamp")
-    val nextReminderTimestamp: LocalDateTime?
+    @ColumnInfo(name = "next_payment_timestamp")
+    val nextPaymentTimestamp: LocalDateTime?
 )

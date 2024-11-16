@@ -32,7 +32,12 @@ import java.time.LocalDateTime
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("tag_id"), Index("folder_id"), Index("timestamp"), Index("schedule_id")]
+    indices = [
+        Index("tag_id"),
+        Index("folder_id"),
+        Index("schedule_id"),
+        Index("timestamp")
+    ]
 )
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true)

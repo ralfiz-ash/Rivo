@@ -12,13 +12,13 @@ import java.time.LocalDateTime
 fun ScheduleEntity.toSchedule(): Schedule = Schedule(
     id = id,
     repetition = repetition,
-    nextReminderDate = nextReminderTimestamp,
+    nextPaymentTimestamp = nextPaymentTimestamp,
     amount = amount,
     note = note,
     type = type,
     tagId = tagId,
     folderId = folderId,
-    lastPaidDate = lastPaymentTimestamp
+    lastPaymentTimestamp = lastPaymentTimestamp
 )
 
 fun Schedule.toTransaction(
@@ -44,8 +44,8 @@ fun Schedule.toEntity(): ScheduleEntity = ScheduleEntity(
     repetition = repetition,
     tagId = tagId,
     folderId = folderId,
-    nextReminderTimestamp = nextReminderDate,
-    lastPaymentTimestamp = lastPaidDate
+    nextPaymentTimestamp = nextPaymentTimestamp,
+    lastPaymentTimestamp = lastPaymentTimestamp
 )
 
 fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(
@@ -53,5 +53,5 @@ fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(
     note = note?.let { UiText.DynamicString(it) }
         ?: UiText.StringResource(type.labelRes),
     amount = amount,
-    dueDate = nextReminderTimestamp ?: DateUtil.now()
+    dueDate = nextPaymentTimestamp ?: DateUtil.now()
 )

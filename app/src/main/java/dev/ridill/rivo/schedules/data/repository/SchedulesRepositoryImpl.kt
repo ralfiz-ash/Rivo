@@ -59,10 +59,12 @@ class SchedulesRepositoryImpl(
         val insertedId = dao.upsert(schedule.toEntity()).first()
             .takeIf { it > RivoDatabase.DEFAULT_ID_LONG }
             ?: schedule.id
-        scheduler.cancel(insertedId)
-        scheduler.setReminder(
-            schedule.copy(id = insertedId)
-        )
+        scheduleReminder(schedule.copy(id = insertedId))
+    }
+
+    override fun scheduleReminder(schedule: Schedule) {
+        scheduler.cancel(schedule.id)
+        scheduler.setReminder(schedule)
         receiverService.toggleBootAndTimeSetReceivers(true)
     }
 
@@ -81,12 +83,12 @@ class SchedulesRepositoryImpl(
                 scheduleId = schedule.id,
                 excluded = false
             )
-            val nextReminderDate = schedule.nextReminderDate
+            val nextReminderDate = schedule.nextPaymentTimestamp
                 ?.let { getNextReminderFromDate(it, schedule.repetition) }
             saveScheduleAndSetReminder(
                 schedule = schedule.copy(
-                    nextReminderDate = nextReminderDate,
-                    lastPaidDate = dateTime
+                    nextPaymentTimestamp = nextReminderDate,
+                    lastPaymentTimestamp = dateTime
                 )
             )
         }

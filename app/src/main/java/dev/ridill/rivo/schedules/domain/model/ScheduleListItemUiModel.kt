@@ -15,7 +15,7 @@ sealed class ScheduleListItemUiModel {
         val note: String?,
         val type: TransactionType,
         val lastPaymentTimestamp: LocalDateTime?,
-        val nextReminderTimestamp: LocalDateTime?,
+        val nextPaymentTimestamp: LocalDateTime?,
         val canMarkPaid: Boolean
     ) : ScheduleListItemUiModel() {
         constructor(
@@ -27,7 +27,7 @@ sealed class ScheduleListItemUiModel {
             note = scheduleItem.note,
             type = scheduleItem.type,
             lastPaymentTimestamp = scheduleItem.lastPaymentTimestamp,
-            nextReminderTimestamp = scheduleItem.nextReminderTimestamp,
+            nextPaymentTimestamp = scheduleItem.nextPaymentTimestamp,
             canMarkPaid = canMarkPaid
         )
 
@@ -35,8 +35,8 @@ sealed class ScheduleListItemUiModel {
             @Composable
             get() = TextFormat.currencyAmount(amount)
 
-        val nextReminderDateFormatted: String?
-            get() = nextReminderTimestamp?.format(DateUtil.Formatters.localizedDateMedium)
+        val nextPaymentTimestampFormatted: String?
+            get() = nextPaymentTimestamp?.format(DateUtil.Formatters.localizedDateMedium)
 
         val lastPaymentDateFormatted: String?
             get() = lastPaymentTimestamp?.format(DateUtil.Formatters.localizedDateMedium)

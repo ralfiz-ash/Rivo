@@ -18,18 +18,21 @@ interface SchedulesDao : BaseDao<ScheduleEntity> {
         SELECT *
         FROM schedules_table
         ORDER BY CASE
-            WHEN next_reminder_timestamp IS NULL THEN 2
-            WHEN strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', next_reminder_timestamp) = strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', DATE('now')) THEN 0
-            ELSE 1
+            WHEN strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', next_payment_timestamp) = strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', :dateNow) THEN 0
+            WHEN strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', next_payment_timestamp) < strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', :dateNow) THEN 1
+            WHEN next_payment_timestamp IS NULL THEN 3
+            ELSE 2
             END ASC
     """
     )
-    fun getSchedulesPaged(): PagingSource<Int, ScheduleEntity>
+    fun getSchedulesPaged(
+        dateNow: LocalDate
+    ): PagingSource<Int, ScheduleEntity>
 
     @Query("SELECT * FROM schedules_table WHERE id = :id")
     suspend fun getScheduleById(id: Long): ScheduleEntity?
 
-    @Query("SELECT * FROM schedules_table WHERE DATETIME(next_reminder_timestamp) > DATETIME(:timestamp)")
+    @Query("SELECT * FROM schedules_table WHERE DATETIME(next_payment_timestamp) > DATETIME(:timestamp)")
     suspend fun getAllSchedulesAfterTimestamp(timestamp: LocalDateTime): List<ScheduleEntity>
 
     @Query("SELECT MAX(DATETIME(timestamp)) FROM transaction_table WHERE schedule_id = :id")
@@ -39,8 +42,8 @@ interface SchedulesDao : BaseDao<ScheduleEntity> {
         """
         SELECT *
         FROM schedules_table
-        WHERE strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', next_reminder_timestamp) = strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', :date)
-        ORDER BY DATETIME(next_reminder_timestamp) ASC
+        WHERE strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', next_payment_timestamp) = strftime('${UtilConstants.DB_MONTH_AND_YEAR_FORMAT}', :date)
+        ORDER BY DATETIME(next_payment_timestamp) ASC
     """
     )
     fun getSchedulesForMonth(date: LocalDate): Flow<List<ScheduleEntity>>

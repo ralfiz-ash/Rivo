@@ -20,7 +20,9 @@ import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
@@ -30,56 +32,62 @@ class AllSchedulesRepositoryImpl(
     private val dao: SchedulesDao,
     private val repo: SchedulesRepository
 ) : AllSchedulesRepository {
-    private val currentDate = MutableStateFlow(DateUtil.dateNow())
+    private val _currentDate = MutableStateFlow(DateUtil.dateNow())
+    private val currentDate = _currentDate.asStateFlow()
 
     override fun refreshCurrentDate() {
-        currentDate.update { DateUtil.dateNow() }
+        _currentDate.update { DateUtil.dateNow() }
     }
 
-    override fun getSchedulesPagingData(): Flow<PagingData<ScheduleListItemUiModel>> = Pager(
-        config = PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE),
-        pagingSourceFactory = { dao.getSchedulesPaged() }
-    ).flow
-        .combine(currentDate) { pagingData, dateNow ->
-            pagingData
-                .map {
+    override fun getSchedulesPagingData(): Flow<PagingData<ScheduleListItemUiModel>> = currentDate
+        .flatMapLatest { dateNow ->
+            Pager(
+                config = PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE),
+                pagingSourceFactory = { dao.getSchedulesPaged(dateNow) }
+            ).flow.mapLatest { pagingData ->
+                val currentMonthStartDateTime = dateNow
+                    .withDayOfMonth(1)
+                    .atStartOfDay()
+                val nextMonthStartDateTime = dateNow
+                    .withDayOfMonth(1)
+                    .plusMonths(1)
+                    .atStartOfDay()
+
+                pagingData.map { entity ->
                     ScheduleListItemUiModel.ScheduleItem(
-                        scheduleItem = it,
-                        canMarkPaid = it.nextReminderTimestamp?.isSameMonthAs(dateNow) == true
+                        scheduleItem = entity,
+                        canMarkPaid = entity.nextPaymentTimestamp?.isSameMonthAs(dateNow) == true
+                                || entity.nextPaymentTimestamp?.isBefore(currentMonthStartDateTime) == true
                     )
-                }
-                .insertSeparators<ScheduleListItemUiModel.ScheduleItem, ScheduleListItemUiModel>
-                { before, after ->
+                }.insertSeparators<ScheduleListItemUiModel.ScheduleItem,
+                        ScheduleListItemUiModel> { before, after ->
                     when {
-                        before?.nextReminderTimestamp?.isSameMonthAs(dateNow) != true
-                                && after?.nextReminderTimestamp
+                        before?.nextPaymentTimestamp
+                            ?.isSameMonthAs(after?.nextPaymentTimestamp) != true
+                                && after?.nextPaymentTimestamp
                             ?.isSameMonthAs(dateNow) == true ->
                             ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.this_month))
 
-                        before?.nextReminderTimestamp
-                            ?.isAfter(
-                                dateNow
-                                    .plusMonths(1)
-                                    .withDayOfMonth(1)
-                                    .atStartOfDay()
-                            ) != true
-                                && after?.nextReminderTimestamp
-                            ?.isAfter(
-                                dateNow
-                                    .plusMonths(1)
-                                    .withDayOfMonth(1)
-                                    .atStartOfDay()
-                            ) == true ->
+                        before?.nextPaymentTimestamp
+                            ?.isSameMonthAs(after?.nextPaymentTimestamp) != true
+                                && after?.nextPaymentTimestamp
+                            ?.isBefore(currentMonthStartDateTime) == true ->
+                            ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.past_due))
+
+                        before?.nextPaymentTimestamp
+                            ?.isSameMonthAs(after?.nextPaymentTimestamp) != true
+                                && after?.nextPaymentTimestamp
+                            ?.isAfter(nextMonthStartDateTime) == true ->
                             ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.upcoming))
 
-                        before?.nextReminderTimestamp != null
-                                && after != null
-                                && after.nextReminderTimestamp == null ->
+                        after != null
+                                && after.nextPaymentTimestamp == null ->
                             ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.retired))
 
                         else -> null
                     }
                 }
+            }
         }
 
     override suspend fun markScheduleAsPaid(

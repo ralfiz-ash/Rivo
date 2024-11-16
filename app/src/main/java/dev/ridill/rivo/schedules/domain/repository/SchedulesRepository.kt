@@ -18,6 +18,7 @@ interface SchedulesRepository {
     ): LocalDateTime?
 
     suspend fun saveScheduleAndSetReminder(schedule: Schedule)
+    fun scheduleReminder(schedule: Schedule)
     suspend fun createTransactionFromScheduleAndSetNextReminder(
         schedule: Schedule,
         dateTime: LocalDateTime = DateUtil.now()
