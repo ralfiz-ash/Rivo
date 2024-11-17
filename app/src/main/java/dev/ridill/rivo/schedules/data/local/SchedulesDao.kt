@@ -46,7 +46,7 @@ interface SchedulesDao : BaseDao<ScheduleEntity> {
         ORDER BY DATETIME(next_payment_timestamp) ASC
     """
     )
-    fun getSchedulesForMonth(date: LocalDate): Flow<List<ScheduleEntity>>
+    fun getSchedulesActiveAtMonth(date: LocalDate): Flow<List<ScheduleEntity>>
 
     @Query("DELETE FROM schedules_table WHERE id IN (:ids)")
     suspend fun deleteSchedulesById(ids: Set<Long>)

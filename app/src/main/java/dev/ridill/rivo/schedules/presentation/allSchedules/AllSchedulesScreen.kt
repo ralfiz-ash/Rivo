@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -28,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.compose.LazyPagingItems
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.ui.components.BackArrowButton
@@ -41,13 +39,13 @@ import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
-import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.isEmpty
 import dev.ridill.rivo.schedules.domain.model.ScheduleListItemUiModel
 import dev.ridill.rivo.schedules.presentation.components.ScheduleListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionType
+import java.time.LocalDateTime
 
 @Composable
 fun AllSchedulesScreen(
@@ -161,8 +159,8 @@ fun AllSchedulesScreen(
                                     amount = item.amountFormatted,
                                     note = item.note,
                                     type = item.type,
-                                    nextReminderDate = item.nextPaymentTimestampFormatted,
-                                    lastPaymentTimestamp = item.lastPaymentDateFormatted,
+                                    nextPaymentTimestamp = item.nextPaymentTimestamp,
+                                    lastPaymentTimestamp = item.lastPaymentTimestamp,
                                     canMarkPaid = item.canMarkPaid,
                                     onMarkPaidClick = { actions.onMarkSchedulePaidClick(item.id) },
                                     onClick = { navigateToAddEditSchedule(item.id) },
@@ -225,8 +223,8 @@ private fun ScheduleListItemCard(
     amount: String,
     note: String?,
     type: TransactionType,
-    nextReminderDate: String?,
-    lastPaymentTimestamp: String?,
+    nextPaymentTimestamp: LocalDateTime?,
+    lastPaymentTimestamp: LocalDateTime?,
     canMarkPaid: Boolean,
     onMarkPaidClick: () -> Unit,
     onClick: () -> Unit,
@@ -251,7 +249,7 @@ private fun ScheduleListItemCard(
         note = note,
         amount = amount,
         type = type,
-        nextReminderTimestamp = nextReminderDate,
+        nextPaymentTimestamp = nextPaymentTimestamp,
         lastPaymentTimestamp = lastPaymentTimestamp,
         tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
         canMarkPaid = !selectionModeActive && canMarkPaid,
@@ -259,27 +257,4 @@ private fun ScheduleListItemCard(
         modifier = modifier
             .then(clickModifier)
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewScheduleListItemCard() {
-    RivoTheme {
-        ScheduleListItemCard(
-            amount = "100",
-            note = "Test",
-            onMarkPaidClick = {},
-            modifier = Modifier
-                .fillMaxWidth(),
-            nextReminderDate = "Tomorrow",
-            onClick = {},
-            lastPaymentTimestamp = null,
-            canMarkPaid = true,
-            selectionModeActive = false,
-            onLongPress = {},
-            onSelectionToggle = {},
-            selected = true,
-            type = TransactionType.DEBIT
-        )
-    }
 }

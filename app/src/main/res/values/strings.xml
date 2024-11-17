@@ -473,6 +473,5 @@
     <string name="clear_selection">Clear Selection</string>
     <string name="select_schedule_repetition">Select Schedule Repetition</string>
     <string name="clear_all">Clear All</string>
-    <string name="next_payment_on_colon">Next payment on: %s</string>
     <string name="last_payment_colon_value">Last payment: %s</string>
 </resources>
