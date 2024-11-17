@@ -249,7 +249,7 @@
 
     <string name="monthly_budget_input_text">Set a monthly budget to keep your transactions within</string>
 
-    <string name="schedule_repetition_no_repeat">Does not repeat</string>
+    <string name="schedule_repetition_no_repeat">One-Time</string>
     <string name="schedule_repetition_weekly">Weekly</string>
     <string name="schedule_repetition_monthly">Monthly</string>
     <string name="schedule_repetition_bi_monthly">Bi-monthly</string>
@@ -430,7 +430,7 @@
     <string name="checking_for_backups">Checking for backups</string>
     <string name="you_have_a_payment_of_amount_due_today">You have a payment of %s due today</string>
     <string name="mark_paid">Mark paid</string>
-    <string name="repeat_mode_label_transaction">%s transaction</string>
+    <string name="repeat_mode_label_schedule">%s schedule</string>
     <string name="schedule_saved">Schedule Saved</string>
     <string name="scheduled_transactions_can_be_found_in_corresponding_screen">*This transaction will be available in the \'%s\' screen</string>
     <string name="schedule_marked_as_paid">Schedule marked as paid</string>

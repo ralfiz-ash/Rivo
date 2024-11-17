@@ -602,7 +602,7 @@ private fun TransactionRepeatModeIndicator(
             label = {
                 Text(
                     text = stringResource(
-                        R.string.repeat_mode_label_transaction,
+                        R.string.repeat_mode_label_schedule,
                         stringResource(selectedRepeatMode.labelRes)
                     ),
                     maxLines = 1,
