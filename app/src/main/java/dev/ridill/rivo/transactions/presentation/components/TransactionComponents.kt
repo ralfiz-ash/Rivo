@@ -66,7 +66,7 @@ fun TransactionListItem(
     tonalElevation: Dp = ListItemDefaults.Elevation,
     shadowElevation: Dp = ListItemDefaults.Elevation
 ) {
-    val dateFormatted = remember(date) {
+    val dateMultiLined = remember(date) {
         date.format(DateUtil.Formatters.ddth_EEE_spaceSep)
             .replace(" ", "\n")
     }
@@ -115,11 +115,10 @@ fun TransactionListItem(
         },
         leadingContent = {
             ListItemLeadingContentContainer(
-                modifier = modifier,
                 tonalElevation = MaterialTheme.elevation.level1
             ) {
                 BodyMediumText(
-                    text = dateFormatted,
+                    text = dateMultiLined,
                     textAlign = TextAlign.Center
                 )
             }

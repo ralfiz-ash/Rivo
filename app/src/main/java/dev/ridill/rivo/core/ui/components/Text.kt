@@ -143,7 +143,8 @@ fun BodySmallText(
     overflow: TextOverflow = TextOverflow.Ellipsis,
     color: Color = Color.Unspecified,
     textAlign: TextAlign? = null,
-    textDecoration: TextDecoration? = null
+    textDecoration: TextDecoration? = null,
+    fontWeight: FontWeight? = null
 ) = Text(
     text = text,
     style = MaterialTheme.typography.bodySmall,
@@ -152,7 +153,8 @@ fun BodySmallText(
     modifier = modifier,
     color = color,
     textAlign = textAlign,
-    textDecoration = textDecoration
+    textDecoration = textDecoration,
+    fontWeight = fontWeight
 )
 
 @Composable

@@ -33,9 +33,9 @@ fun <T> FloatingWindowNavigationResultEffect(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     onResult: (T) -> Unit
 ) = OnLifecycleResumeEffect(
-    lifecycleOwner = lifecycleOwner,
     navBackStackEntry,
-    *keys
+    *keys,
+    lifecycleOwner = lifecycleOwner
 ) {
     navBackStackEntry
         .savedStateHandle

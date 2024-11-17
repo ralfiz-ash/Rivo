@@ -81,7 +81,7 @@ class DashboardRepositoryImpl(
         .distinctUntilChanged()
 
     override fun getSchedulesActiveThisMonth(): Flow<List<ActiveSchedule>> = currentDate
-        .flatMapLatest { schedulesDao.getSchedulesForMonth(it) }
+        .flatMapLatest { schedulesDao.getSchedulesActiveAtMonth(it) }
         .map { entities -> entities.map(ScheduleEntity::toActiveSchedule) }
 
     override fun getRecentSpends(): Flow<PagingData<TransactionListItem>> = currentDate
