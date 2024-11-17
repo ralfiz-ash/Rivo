@@ -71,7 +71,7 @@ class AddEditTransactionRepositoryImpl(
             logI("deleteTransaction") { "Found schedule for tx - $schedule" }
 
             // Check if deleted transaction is the same month as schedule lastPaidDate
-            val isTxTimestampAndScheduleLastPaymentSameMonth = schedule.lastPaidDate
+            val isTxTimestampAndScheduleLastPaymentSameMonth = schedule.lastPaymentTimestamp
                 ?.isSameMonthAs(transaction.timestamp) == true
 
             if (isTxTimestampAndScheduleLastPaymentSameMonth) {
@@ -81,17 +81,17 @@ class AddEditTransactionRepositoryImpl(
                     .getLastTransactionTimestampForSchedule(schedule.id)
                 logI("deleteTransaction") { "Latest tx date for schedule - $newLastPaymentDate" }
                 // calculate next reminder from last payment date
-                val prevReminderDate = schedule.nextReminderDate
+                val prevReminderDate = schedule.nextPaymentTimestamp
                     ?.let {
                         schedulesRepo.getPrevReminderFromDate(it, schedule.repetition)
-                    } ?: schedule.lastPaidDate
+                    } ?: schedule.lastPaymentTimestamp
 
                 logI("deleteTransaction") { "New prev reminder date for schedule - $prevReminderDate" }
                 // update schedule and set new reminder for next date
                 schedulesRepo.saveScheduleAndSetReminder(
                     schedule.copy(
-                        lastPaidDate = newLastPaymentDate,
-                        nextReminderDate = prevReminderDate
+                        lastPaymentTimestamp = newLastPaymentDate,
+                        nextPaymentTimestamp = prevReminderDate
                     )
                 )
             }
@@ -103,13 +103,21 @@ class AddEditTransactionRepositoryImpl(
             dao.toggleExclusionByIds(setOf(id), excluded)
         }
 
-    override suspend fun getScheduleById(id: Long): Schedule? =
-        schedulesRepo.getScheduleById(id)
+    override suspend fun getScheduleById(id: Long): Schedule? = schedulesRepo.getScheduleById(id)
+        ?.let { schedule ->
+            val nextPaymentTimestamp = schedule.nextPaymentTimestamp
+                ?: schedule.lastPaymentTimestamp
+                    ?.let { schedulesRepo.getNextReminderFromDate(it, schedule.repetition) }
+
+            schedule.copy(
+                nextPaymentTimestamp = nextPaymentTimestamp
+            )
+        }
 
     override suspend fun deleteSchedule(id: Long) =
         schedulesRepo.deleteScheduleById(id)
 
-    override suspend fun saveSchedule(
+    override suspend fun saveAsSchedule(
         transaction: Transaction,
         repetition: ScheduleRepetition
     ) {
@@ -121,7 +129,7 @@ class AddEditTransactionRepositoryImpl(
                 repetition = repetition,
                 tagId = transaction.tagId,
                 folderId = transaction.folderId,
-                nextReminderDate = transaction.timestamp
+                nextPaymentTimestamp = transaction.timestamp
             ) ?: Schedule.fromTransaction(transaction, repetition)
 
         schedulesRepo.saveScheduleAndSetReminder(schedule)

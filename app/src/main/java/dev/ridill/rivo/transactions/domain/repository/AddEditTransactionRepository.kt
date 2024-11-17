@@ -13,6 +13,6 @@ interface AddEditTransactionRepository {
     suspend fun toggleExclusionById(id: Long, excluded: Boolean)
     suspend fun getScheduleById(id: Long): Schedule?
     suspend fun deleteSchedule(id: Long)
-    suspend fun saveSchedule(transaction: Transaction, repetition: ScheduleRepetition)
+    suspend fun saveAsSchedule(transaction: Transaction, repetition: ScheduleRepetition)
     fun getFolderNameForId(folderId: Long?): Flow<String?>
 }

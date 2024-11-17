@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "83162f194c335509961441f18192baa0",
+    "identityHash": "ee3edd89838e12a34c6216a3ded2561c",
     "entities": [
       {
         "tableName": "budget_preference_table",
@@ -115,15 +115,6 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_transaction_table_folder_id` ON `${TABLE_NAME}` (`folder_id`)"
           },
           {
-            "name": "index_transaction_table_timestamp",
-            "unique": false,
-            "columnNames": [
-              "timestamp"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_transaction_table_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
-          },
-          {
             "name": "index_transaction_table_schedule_id",
             "unique": false,
             "columnNames": [
@@ -131,6 +122,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_transaction_table_schedule_id` ON `${TABLE_NAME}` (`schedule_id`)"
+          },
+          {
+            "name": "index_transaction_table_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_transaction_table_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
           }
         ],
         "foreignKeys": [
@@ -253,7 +253,7 @@
       },
       {
         "tableName": "schedules_table",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` REAL NOT NULL, `note` TEXT, `type` TEXT NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `repetition` TEXT NOT NULL, `last_payment_timestamp` TEXT, `next_reminder_timestamp` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` REAL NOT NULL, `note` TEXT, `type` TEXT NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `repetition` TEXT NOT NULL, `last_payment_timestamp` TEXT, `next_payment_timestamp` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -304,8 +304,8 @@
             "notNull": false
           },
           {
-            "fieldPath": "nextReminderTimestamp",
-            "columnName": "next_reminder_timestamp",
+            "fieldPath": "nextPaymentTimestamp",
+            "columnName": "next_payment_timestamp",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -410,7 +410,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '83162f194c335509961441f18192baa0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ee3edd89838e12a34c6216a3ded2561c')"
     ]
   }
 }
