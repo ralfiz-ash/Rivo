@@ -2,6 +2,8 @@ package dev.ridill.rivo.schedules.presentation.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
@@ -19,13 +21,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.One
+import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BodyMediumText
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
@@ -33,6 +42,7 @@ import dev.ridill.rivo.core.ui.components.SpacerSmall
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.elevation
+import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDateTime
 
@@ -132,6 +142,54 @@ fun ScheduleListItem(
     }
 }
 
+@Composable
+fun ActiveScheduleItem(
+    note: String?,
+    amount: String,
+    type: TransactionType,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        modifier = modifier
+    ) {
+        Text(
+            text = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                ) {
+                    append(amount)
+                }
+                append(String.WhiteSpace)
+                append(stringResource(type.labelRes))
+                note?.let { text ->
+                    append(String.WhiteSpace)
+                    if (text.isNotEmpty()) {
+                        append(stringResource(R.string.for_txt))
+                        append(String.WhiteSpace)
+                        withStyle(
+                            SpanStyle(
+                                fontStyle = FontStyle.Italic,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        ) {
+                            append(text)
+                        }
+                    }
+                }
+            },
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.medium,
+                vertical = MaterialTheme.spacing.small
+            )
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

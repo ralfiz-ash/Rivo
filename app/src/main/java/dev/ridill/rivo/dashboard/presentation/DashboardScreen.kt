@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -43,18 +41,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -64,7 +56,6 @@ import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.PartOfDay
-import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.ListLabel
 import dev.ridill.rivo.core.ui.components.OnLifecycleStartEffect
 import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
@@ -83,10 +74,10 @@ import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.TextFormat
-import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.core.ui.util.isEmpty
 import dev.ridill.rivo.core.ui.util.mergedContentDescription
 import dev.ridill.rivo.schedules.domain.model.ActiveSchedule
+import dev.ridill.rivo.schedules.presentation.components.ActiveScheduleItem
 import dev.ridill.rivo.transactions.domain.model.FolderIndicator
 import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
@@ -492,92 +483,18 @@ private fun ActiveSchedulesRow(
         items(
             items = activeSchedules,
             key = { it.id },
-            contentType = { "ActiveScheduleCard" }
+            contentType = { "ActiveSchedule" }
         ) { schedule ->
-            ActiveScheduleCard(
-                name = schedule.note,
+            ActiveScheduleItem(
+                note = schedule.note,
                 amount = schedule.amountFormatted,
-                dueDate = schedule.dueDateFormatted,
+                type = schedule.type,
                 modifier = Modifier
-                    .fillParentMaxWidth(UPCOMING_SCHEDULE_CARD_PARENT_WIDTH_FRACTION)
                     .animateItem()
             )
         }
     }
 }
-
-private const val UPCOMING_SCHEDULE_CARD_PARENT_WIDTH_FRACTION = 0.80f
-
-@Composable
-private fun ActiveScheduleCard(
-    name: UiText,
-    amount: String,
-    dueDate: String,
-    modifier: Modifier = Modifier
-) {
-    ElevatedCard(
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(
-                    horizontal = MaterialTheme.spacing.medium,
-                    vertical = MaterialTheme.spacing.small
-                )
-                .heightIn(min = UpcomingScheduleCardMinHeight)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(Float.One),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = buildAnnotatedString {
-                        append(stringResource(R.string.payment_of_amount))
-                        append(String.WhiteSpace)
-                        withStyle(
-                            SpanStyle(
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        ) {
-                            append(amount)
-                        }
-                        append(String.WhiteSpace)
-                        append(stringResource(R.string.for_note))
-                        append(String.WhiteSpace)
-                        withStyle(
-                            SpanStyle(
-                                fontStyle = FontStyle.Italic,
-                                textDecoration = TextDecoration.Underline
-                            )
-                        ) {
-                            append(name.asString())
-                        }
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .padding(MaterialTheme.spacing.extraSmall)
-                )
-            }
-
-            HorizontalDivider()
-
-            SpacerExtraSmall()
-
-            Text(
-                text = stringResource(R.string.due_on_date, dueDate),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-
-private val UpcomingScheduleCardMinHeight = 100.dp
 
 @Composable
 private fun RecentSpendCard(
@@ -616,9 +533,9 @@ private fun PreviewDashboardScreen() {
                 activeSchedules = List(3) {
                     ActiveSchedule(
                         id = it.toLong(),
-                        note = UiText.DynamicString("Really long transaction note"),
+                        note = "Really long transaction note",
                         amount = 200.0,
-                        dueDate = DateUtil.now()
+                        type = TransactionType.DEBIT
                     )
                 }
             ),

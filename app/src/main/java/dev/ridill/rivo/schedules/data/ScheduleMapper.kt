@@ -2,7 +2,6 @@ package dev.ridill.rivo.schedules.data
 
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.util.DateUtil
-import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.schedules.data.local.entity.ScheduleEntity
 import dev.ridill.rivo.schedules.domain.model.ActiveSchedule
 import dev.ridill.rivo.schedules.domain.model.Schedule
@@ -50,8 +49,7 @@ fun Schedule.toEntity(): ScheduleEntity = ScheduleEntity(
 
 fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(
     id = id,
-    note = note?.let { UiText.DynamicString(it) }
-        ?: UiText.StringResource(type.labelRes),
+    note = note,
     amount = amount,
-    dueDate = nextPaymentTimestamp ?: DateUtil.now()
+    type = type
 )
