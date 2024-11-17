@@ -46,7 +46,7 @@ class AppLockNotificationHelper(
 
     override fun buildBaseNotification(): NotificationCompat.Builder =
         NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.notification_ic_lock_open)
+            .setSmallIcon(R.drawable.ic_notification_app_unlocked)
             .setContentIntent(buildContentIntent())
             .addAction(buildLockAction())
 
@@ -65,7 +65,7 @@ class AppLockNotificationHelper(
         )
 
         return NotificationCompat.Action.Builder(
-            R.drawable.notification_ic_lock_open,
+            R.drawable.ic_notification_app_unlocked,
             context.getString(R.string.lock_now),
             pendingIntent
         ).build()
