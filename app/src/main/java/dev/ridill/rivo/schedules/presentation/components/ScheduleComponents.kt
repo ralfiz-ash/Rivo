@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
@@ -96,12 +96,13 @@ fun ScheduleListItem(
                 )
 
                 if (canMarkPaid) {
-                    FilledTonalIconButton(
+                    IconButton(
                         onClick = onMarkPaidClick
                     ) {
                         Icon(
-                            ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
-                            contentDescription = ""
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
+                            contentDescription = stringResource(R.string.cd_mark_as_paid),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
