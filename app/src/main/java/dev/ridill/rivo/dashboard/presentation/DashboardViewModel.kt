@@ -15,13 +15,12 @@ import dev.ridill.rivo.dashboard.domain.repository.DashboardRepository
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    repo: DashboardRepository,
+    private val repo: DashboardRepository,
     private val notificationHelper: NotificationHelper<Transaction>,
     private val eventBus: EventBus<DashboardEvent>
 ) : ViewModel() {
@@ -73,15 +72,15 @@ class DashboardViewModel @Inject constructor(
             activeSchedules = activeSchedules,
             signedInUsername = signedInUsername
         )
-    }
-        .onStart { repo.refreshCurrentDate() }
-        .asStateFlow(viewModelScope, DashboardState())
+    }.asStateFlow(viewModelScope, DashboardState())
 
     val events = eventBus.eventFlow
 
     init {
         cancelNotifications()
     }
+
+    fun refreshCurrentDate() = repo.refreshCurrentDate()
 
     fun onNavResult(result: AddEditTxResult) = viewModelScope.launch {
         val event = when (result) {

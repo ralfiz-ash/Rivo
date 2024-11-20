@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.notification.NotificationHelper
+import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
 import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.repository.TransactionRepositoryImpl
@@ -27,8 +28,14 @@ object TransactionSingletonModule {
 
     @Provides
     fun provideTransactionRepository(
-        dao: TransactionDao
-    ): TransactionRepository = TransactionRepositoryImpl(dao)
+        db: RivoDatabase,
+        transactionDao: TransactionDao,
+        schedulesRepo: SchedulesRepository
+    ): TransactionRepository = TransactionRepositoryImpl(
+        db = db,
+        transactionDao = transactionDao,
+        schedulesRepo = schedulesRepo
+    )
 
     @Provides
     fun provideTransactionDataExtractor(): TransactionDataExtractor =

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.NewLine
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
@@ -42,7 +43,6 @@ import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
 import dev.ridill.rivo.core.ui.components.icons.Tags
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
-import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.exclusionGraphicsLayer
 import dev.ridill.rivo.transactions.domain.model.FolderIndicator
@@ -66,9 +66,9 @@ fun TransactionListItem(
     tonalElevation: Dp = ListItemDefaults.Elevation,
     shadowElevation: Dp = ListItemDefaults.Elevation
 ) {
-    val dateFormatted = remember(date) {
+    val dateMultiLined = remember(date) {
         date.format(DateUtil.Formatters.ddth_EEE_spaceSep)
-            .replace(" ", "\n")
+            .replace(String.WhiteSpace, String.NewLine)
     }
 
     val transactionListItemContentDescription = buildString {
@@ -114,12 +114,9 @@ fun TransactionListItem(
             }
         },
         leadingContent = {
-            ListItemLeadingContentContainer(
-                modifier = modifier,
-                tonalElevation = MaterialTheme.elevation.level1
-            ) {
+            ListItemLeadingContentContainer {
                 BodyMediumText(
-                    text = dateFormatted,
+                    text = dateMultiLined,
                     textAlign = TextAlign.Center
                 )
             }

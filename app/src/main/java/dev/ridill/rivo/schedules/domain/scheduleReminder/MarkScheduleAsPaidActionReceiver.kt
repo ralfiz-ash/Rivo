@@ -37,7 +37,7 @@ class MarkScheduleAsPaidActionReceiver : BroadcastReceiver() {
                 ?: return@launch
             val schedule = repo.getScheduleById(scheduleId)
                 ?: return@launch
-            repo.createTransactionForScheduleAndSetNextReminder(schedule)
+            repo.createTransactionFromScheduleAndSetNextReminder(schedule)
 
             notificationHelper.updateNotification(
                 id = scheduleId.hashCode(),

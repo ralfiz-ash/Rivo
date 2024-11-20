@@ -18,11 +18,11 @@ object SchedulesViewModelModule {
     @Provides
     fun provideAllSchedulesRepository(
         db: RivoDatabase,
-        schedulesDao: SchedulesDao,
+        dao: SchedulesDao,
         schedulesRepository: SchedulesRepository
     ): AllSchedulesRepository = AllSchedulesRepositoryImpl(
         db = db,
-        schedulesDao = schedulesDao,
+        dao = dao,
         repo = schedulesRepository
     )
 

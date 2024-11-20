@@ -17,6 +17,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.BuildUtil
 import dev.ridill.rivo.core.ui.components.CollectFlowEffect
+import dev.ridill.rivo.core.ui.components.OnLifecycleStartEffect
 import dev.ridill.rivo.core.ui.components.rememberPermissionState
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
 import dev.ridill.rivo.core.ui.util.launchAppNotificationSettings
@@ -72,6 +73,11 @@ data object AllSchedulesScreenSpec : ScreenSpec {
                 }
             }
         }
+
+        OnLifecycleStartEffect(
+            viewModel,
+            block = viewModel::refreshCurrentDate
+        )
 
         AllSchedulesScreen(
             context = context,

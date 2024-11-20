@@ -13,8 +13,8 @@ data class Schedule(
     val tagId: Long?,
     val folderId: Long?,
     val repetition: ScheduleRepetition,
-    val nextReminderDate: LocalDateTime?,
-    val lastPaidDate: LocalDateTime?
+    val nextPaymentTimestamp: LocalDateTime?,
+    val lastPaymentTimestamp: LocalDateTime?
 ) {
     companion object {
         fun fromTransaction(
@@ -28,8 +28,8 @@ data class Schedule(
             repetition = repeatMode,
             tagId = transaction.tagId,
             folderId = transaction.folderId,
-            nextReminderDate = transaction.timestamp,
-            lastPaidDate = null
+            nextPaymentTimestamp = transaction.timestamp,
+            lastPaymentTimestamp = null
         )
     }
 }

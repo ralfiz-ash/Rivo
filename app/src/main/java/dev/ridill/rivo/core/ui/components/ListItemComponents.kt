@@ -23,7 +23,7 @@ import dev.ridill.rivo.core.ui.theme.spacing
 fun ListItemLeadingContentContainer(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.small,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     contentColor: Color = contentColorFor(containerColor),
     tonalElevation: Dp = MaterialTheme.elevation.level0,
     contentPadding: PaddingValues = PaddingValues(MaterialTheme.spacing.small),

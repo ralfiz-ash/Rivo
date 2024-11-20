@@ -112,6 +112,7 @@
     <string name="cd_convert_to_schedule">Convert to schedule</string>
     <string name="cd_convert_to_normal_transaction">Convert to normal transaction</string>
     <string name="cd_clear_search_query">Clear search query</string>
+    <string name="cd_mark_as_paid">Mark as paid</string>
 
     <!-- Error Messages -->
     <string name="error_no_internet_connection">No internet connection</string>
@@ -249,7 +250,7 @@
 
     <string name="monthly_budget_input_text">Set a monthly budget to keep your transactions within</string>
 
-    <string name="schedule_repetition_no_repeat">Does not repeat</string>
+    <string name="schedule_repetition_no_repeat">One-Time</string>
     <string name="schedule_repetition_weekly">Weekly</string>
     <string name="schedule_repetition_monthly">Monthly</string>
     <string name="schedule_repetition_bi_monthly">Bi-monthly</string>
@@ -430,22 +431,21 @@
     <string name="checking_for_backups">Checking for backups</string>
     <string name="you_have_a_payment_of_amount_due_today">You have a payment of %s due today</string>
     <string name="mark_paid">Mark paid</string>
-    <string name="repeat_mode_label_transaction">%s transaction</string>
+    <string name="repeat_mode_label_schedule">%s schedule</string>
     <string name="schedule_saved">Schedule Saved</string>
     <string name="scheduled_transactions_can_be_found_in_corresponding_screen">*This transaction will be available in the \'%s\' screen</string>
     <string name="schedule_marked_as_paid">Schedule marked as paid</string>
     <string name="generic_schedule_title">~Schedule</string>
     <string name="retired">Retired</string>
-    <string name="last_paid_date">Last paid: %s</string>
     <string name="this_month">This Month</string>
+    <string name="past_due">Past Due</string>
     <string name="upcoming">Upcoming</string>
     <string name="schedules_empty_message">The schedules you create will appear here</string>
     <string name="edit_schedule">Edit Schedule</string>
     <string name="new_schedule">New Schedule</string>
     <string name="schedule_reminder">Schedule Reminder</string>
     <string name="budget_includes_credit_amount_of_value">Budget amount shown here includes a credit amount of %s</string>
-    <string name="payment_of_amount">Payment of amount</string>
-    <string name="for_note">for</string>
+    <string name="for_txt">for</string>
     <string name="due_on_date">Due on %s</string>
     <string name="schedules_this_month">Schedules this month</string>
     <string name="created_colon_timestamp_value">Created: %s</string>
@@ -473,4 +473,5 @@
     <string name="clear_selection">Clear Selection</string>
     <string name="select_schedule_repetition">Select Schedule Repetition</string>
     <string name="clear_all">Clear All</string>
+    <string name="last_payment_colon_value">Last payment: %s</string>
 </resources>

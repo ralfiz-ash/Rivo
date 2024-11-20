@@ -6,7 +6,6 @@ import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.ridill.rivo.core.domain.notification.NotificationHelper
 import dev.ridill.rivo.core.domain.util.DateUtil
-import dev.ridill.rivo.core.domain.util.logI
 import dev.ridill.rivo.di.ApplicationScope
 import dev.ridill.rivo.schedules.domain.model.Schedule
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
@@ -36,17 +35,18 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
         val id = intent.getLongExtra(ScheduleReminder.EXTRA_SCHEDULE_ID, -1L)
             .takeIf { it > -1L }
             ?: return
-        applicationContext.launch {
-            val schedule = repo.getScheduleById(id)
-                ?: return@launch
-            logI { "Schedule $schedule triggered at ${DateUtil.now()}" }
-            val newReminderDate = schedule.nextReminderDate
-                ?.let { repo.getNextReminderFromDate(it, schedule.repetition) }
-            repo.saveScheduleAndSetReminder(schedule.copy(nextReminderDate = newReminderDate))
-            notificationHelper.postNotification(
-                id = schedule.id.hashCode(),
-                data = schedule
-            )
-        }
+        notifyAndSetNextNextReminder(id)
+    }
+
+    private fun notifyAndSetNextNextReminder(id: Long) = applicationContext.launch {
+        val schedule = repo.getScheduleById(id)
+            ?: return@launch
+        notificationHelper.postNotification(
+            id = schedule.id.hashCode(),
+            data = schedule
+        )
+
+        val newReminderDate = repo.calculateNextPaymentTimestampFromDate(DateUtil.now(), schedule.repetition)
+        repo.scheduleReminder(schedule.copy(nextPaymentTimestamp = newReminderDate))
     }
 }

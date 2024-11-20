@@ -2,24 +2,22 @@ package dev.ridill.rivo.schedules.data
 
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.util.DateUtil
-import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.schedules.data.local.entity.ScheduleEntity
 import dev.ridill.rivo.schedules.domain.model.ActiveSchedule
 import dev.ridill.rivo.schedules.domain.model.Schedule
-import dev.ridill.rivo.schedules.domain.model.ScheduleListItem
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import java.time.LocalDateTime
 
 fun ScheduleEntity.toSchedule(): Schedule = Schedule(
     id = id,
     repetition = repetition,
-    nextReminderDate = nextReminderDate,
+    nextPaymentTimestamp = nextPaymentTimestamp,
     amount = amount,
     note = note,
     type = type,
     tagId = tagId,
     folderId = folderId,
-    lastPaidDate = lastPaidDate
+    lastPaymentTimestamp = lastPaymentTimestamp
 )
 
 fun Schedule.toTransaction(
@@ -45,22 +43,13 @@ fun Schedule.toEntity(): ScheduleEntity = ScheduleEntity(
     repetition = repetition,
     tagId = tagId,
     folderId = folderId,
-    nextReminderDate = nextReminderDate,
-    lastPaidDate = lastPaidDate
-)
-
-fun ScheduleEntity.toScheduleListItem(): ScheduleListItem = ScheduleListItem(
-    id = id,
-    amount = amount,
-    note = note,
-    nextReminderDate = nextReminderDate,
-    lastPaidDate = lastPaidDate,
+    nextPaymentTimestamp = nextPaymentTimestamp,
+    lastPaymentTimestamp = lastPaymentTimestamp
 )
 
 fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(
     id = id,
-    note = note?.let { UiText.DynamicString(it) }
-        ?: UiText.StringResource(type.labelRes),
+    note = note,
     amount = amount,
-    dueDate = nextReminderDate ?: DateUtil.now()
+    type = type
 )

@@ -214,6 +214,7 @@ dependencies {
 
     // Test
     testImplementation(libs.com.google.truth)
+    androidTestImplementation(libs.com.google.truth)
 }
 
 ksp {

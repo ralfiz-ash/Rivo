@@ -25,13 +25,13 @@ object TransactionViewModelModule {
 
     @Provides
     fun provideAddEditTransactionRepository(
-        db: RivoDatabase,
         dao: TransactionDao,
+        repo: TransactionRepository,
         schedulesRepo: SchedulesRepository,
         folderRepo: FolderDetailsRepository
     ): AddEditTransactionRepository = AddEditTransactionRepositoryImpl(
-        db = db,
         dao = dao,
+        repo = repo,
         schedulesRepo = schedulesRepo,
         folderRepo = folderRepo
     )

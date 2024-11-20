@@ -27,7 +27,7 @@ class AllSchedulesViewModel @Inject constructor(
     private val showNotificationRationale = savedStateHandle
         .getStateFlow(SHOW_NOTIFICATION_RATIONALE, false)
 
-    val schedulesPagingData = repo.getAllSchedules()
+    val schedulesPagingData = repo.getSchedulesPagingData()
         .cachedIn(viewModelScope)
 
     private val selectedScheduleIds = savedStateHandle
@@ -56,9 +56,12 @@ class AllSchedulesViewModel @Inject constructor(
             selectedScheduleIds = selectedScheduleIds,
             showDeleteSelectedSchedulesConfirmation = showDeleteSelectedSchedulesConfirmation
         )
-    }.asStateFlow(viewModelScope, AllSchedulesState())
+    }
+        .asStateFlow(viewModelScope, AllSchedulesState())
 
     val events = eventBus.eventFlow
+
+    fun refreshCurrentDate() = repo.refreshCurrentDate()
 
     override fun onNotificationWarningClick() {
         savedStateHandle[SHOW_NOTIFICATION_RATIONALE] = true
@@ -117,6 +120,7 @@ class AllSchedulesViewModel @Inject constructor(
         viewModelScope.launch {
             repo.deleteSchedulesById(selectedScheduleIds.value)
             savedStateHandle[SHOW_DELETE_SELECTED_SCHEDULES_CONFIRMATION] = false
+            savedStateHandle[SELECTED_SCHEDULE_IDS] = emptySet<Long>()
         }
     }
 

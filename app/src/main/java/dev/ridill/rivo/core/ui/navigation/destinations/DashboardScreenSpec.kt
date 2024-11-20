@@ -13,6 +13,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.ui.components.CollectFlowEffect
 import dev.ridill.rivo.core.ui.components.NavigationResultEffect
+import dev.ridill.rivo.core.ui.components.OnLifecycleStartEffect
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
 import dev.ridill.rivo.dashboard.presentation.DashboardScreen
 import dev.ridill.rivo.dashboard.presentation.DashboardViewModel
@@ -68,6 +69,11 @@ data object DashboardScreenSpec : ScreenSpec {
                 }
             }
         }
+
+        OnLifecycleStartEffect(
+            viewModel,
+            block = viewModel::refreshCurrentDate
+        )
 
         DashboardScreen(
             snackbarController = snackbarController,

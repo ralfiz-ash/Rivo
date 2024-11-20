@@ -17,8 +17,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun OnLifecycleEventEffect(
     lifecycleEvent: Lifecycle.Event,
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     vararg keys: Any?,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     block: () -> Unit
 ) {
     val observer = remember(lifecycleOwner, *keys) {
@@ -40,8 +40,8 @@ fun OnLifecycleEventEffect(
 
 @Composable
 fun OnLifecycleStartEffect(
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     vararg keys: Any?,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     block: () -> Unit
 ) = OnLifecycleEventEffect(
     lifecycleEvent = Lifecycle.Event.ON_START,
@@ -52,8 +52,8 @@ fun OnLifecycleStartEffect(
 
 @Composable
 fun OnLifecycleResumeEffect(
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     vararg keys: Any?,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     block: () -> Unit
 ) = OnLifecycleEventEffect(
     lifecycleEvent = Lifecycle.Event.ON_RESUME,

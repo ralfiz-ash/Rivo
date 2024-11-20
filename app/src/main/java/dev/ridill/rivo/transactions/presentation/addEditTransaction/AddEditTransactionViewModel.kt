@@ -164,8 +164,9 @@ class AddEditTransactionViewModel @Inject constructor(
                 ?: ScheduleRepetition.NO_REPEAT
 
             schedule?.toTransaction(
-                dateTime = schedule.nextReminderDate
-                    ?: DateUtil.now(),
+                dateTime = schedule.nextPaymentTimestamp
+                    ?: DateUtil.now()
+                        .plusDays(1L),
                 txId = transactionIdArg
             )
         } else {
@@ -398,7 +399,7 @@ class AddEditTransactionViewModel @Inject constructor(
                     transactionRepo.deleteTransaction(txInput.id)
                     scheduleOrTxIdForInsertion = RivoDatabase.DEFAULT_ID_LONG
                 }
-                transactionRepo.saveSchedule(
+                transactionRepo.saveAsSchedule(
                     transaction = txInput.copy(
                         id = scheduleOrTxIdForInsertion,
                         amount = evaluatedAmount.toString()

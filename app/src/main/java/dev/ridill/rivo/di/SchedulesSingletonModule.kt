@@ -16,7 +16,7 @@ import dev.ridill.rivo.schedules.domain.notification.ScheduleReminderNotificatio
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
 import dev.ridill.rivo.schedules.domain.scheduleReminder.AlarmManagerScheduleReminder
 import dev.ridill.rivo.schedules.domain.scheduleReminder.ScheduleReminder
-import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
+import dev.ridill.rivo.transactions.data.local.TransactionDao
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -28,14 +28,14 @@ object SchedulesSingletonModule {
     @Provides
     fun provideSchedulesRepository(
         db: RivoDatabase,
-        dao: SchedulesDao,
-        txRepo: TransactionRepository,
+        schedulesDao: SchedulesDao,
+        transactionDao: TransactionDao,
         scheduler: ScheduleReminder,
         receiverService: ReceiverService
     ): SchedulesRepository = SchedulesRepositoryImpl(
         db = db,
-        dao = dao,
-        txRepo = txRepo,
+        schedulesDao = schedulesDao,
+        transactionDao = transactionDao,
         scheduler = scheduler,
         receiverService = receiverService
     )

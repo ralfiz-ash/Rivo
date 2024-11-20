@@ -29,7 +29,6 @@ object DateUtil {
         formatter: DateTimeFormatter = Formatters.isoLocalDateTime
     ): LocalDateTime? = tryOrNull { LocalDateTime.parse(value, formatter) }
 
-
     fun getPartOfDay(): PartOfDay = when (now().hour) {
         in (0..11) -> PartOfDay.MORNING
         12 -> PartOfDay.NOON
@@ -106,9 +105,9 @@ object DateUtil {
                 .appendPattern(" EEE")
                 .toFormatter()
 
-        val EEE_ddth_commaSep: DateTimeFormatter
+        val MMM_ddth_spaceSep: DateTimeFormatter
             get() = DateTimeFormatterBuilder()
-                .appendPattern("EEE, ")
+                .appendPattern("MMM ")
                 .appendText(ChronoField.DAY_OF_MONTH, ordinalsMap)
                 .toFormatter()
 
@@ -175,6 +174,12 @@ object DateUtil {
             }
     }
 }
+
+fun LocalDateTime.isSameMonthAs(other: LocalDateTime?): Boolean =
+    this.year == other?.year && this.month == other.month
+
+fun LocalDateTime.isSameMonthAs(other: LocalDate?): Boolean =
+    this.year == other?.year && this.month == other.month
 
 enum class PartOfDay(
     @StringRes val labelRes: Int

@@ -3,9 +3,9 @@ package dev.ridill.rivo.core.data.util
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.model.DataError
 import dev.ridill.rivo.core.domain.model.Result
+import dev.ridill.rivo.core.domain.util.rethrowIfCoroutineCancellation
 import dev.ridill.rivo.core.domain.util.logE
 import dev.ridill.rivo.core.ui.util.UiText
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.IOException
@@ -18,19 +18,19 @@ suspend inline fun <T, E : DataError> tryNetworkCall(
     try {
         call()
     } catch (e: IOException) {
-        logE(e) { "Network call failed" }
+        logE(e, "tryNetworkCall")
         Result.Error(
             DataError.Network.NO_INTERNET,
             UiText.StringResource(R.string.error_no_internet_connection)
         )
     } catch (e: SocketTimeoutException) {
-        logE(e) { "Network call failed" }
+        logE(e, "tryNetworkCall")
         Result.Error(
             DataError.Network.REQUEST_TIMEOUT,
             UiText.StringResource(R.string.error_request_timeout)
         )
     } catch (e: HttpException) {
-        logE(e) { "Network call failed" }
+        logE(e, "tryNetworkCall")
         when (e.code()) {
             in (500..599) -> Result.Error(
                 DataError.Network.SERVER_ERROR,
@@ -43,12 +43,22 @@ suspend inline fun <T, E : DataError> tryNetworkCall(
             )
         }
     } catch (t: Throwable) {
-        if (t is CancellationException) throw t
-        logE(t) { "Network call failed" }
+        t.rethrowIfCoroutineCancellation()
+        logE(t, "tryNetworkCall")
         val message = t.message?.let {
             UiText.DynamicString(it)
         } ?: UiText.StringResource(R.string.error_unknown)
 
         Result.Error(DataError.Network.UNKNOWN, message)
     }
+}
+
+suspend inline fun <T> trySuspend(
+    crossinline block: suspend () -> T
+): T? = try {
+    block()
+} catch (t: Throwable) {
+    t.rethrowIfCoroutineCancellation()
+    logE(t, "trySuspend")
+    null
 }
