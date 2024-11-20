@@ -29,7 +29,6 @@ object DateUtil {
         formatter: DateTimeFormatter = Formatters.isoLocalDateTime
     ): LocalDateTime? = tryOrNull { LocalDateTime.parse(value, formatter) }
 
-
     fun getPartOfDay(): PartOfDay = when (now().hour) {
         in (0..11) -> PartOfDay.MORNING
         12 -> PartOfDay.NOON
