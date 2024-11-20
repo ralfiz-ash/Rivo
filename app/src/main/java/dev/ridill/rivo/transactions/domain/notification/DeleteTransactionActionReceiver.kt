@@ -33,7 +33,7 @@ class DeleteTransactionActionReceiver : BroadcastReceiver() {
         if (id < Long.Zero) return
 
         applicationScope.launch {
-            repo.delete(id)
+            repo.deleteSafely(id)
             notificationHelper.updateNotification(
                 id = id.hashCode(),
                 notification = notificationHelper.buildBaseNotification()

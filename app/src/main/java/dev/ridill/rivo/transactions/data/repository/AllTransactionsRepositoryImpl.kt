@@ -4,6 +4,8 @@ import androidx.paging.PagingData
 import androidx.room.withTransaction
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.domain.model.BasicError
+import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
@@ -29,14 +31,10 @@ class AllTransactionsRepositoryImpl(
     private val dao: TransactionDao,
     private val repo: TransactionRepository,
     private val preferencesManager: PreferencesManager,
-    private val currencyPrefRepo: CurrencyPreferenceRepository
+    private val currencyPrefRepo: CurrencyPreferenceRepository,
 ) : AllTransactionsRepository {
     override fun getCurrencyPreference(date: LocalDate): Flow<Currency> = currencyPrefRepo
         .getCurrencyPreferenceForMonth(date)
-
-    override suspend fun deleteTransactionsByIds(ids: Set<Long>) = withContext(Dispatchers.IO) {
-        dao.deleteMultipleTransactionsById(ids)
-    }
 
     override fun getAmountAggregate(
         dateRange: Pair<LocalDate, LocalDate>?,
@@ -93,17 +91,23 @@ class AllTransactionsRepositoryImpl(
             dao.toggleExclusionByIds(ids, excluded)
         }
 
-    override suspend fun addTransactionsToFolderByIds(ids: Set<Long>, folderId: Long) =
-        withContext(Dispatchers.IO) {
-            dao.setFolderIdToTransactionsByIds(ids = ids, folderId = folderId)
-        }
+    override suspend fun deleteTransactionsByIds(
+        ids: Set<Long>
+    ): Result<Unit, BasicError> = repo.deleteSafely(ids)
+
+    override suspend fun addTransactionsToFolderByIds(
+        ids: Set<Long>,
+        folderId: Long
+    ) = withContext(Dispatchers.IO) {
+        dao.setFolderIdToTransactionsByIds(ids = ids, folderId = folderId)
+    }
 
     override suspend fun removeTransactionsFromFolders(ids: Set<Long>) =
         withContext(Dispatchers.IO) {
             dao.removeFolderFromTransactionsByIds(ids)
         }
 
-    override suspend fun aggregateIntoSingleNewTransactions(
+    override suspend fun aggregateTogether(
         ids: Set<Long>,
         dateTime: LocalDateTime
     ): Long = withContext(Dispatchers.IO) {

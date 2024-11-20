@@ -36,6 +36,9 @@ interface TransactionDao : BaseDao<TransactionEntity> {
     @Query("SELECT * FROM transaction_table WHERE id = :id")
     suspend fun getTransactionById(id: Long): TransactionEntity?
 
+    @Query("SELECT * FROM transaction_table WHERE id IN (:ids)")
+    suspend fun getTransactionsByIds(ids: Set<Long>): List<TransactionEntity>
+
     @Transaction
     @Query(
         """

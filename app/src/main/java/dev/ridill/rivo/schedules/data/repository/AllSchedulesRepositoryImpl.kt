@@ -63,24 +63,23 @@ class AllSchedulesRepositoryImpl(
                         ScheduleListItemUiModel> { before, after ->
                     when {
                         before?.nextPaymentTimestamp
-                            ?.isSameMonthAs(after?.nextPaymentTimestamp) != true
-                                && after?.nextPaymentTimestamp
+                            ?.isSameMonthAs(after?.nextPaymentTimestamp) == true -> null
+
+                        after?.nextPaymentTimestamp
                             ?.isSameMonthAs(dateNow) == true ->
                             ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.this_month))
 
-                        before?.nextPaymentTimestamp
-                            ?.isSameMonthAs(after?.nextPaymentTimestamp) != true
-                                && after?.nextPaymentTimestamp
+                        after?.nextPaymentTimestamp
                             ?.isBefore(currentMonthStartDateTime) == true ->
                             ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.past_due))
 
-                        before?.nextPaymentTimestamp
-                            ?.isSameMonthAs(after?.nextPaymentTimestamp) != true
-                                && after?.nextPaymentTimestamp
+                        after?.nextPaymentTimestamp
                             ?.isAfter(nextMonthStartDateTime) == true ->
                             ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.upcoming))
 
-                        after != null
+                        (before == null
+                                || before.nextPaymentTimestamp != null)
+                                && after != null
                                 && after.nextPaymentTimestamp == null ->
                             ScheduleListItemUiModel.TypeSeparator(UiText.StringResource(R.string.retired))
 

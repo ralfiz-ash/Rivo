@@ -7,6 +7,7 @@ import androidx.paging.cachedIn
 import com.zhuinden.flowcombinetuplekt.combineTuple
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.ridill.rivo.R
+import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.UtilConstants
@@ -494,12 +495,19 @@ class AllTransactionsViewModel @Inject constructor(
             deleteTransactions(selectedIds)
             savedStateHandle[SHOW_DELETE_TRANSACTION_CONFIRMATION] = false
             dismissMultiSelectionMode()
-            eventBus.send(AllTransactionsEvent.ShowUiMessage(UiText.StringResource(R.string.transactions_deleted)))
         }
     }
 
     private suspend fun deleteTransactions(ids: Set<Long>) {
-        transactionRepo.deleteTransactionsByIds(ids)
+        when (val result = transactionRepo.deleteTransactionsByIds(ids)) {
+            is Result.Error -> {
+                eventBus.send(AllTransactionsEvent.ShowUiMessage(result.message))
+            }
+
+            is Result.Success -> {
+                eventBus.send(AllTransactionsEvent.ShowUiMessage(UiText.StringResource(R.string.transactions_deleted)))
+            }
+        }
     }
 
     override fun onAggregationDismiss() {
@@ -510,7 +518,7 @@ class AllTransactionsViewModel @Inject constructor(
         viewModelScope.launch {
             val selectedIds = selectedTransactionIds.value
             val dateTimeNow = DateUtil.now()
-            val insertedId = transactionRepo.aggregateIntoSingleNewTransactions(
+            val insertedId = transactionRepo.aggregateTogether(
                 ids = selectedIds,
                 dateTime = dateTimeNow
             )

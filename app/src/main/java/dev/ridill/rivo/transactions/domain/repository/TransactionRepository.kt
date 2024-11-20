@@ -2,6 +2,8 @@ package dev.ridill.rivo.transactions.domain.repository
 
 import androidx.paging.PagingData
 import dev.ridill.rivo.core.data.db.RivoDatabase
+import dev.ridill.rivo.core.domain.model.BasicError
+import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.transactions.domain.model.Transaction
@@ -43,6 +45,7 @@ interface TransactionRepository {
         excluded: Boolean = false
     ): Transaction
 
-    suspend fun delete(id: Long)
+    suspend fun deleteSafely(id: Long): Result<Unit, BasicError>
+    suspend fun deleteSafely(ids: Set<Long>): Result<Unit, BasicError>
     suspend fun toggleExcluded(id: Long, excluded: Boolean)
 }

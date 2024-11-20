@@ -7,12 +7,12 @@ import java.time.LocalDateTime
 
 interface SchedulesRepository {
     suspend fun getScheduleById(id: Long): Schedule?
-    fun getNextReminderFromDate(
+    fun calculateNextPaymentTimestampFromDate(
         dateTime: LocalDateTime,
         repetition: ScheduleRepetition
     ): LocalDateTime?
 
-    fun getPrevReminderFromDate(
+    fun calculateLastPaymentTimestampFromDate(
         dateTime: LocalDateTime,
         repetition: ScheduleRepetition
     ): LocalDateTime?
@@ -24,9 +24,11 @@ interface SchedulesRepository {
         dateTime: LocalDateTime = DateUtil.now()
     )
 
-    suspend fun getLastTransactionTimestampForSchedule(id: Long): LocalDateTime?
+    suspend fun getOldestTxTimestampForSchedule(id: Long): LocalDateTime?
+    suspend fun getLatestTxTimestampForSchedule(id: Long): LocalDateTime?
     suspend fun deleteScheduleById(id: Long)
     suspend fun cancelSchedule(schedule: Schedule)
     suspend fun setAllFutureScheduleReminders()
     suspend fun deleteSchedulesByIds(ids: Set<Long>)
+    suspend fun updateSchedules(vararg schedule: Schedule)
 }

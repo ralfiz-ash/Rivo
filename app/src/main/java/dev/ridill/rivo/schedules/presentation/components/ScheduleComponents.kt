@@ -1,23 +1,25 @@
 package dev.ridill.rivo.schedules.presentation.components
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -38,10 +40,8 @@ import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BodyMediumText
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
-import dev.ridill.rivo.core.ui.components.SpacerSmall
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.RivoTheme
-import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDateTime
@@ -70,76 +70,77 @@ fun ScheduleListItem(
         nextPaymentDateFormatted.orEmpty()
     )
 
-    Surface(
-        color = colors.containerColor
-    ) {
-        Column {
-            ListItem(
-                headlineContent = {
-                    val isNoteNullOrEmpty = remember(note) { note.isNullOrEmpty() }
-                    Text(
-                        text = note.orEmpty()
-                            .ifEmpty { stringResource(R.string.generic_schedule_title) },
-                        fontStyle = if (isNoteNullOrEmpty) FontStyle.Italic
-                        else null,
-                        color = LocalContentColor.current
-                            .copy(
-                                alpha = if (isNoteNullOrEmpty) ContentAlpha.SUB_CONTENT
-                                else Float.One
-                            )
+    ListItem(
+        headlineContent = {
+            val isNoteNullOrEmpty = remember(note) { note.isNullOrEmpty() }
+            Text(
+                text = note.orEmpty()
+                    .ifEmpty { stringResource(R.string.generic_schedule_title) },
+                fontStyle = if (isNoteNullOrEmpty) FontStyle.Italic
+                else null,
+                color = LocalContentColor.current
+                    .copy(
+                        alpha = if (isNoteNullOrEmpty) ContentAlpha.SUB_CONTENT
+                        else Float.One
                     )
-                },
-                leadingContent = nextPaymentDateFormatted?.let { date ->
-                    {
-                        ListItemLeadingContentContainer(
-                            tonalElevation = MaterialTheme.elevation.level1
-                        ) {
-                            BodyMediumText(
-                                text = nextPaymentDateFormatted,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                },
-                trailingContent = {
-                    AmountWithTypeIndicator(
-                        value = amount,
-                        type = type
-                    )
-                },
-                supportingContent = lastPaymentTimestamp?.let { timestamp ->
-                    {
-                        Text(
-                            text = stringResource(
-                                R.string.last_payment_colon_value,
-                                timestamp.format(DateUtil.Formatters.localizedDateMedium)
-                            )
+            )
+        },
+        trailingContent = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AmountWithTypeIndicator(
+                    value = amount,
+                    type = type
+                )
+
+                if (canMarkPaid) {
+                    FilledTonalIconButton(
+                        onClick = onMarkPaidClick
+                    ) {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
+                            contentDescription = ""
                         )
                     }
-                },
-                modifier = modifier
-                    .semantics(mergeDescendants = true) {}
-                    .clearAndSetSemantics {
-                        contentDescription = scheduleItemContentDescription
-                    },
-                colors = colors,
-                tonalElevation = tonalElevation,
-                shadowElevation = shadowElevation,
-            )
-
-            if (canMarkPaid) {
-                HorizontalDivider()
-                SpacerSmall()
-                TextButton(
-                    onClick = onMarkPaidClick,
-                    modifier = Modifier
-                        .align(Alignment.End)
-                ) {
-                    Text(stringResource(R.string.mark_paid))
                 }
             }
-        }
-    }
+        },
+        leadingContent = {
+            ListItemLeadingContentContainer {
+                if (!nextPaymentDateFormatted.isNullOrEmpty()) {
+                    BodyMediumText(
+                        text = nextPaymentDateFormatted,
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_outline_wallet_done),
+                        contentDescription = null
+                    )
+                }
+            }
+        },
+        supportingContent = lastPaymentTimestamp?.let { timestamp ->
+            {
+                Text(
+                    text = stringResource(
+                        R.string.last_payment_colon_value,
+                        timestamp.format(DateUtil.Formatters.localizedDateMedium)
+                    )
+                )
+            }
+        },
+        modifier = modifier
+            .semantics(mergeDescendants = true) {}
+            .clearAndSetSemantics {
+                contentDescription = scheduleItemContentDescription
+            },
+        colors = colors,
+        tonalElevation = tonalElevation,
+        shadowElevation = shadowElevation
+    )
 }
 
 @Composable

@@ -3,9 +3,9 @@ package dev.ridill.rivo.core.data.util
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.model.DataError
 import dev.ridill.rivo.core.domain.model.Result
+import dev.ridill.rivo.core.domain.util.rethrowIfCoroutineCancellation
 import dev.ridill.rivo.core.domain.util.logE
 import dev.ridill.rivo.core.ui.util.UiText
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.IOException
@@ -43,7 +43,7 @@ suspend inline fun <T, E : DataError> tryNetworkCall(
             )
         }
     } catch (t: Throwable) {
-        if (t is CancellationException) throw t
+        t.rethrowIfCoroutineCancellation()
         logE(t, "tryNetworkCall")
         val message = t.message?.let {
             UiText.DynamicString(it)
@@ -58,7 +58,7 @@ suspend inline fun <T> trySuspend(
 ): T? = try {
     block()
 } catch (t: Throwable) {
-    if (t is CancellationException) throw t
+    t.rethrowIfCoroutineCancellation()
     logE(t, "trySuspend")
     null
 }

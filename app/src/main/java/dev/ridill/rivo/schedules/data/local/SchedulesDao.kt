@@ -35,8 +35,11 @@ interface SchedulesDao : BaseDao<ScheduleEntity> {
     @Query("SELECT * FROM schedules_table WHERE DATETIME(next_payment_timestamp) > DATETIME(:timestamp)")
     suspend fun getAllSchedulesAfterTimestamp(timestamp: LocalDateTime): List<ScheduleEntity>
 
+    @Query("SELECT MIN(DATETIME(timestamp)) FROM transaction_table WHERE schedule_id = :id")
+    suspend fun getMinTxTimestampForSchedule(id: Long): LocalDateTime?
+
     @Query("SELECT MAX(DATETIME(timestamp)) FROM transaction_table WHERE schedule_id = :id")
-    suspend fun getLastTransactionTimestampForSchedule(id: Long): LocalDateTime?
+    suspend fun getMaxTxTimestampForSchedule(id: Long): LocalDateTime?
 
     @Query(
         """

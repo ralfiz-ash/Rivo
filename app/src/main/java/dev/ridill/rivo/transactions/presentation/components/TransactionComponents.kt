@@ -42,7 +42,6 @@ import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
 import dev.ridill.rivo.core.ui.components.icons.Tags
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
-import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.exclusionGraphicsLayer
 import dev.ridill.rivo.transactions.domain.model.FolderIndicator
@@ -114,9 +113,7 @@ fun TransactionListItem(
             }
         },
         leadingContent = {
-            ListItemLeadingContentContainer(
-                tonalElevation = MaterialTheme.elevation.level1
-            ) {
+            ListItemLeadingContentContainer {
                 BodyMediumText(
                     text = dateMultiLined,
                     textAlign = TextAlign.Center

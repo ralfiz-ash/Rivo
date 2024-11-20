@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import java.nio.ByteBuffer
 import java.util.Locale
 import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 
 val Double.Companion.Zero: Double get() = 0.0
 fun Double?.orZero(): Double = this ?: Double.Zero
@@ -57,3 +58,7 @@ fun <T> Set<T>.addOrRemove(element: T): Set<T> =
     else this + element
 
 fun <T> T.isAnyOf(vararg elements: T): Boolean = elements.any { it == this }
+
+fun Throwable.rethrowIfCoroutineCancellation() {
+    if (this is CancellationException) throw this
+}

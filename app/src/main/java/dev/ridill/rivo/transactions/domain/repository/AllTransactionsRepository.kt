@@ -1,6 +1,8 @@
 package dev.ridill.rivo.transactions.domain.repository
 
 import androidx.paging.PagingData
+import dev.ridill.rivo.core.domain.model.BasicError
+import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionType
@@ -11,7 +13,6 @@ import java.util.Currency
 
 interface AllTransactionsRepository {
     fun getCurrencyPreference(date: LocalDate): Flow<Currency>
-    suspend fun deleteTransactionsByIds(ids: Set<Long>)
     fun getDateLimits(): Flow<Pair<LocalDate, LocalDate>>
     fun getAmountAggregate(
         dateRange: Pair<LocalDate, LocalDate>? = null,
@@ -33,14 +34,12 @@ interface AllTransactionsRepository {
         query: String?
     ): Flow<PagingData<TransactionListItem>>
 
+    suspend fun deleteTransactionsByIds(ids: Set<Long>): Result<Unit, BasicError>
     suspend fun setTagIdToTransactions(tagId: Long?, transactionIds: Set<Long>)
     fun getShowExcludedOption(): Flow<Boolean>
     suspend fun toggleShowExcludedOption(show: Boolean)
     suspend fun toggleTransactionExclusionByIds(ids: Set<Long>, excluded: Boolean)
     suspend fun addTransactionsToFolderByIds(ids: Set<Long>, folderId: Long)
     suspend fun removeTransactionsFromFolders(ids: Set<Long>)
-    suspend fun aggregateIntoSingleNewTransactions(
-        ids: Set<Long>,
-        dateTime: LocalDateTime
-    ): Long
+    suspend fun aggregateTogether(ids: Set<Long>, dateTime: LocalDateTime): Long
 }

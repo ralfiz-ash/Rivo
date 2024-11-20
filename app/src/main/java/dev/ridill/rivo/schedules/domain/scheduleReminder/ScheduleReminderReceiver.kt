@@ -46,7 +46,7 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
             data = schedule
         )
 
-        val newReminderDate = repo.getNextReminderFromDate(DateUtil.now(), schedule.repetition)
+        val newReminderDate = repo.calculateNextPaymentTimestampFromDate(DateUtil.now(), schedule.repetition)
         repo.scheduleReminder(schedule.copy(nextPaymentTimestamp = newReminderDate))
     }
 }

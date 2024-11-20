@@ -2,6 +2,7 @@ package dev.ridill.rivo.core.data.db
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Update
 import androidx.room.Upsert
 
 @Dao
@@ -12,4 +13,7 @@ interface BaseDao<T> {
 
     @Delete
     suspend fun delete(vararg entities: T)
+
+    @Update
+    suspend fun update(vararg entities: T)
 }
