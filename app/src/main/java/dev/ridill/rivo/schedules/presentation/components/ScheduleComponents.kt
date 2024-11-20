@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.NewLine
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
@@ -61,8 +62,8 @@ fun ScheduleListItem(
     shadowElevation: Dp = ListItemDefaults.Elevation
 ) {
     val nextPaymentDateFormatted = remember(nextPaymentTimestamp) {
-        nextPaymentTimestamp?.format(DateUtil.Formatters.ddth_EEE_spaceSep)
-            ?.replace(" ", "\n")
+        nextPaymentTimestamp?.format(DateUtil.Formatters.MMM_ddth_spaceSep)
+            ?.replace(String.WhiteSpace, String.NewLine)
     }
     val scheduleItemContentDescription = stringResource(
         R.string.cd_schedule_of_amount_for_date,

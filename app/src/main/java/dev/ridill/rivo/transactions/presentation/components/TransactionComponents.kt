@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.NewLine
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
@@ -67,7 +68,7 @@ fun TransactionListItem(
 ) {
     val dateMultiLined = remember(date) {
         date.format(DateUtil.Formatters.ddth_EEE_spaceSep)
-            .replace(" ", "\n")
+            .replace(String.WhiteSpace, String.NewLine)
     }
 
     val transactionListItemContentDescription = buildString {

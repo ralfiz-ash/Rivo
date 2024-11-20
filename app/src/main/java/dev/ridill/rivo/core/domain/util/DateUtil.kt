@@ -106,9 +106,9 @@ object DateUtil {
                 .appendPattern(" EEE")
                 .toFormatter()
 
-        val EEE_ddth_commaSep: DateTimeFormatter
+        val MMM_ddth_spaceSep: DateTimeFormatter
             get() = DateTimeFormatterBuilder()
-                .appendPattern("EEE, ")
+                .appendPattern("MMM ")
                 .appendText(ChronoField.DAY_OF_MONTH, ordinalsMap)
                 .toFormatter()
 
