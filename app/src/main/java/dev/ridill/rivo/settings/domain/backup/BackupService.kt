@@ -8,6 +8,7 @@ import dev.ridill.rivo.core.domain.util.logI
 import dev.ridill.rivo.core.domain.util.toByteArray
 import dev.ridill.rivo.core.domain.util.toInt
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
@@ -37,12 +38,12 @@ class BackupService(
 
         val cachePath = context.externalCacheDir ?: throw BackupCachingFailedThrowable()
         logI { "Create decrypted cache" }
-        val decryptedCache = File(cachePath, "DecryptedCache.backup")
+        val decryptedDataCache = File(cachePath, DB_TEMP_CACHE_FILENAME)
 
-        val restoreCache = File(cachePath, buildRestoreCacheFileName(timestamp))
-        if (!restoreCache.exists()) throw RestoreFailedThrowable()
+        val encryptedDataCache = File(cachePath, buildRestoreCacheFileName(timestamp))
+        if (!encryptedDataCache.exists()) throw RestoreFailedThrowable()
 
-        restoreCache.inputStream().use restoreCacheInputStream@{ inputStream ->
+        encryptedDataCache.inputStream().use encryptedDataCacheInputStream@{ inputStream ->
             val ivSizeBytes = ByteArray(Int.SIZE_BYTES)
             inputStream.read(ivSizeBytes)
             val ivSize = ivSizeBytes.toInt()
@@ -55,6 +56,7 @@ class BackupService(
                 val bytesRead = inputStream.read(data)
                 ivBytes += data.copyOfRange(0, bytesRead)
                 ivBytesLeft -= bytesRead
+                ensureActive()
             }
 
             logI { "Read encrypted data" }
@@ -63,13 +65,17 @@ class BackupService(
             val decryptedBytes = cryptoManager.decrypt(dataBytes, ivBytes, password)
 
             logI { "Write decrypted data to decrypted cache" }
-            decryptedCache.outputStream().use tempDecryptCacheOutputStream@{
-                it.write(decryptedBytes)
+            decryptedDataCache.outputStream().use decryptedDataCacheOutputStream@{
+                decryptedBytes.forEach { byte ->
+                    it.write(byte.toInt())
+                    ensureActive()
+                }
+//                it.write(decryptedBytes)
             }
         }
 
         logI { "Write decrypted cache to DB files" }
-        decryptedCache.inputStream().use decryptedCacheInputStream@{ inputStream ->
+        decryptedDataCache.inputStream().use decryptedDataCacheInputStream@{ inputStream ->
             // Read DB Data
             dbFile.outputStream().use dbOutputStream@{
                 val dbSizeBytes = ByteArray(Int.SIZE_BYTES)
@@ -83,6 +89,7 @@ class BackupService(
                     val bytesRead = inputStream.read(data)
                     byteArray += data.copyOfRange(0, bytesRead)
                     bytesLeft -= bytesRead
+                    ensureActive()
                 }
                 it.write(byteArray)
             }
@@ -101,6 +108,7 @@ class BackupService(
                     val bytesRead = inputStream.read(data)
                     byteArray += data.copyOfRange(0, bytesRead)
                     bytesLeft -= bytesRead
+                    ensureActive()
                 }
                 it.write(byteArray)
             }
@@ -119,6 +127,7 @@ class BackupService(
                     val bytesRead = inputStream.read(data)
                     byteArray += data.copyOfRange(0, bytesRead)
                     bytesLeft -= bytesRead
+                    ensureActive()
                 }
                 it.write(byteArray)
             }
@@ -140,7 +149,7 @@ class BackupService(
 
         val cachePath = context.externalCacheDir ?: throw BackupCachingFailedThrowable()
         logI { "Create temp backup cache file" }
-        val dbCache = File(cachePath, "DBBackupCache.backup")
+        val dbCache = File(cachePath, DB_TEMP_CACHE_FILENAME)
         if (dbCache.exists()) dbCache.delete()
 
         logI { "Checkpoint DB" }
@@ -177,7 +186,7 @@ class BackupService(
             logI { "Encrypt temp backup cache data" }
             val encryptionResult = cryptoManager.encrypt(rawBytes, password)
             encryptedBackupFile.outputStream().use backupFileOutputStream@{ outputStream ->
-                logI { "Writ encrypted temp backup cache data to backup file" }
+                logI { "Write encrypted temp backup cache data to backup file" }
                 outputStream.write(encryptionResult.iv.size.toByteArray())
                 outputStream.write(encryptionResult.iv)
                 outputStream.write(encryptionResult.data)
@@ -228,6 +237,7 @@ class BackupService(
         "$timestamp-$RESTORE_CACHE_FILE"
 }
 
+private const val DB_TEMP_CACHE_FILENAME = "DBBackupCache.backup"
 private const val SQLITE_WAL_FILE_SUFFIX = "-wal"
 private const val SQLITE_SHM_FILE_SUFFIX = "-shm"
 const val DB_BACKUP_FILE_NAME = "Rivo_db.backup"
