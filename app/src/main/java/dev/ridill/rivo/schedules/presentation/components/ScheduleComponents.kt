@@ -5,8 +5,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
@@ -41,6 +42,7 @@ import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BodyMediumText
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
+import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
@@ -97,15 +99,7 @@ fun ScheduleListItem(
                 )
 
                 if (canMarkPaid) {
-                    IconButton(
-                        onClick = onMarkPaidClick
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
-                            contentDescription = stringResource(R.string.cd_mark_as_paid),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    MarkAsPaidAction(onClick = onMarkPaidClick)
                 }
             }
         },
@@ -143,6 +137,30 @@ fun ScheduleListItem(
         tonalElevation = tonalElevation,
         shadowElevation = shadowElevation
     )
+}
+
+@Composable
+private fun MarkAsPaidAction(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    RivoPlainTooltip(
+        tooltipText = stringResource(R.string.cd_mark_as_paid),
+        modifier = modifier
+    ) {
+        FilledTonalIconButton(
+            onClick = onClick,
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
+                contentDescription = stringResource(R.string.cd_mark_as_paid)
+            )
+        }
+    }
 }
 
 @Composable

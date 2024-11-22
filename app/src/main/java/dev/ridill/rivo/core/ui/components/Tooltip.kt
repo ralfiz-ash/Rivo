@@ -42,12 +42,12 @@ fun RivoPlainTooltip(
     TooltipBox(
         positionProvider = positionProvider,
         tooltip = {
-                  PlainTooltip(
-                      shape = tooltipShape,
-                      containerColor = tooltipContainerColor,
-                      contentColor = tooltipContentColor,
-                      content = { Text(tooltipText) }
-                  )
+            PlainTooltip(
+                shape = tooltipShape,
+                containerColor = tooltipContainerColor,
+                contentColor = tooltipContentColor,
+                content = { Text(tooltipText) }
+            )
         },
         state = state,
         modifier = modifier,
@@ -83,9 +83,9 @@ fun RivoRichTooltip(
         positionProvider = positionProvider,
         tooltip = {
             RichTooltip(
-                title = tooltipTitle?.let{
+                title = tooltipTitle?.let {
                     { Text(tooltipTitle) }
-                                         },
+                },
                 text = { Text(tooltipText) },
                 action = action,
                 shape = tooltipShape,
