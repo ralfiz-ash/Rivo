@@ -4,11 +4,17 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -24,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.delay
@@ -33,6 +40,7 @@ fun SwipeToDismissContainer(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     animationDuration: Int = DEFAULT_ANIM_DURATION,
+    gesturesEnabled: Boolean = true,
     enableDismissFromStartToEnd: Boolean = true,
     enableDismissFromEndToStart: Boolean = true,
     backgroundContent: @Composable RowScope.(SwipeToDismissBoxState) -> Unit = {},
@@ -87,6 +95,7 @@ fun SwipeToDismissContainer(
             state = state,
             enableDismissFromStartToEnd = true,
             enableDismissFromEndToStart = true,
+            gesturesEnabled = gesturesEnabled,
             backgroundContent = { backgroundContent(state) },
             content = content
         )
@@ -104,8 +113,11 @@ fun DismissBackground(
     enableDismissFromEndToStart: Boolean = true,
     contentDescription: String? = null,
     containerColor: Color = MaterialTheme.colorScheme.errorContainer,
-    contentColor: Color = contentColorFor(containerColor)
+    contentColor: Color = contentColorFor(containerColor),
+    contentInsets: WindowInsets = WindowInsets.safeGestures.only(WindowInsetsSides.Horizontal)
 ) {
+
+    BottomSheetDefaults.windowInsets
     val color = if (
         (enableDismissFromStartToEnd && swipeDismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) ||
         (enableDismissFromEndToStart && swipeDismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart)
@@ -115,7 +127,8 @@ fun DismissBackground(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .background(color)
+            .drawBehind { drawRect(color) }
+            .padding(contentInsets.asPaddingValues())
             .then(modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

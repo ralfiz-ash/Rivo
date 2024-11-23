@@ -71,7 +71,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
@@ -266,7 +265,6 @@ fun AllTransactionsScreen(
                                             }
                                         )
                                     else Modifier.combinedClickable(
-                                        role = Role.Button,
                                         onClick = {
                                             navigateToAddEditTransaction(item.id)
                                         },
@@ -288,6 +286,7 @@ fun AllTransactionsScreen(
                                     excluded = item.excluded,
                                     tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
                                     modifier = Modifier
+                                        .fillParentMaxWidth()
                                         .then(clickableModifier)
                                         .animateItem()
                                 )

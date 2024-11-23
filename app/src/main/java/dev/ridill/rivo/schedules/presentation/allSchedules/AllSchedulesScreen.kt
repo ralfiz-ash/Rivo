@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,19 +25,23 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.paging.compose.LazyPagingItems
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.CancelButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
+import dev.ridill.rivo.core.ui.components.DismissBackground
 import dev.ridill.rivo.core.ui.components.ListSeparator
 import dev.ridill.rivo.core.ui.components.PermissionRationaleDialog
 import dev.ridill.rivo.core.ui.components.PermissionState
 import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
+import dev.ridill.rivo.core.ui.components.SwipeToDismissContainer
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
 import dev.ridill.rivo.core.ui.theme.elevation
@@ -155,14 +160,14 @@ fun AllSchedulesScreen(
                                 val selected by remember(state.selectedScheduleIds) {
                                     derivedStateOf { item.id in state.selectedScheduleIds }
                                 }
-                                ScheduleListItemCard(
+                                ScheduleItem(
                                     amount = item.amountFormatted,
                                     note = item.note,
                                     type = item.type,
                                     nextPaymentTimestamp = item.nextPaymentTimestamp,
                                     lastPaymentTimestamp = item.lastPaymentTimestamp,
                                     canMarkPaid = item.canMarkPaid,
-                                    onMarkPaidClick = { actions.onMarkSchedulePaidClick(item.id) },
+                                    onSwiped = { actions.onMarkSchedulePaidClick(item.id) },
                                     onClick = { navigateToAddEditSchedule(item.id) },
                                     onLongPress = { actions.onScheduleLongPress(item.id) },
                                     selectionModeActive = state.multiSelectionModeActive,
@@ -218,7 +223,7 @@ private fun NotificationPermissionWarning(
 }
 
 @Composable
-private fun ScheduleListItemCard(
+private fun ScheduleItem(
     selectionModeActive: Boolean,
     amount: String,
     note: String?,
@@ -226,7 +231,7 @@ private fun ScheduleListItemCard(
     nextPaymentTimestamp: LocalDateTime?,
     lastPaymentTimestamp: LocalDateTime?,
     canMarkPaid: Boolean,
-    onMarkPaidClick: () -> Unit,
+    onSwiped: () -> Unit,
     onClick: () -> Unit,
     onLongPress: () -> Unit,
     onSelectionToggle: () -> Unit,
@@ -245,16 +250,31 @@ private fun ScheduleListItemCard(
             )
     }
 
-    ScheduleListItem(
-        note = note,
-        amount = amount,
-        type = type,
-        nextPaymentTimestamp = nextPaymentTimestamp,
-        lastPaymentTimestamp = lastPaymentTimestamp,
-        tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
-        canMarkPaid = !selectionModeActive && canMarkPaid,
-        onMarkPaidClick = onMarkPaidClick,
-        modifier = modifier
-            .then(clickModifier)
-    )
+    SwipeToDismissContainer(
+        onDismiss = onSwiped,
+        backgroundContent = { state ->
+            DismissBackground(
+                swipeDismissState = state,
+                icon = ImageVector.vectorResource(R.drawable.ic_outline_wallet_done),
+                contentDescription = stringResource(R.string.cd_mark_as_paid),
+                modifier = Modifier
+                    .padding(horizontal = MaterialTheme.spacing.large)
+            )
+        },
+        modifier = modifier,
+        gesturesEnabled = !selectionModeActive && canMarkPaid
+    ) {
+        ScheduleListItem(
+            note = note,
+            amount = amount,
+            type = type,
+            nextPaymentTimestamp = nextPaymentTimestamp,
+            lastPaymentTimestamp = lastPaymentTimestamp,
+            tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
+            canMarkPaid = false,
+            onMarkPaidClick = {},
+            modifier = Modifier
+                .then(clickModifier)
+        )
+    }
 }

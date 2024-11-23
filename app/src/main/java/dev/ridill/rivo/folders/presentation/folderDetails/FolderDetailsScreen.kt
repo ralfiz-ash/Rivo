@@ -2,6 +2,7 @@ package dev.ridill.rivo.folders.presentation.folderDetails
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -187,27 +187,27 @@ fun FolderDetailsScreen(
                                             swipeDismissState = it,
                                             icon = ImageVector.vectorResource(R.drawable.ic_outline_remove_folder),
                                             contentDescription = stringResource(R.string.cd_remove_from_folder),
-                                            enableDismissFromEndToStart = false,
-                                            modifier = Modifier
-                                                .padding(horizontal = MaterialTheme.spacing.large)
+                                            enableDismissFromEndToStart = false
                                         )
                                     },
                                     enableDismissFromEndToStart = false,
                                     modifier = Modifier
                                         .animateItem()
                                 ) {
-                                    Card(
-                                        onClick = { navigateToAddEditTransaction(item.id) }
-                                    ) {
-                                        TransactionListItem(
-                                            note = item.note,
-                                            amount = TextFormat.currencyAmount(item.amount),
-                                            date = item.timestamp.toLocalDate(),
-                                            type = item.type,
-                                            tag = item.tag,
-                                            excluded = item.excluded
-                                        )
-                                    }
+                                    TransactionListItem(
+                                        note = item.note,
+                                        amount = TextFormat.currencyAmount(item.amount),
+                                        date = item.timestamp.toLocalDate(),
+                                        type = item.type,
+                                        tag = item.tag,
+                                        excluded = item.excluded,
+                                        modifier = Modifier
+                                            .fillParentMaxWidth()
+                                            .clickable(
+                                                onClick = { navigateToAddEditTransaction(item.id) },
+                                                onClickLabel = stringResource(R.string.cd_tap_to_edit_transaction)
+                                            )
+                                    )
                                 }
                             }
                         }
