@@ -62,7 +62,7 @@ class BackupWorkManager(
     }
 
     fun schedulePeriodicBackupWork(interval: BackupInterval) {
-        val workRequest = PeriodicWorkRequestBuilder<GDriveDataBackupWorker>(
+        val backupWorkRequest = PeriodicWorkRequestBuilder<GDriveDataBackupWorker>(
             interval.daysInterval,
             TimeUnit.DAYS
         )
@@ -80,7 +80,7 @@ class BackupWorkManager(
         workManager.enqueueUniquePeriodicWork(
             periodicBackupWorkName,
             ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-            workRequest
+            backupWorkRequest
         )
     }
 

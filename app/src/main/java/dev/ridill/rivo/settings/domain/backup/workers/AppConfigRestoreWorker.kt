@@ -14,6 +14,7 @@ import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.notification.NotificationHelper
 import dev.ridill.rivo.core.domain.util.logE
 import dev.ridill.rivo.core.domain.util.logI
+import dev.ridill.rivo.core.domain.util.rethrowIfCoroutineCancellation
 import dev.ridill.rivo.di.BackupFeature
 import dev.ridill.rivo.settings.domain.backup.BackupWorkManager
 import dev.ridill.rivo.settings.domain.repositoty.BackupRepository
@@ -36,6 +37,7 @@ class AppConfigRestoreWorker @AssistedInject constructor(
             Result.success()
         } catch (t: Throwable) {
             logE(t, AppConfigRestoreWorker::class.simpleName) { "Throwable" }
+            t.rethrowIfCoroutineCancellation()
             Result.failure(
                 workDataOf(
                     BackupWorkManager.KEY_MESSAGE to appContext.getString(R.string.error_app_data_restore_failed)

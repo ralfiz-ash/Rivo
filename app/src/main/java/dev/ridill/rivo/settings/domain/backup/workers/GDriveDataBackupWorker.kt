@@ -14,6 +14,7 @@ import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.notification.NotificationHelper
 import dev.ridill.rivo.core.domain.util.logE
 import dev.ridill.rivo.core.domain.util.logI
+import dev.ridill.rivo.core.domain.util.rethrowIfCoroutineCancellation
 import dev.ridill.rivo.di.BackupFeature
 import dev.ridill.rivo.settings.data.remote.dto.GDriveErrorDto
 import dev.ridill.rivo.settings.data.repository.InvalidEncryptionPasswordThrowable
@@ -24,7 +25,6 @@ import dev.ridill.rivo.settings.domain.repositoty.FatalBackupError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import kotlin.coroutines.cancellation.CancellationException
 
 @HiltWorker
 class GDriveDataBackupWorker @AssistedInject constructor(
@@ -106,7 +106,7 @@ class GDriveDataBackupWorker @AssistedInject constructor(
             Result.retry()
         } catch (t: Throwable) {
             logE(t, GDriveDataBackupWorker::class.simpleName) { "Throwable" }
-            if (t is CancellationException) throw t
+            t.rethrowIfCoroutineCancellation()
             repo.setBackupError(null)
             Result.retry()
         } finally {
