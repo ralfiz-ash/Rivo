@@ -10,8 +10,11 @@ import dev.ridill.rivo.core.domain.util.toInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
+import java.io.OutputStream
 import java.time.LocalDateTime
 import javax.crypto.BadPaddingException
 import javax.crypto.IllegalBlockSizeException
@@ -158,23 +161,26 @@ class BackupService(
         dbCache.outputStream().use tempCacheOutputStream@{ outputStream ->
             // Write DB Data
             dbFile.inputStream().use dbInputStream@{
-                val dbData = it.readBytes()
+                val dbData = readSafely(it)
                 outputStream.write(dbData.size.toByteArray())
-                outputStream.write(dbData)
+                writeSafely(dbData, outputStream)
+//                outputStream.write(dbData)
             }
 
             // Write WAL Data
             if (dbWalFile.exists()) dbWalFile.inputStream().use walInputStream@{
-                val walData = it.readBytes()
+                val walData = readSafely(it)
                 outputStream.write(walData.size.toByteArray())
-                outputStream.write(walData)
+                writeSafely(walData, outputStream)
+//                outputStream.write(walData)
             }
 
             // Write SHM Data
             if (dbShmFile.exists()) dbShmFile.inputStream().use shmInputStream@{
-                val shmData = it.readBytes()
+                val shmData = readSafely(it)
                 outputStream.write(shmData.size.toByteArray())
-                outputStream.write(shmData)
+                writeSafely(shmData, outputStream)
+//                outputStream.write(shmData)
             }
         }
 
@@ -182,14 +188,16 @@ class BackupService(
         val encryptedBackupFile = File(cachePath, backupFileName())
         if (encryptedBackupFile.exists()) encryptedBackupFile.delete()
         dbCache.inputStream().use dbCacheInputStream@{
-            val rawBytes = it.readBytes()
+            val rawBytes = readSafely(it)
             logI { "Encrypt temp backup cache data" }
             val encryptionResult = cryptoManager.encrypt(rawBytes, password)
             encryptedBackupFile.outputStream().use backupFileOutputStream@{ outputStream ->
                 logI { "Write encrypted temp backup cache data to backup file" }
                 outputStream.write(encryptionResult.iv.size.toByteArray())
-                outputStream.write(encryptionResult.iv)
-                outputStream.write(encryptionResult.data)
+                writeSafely(encryptionResult.iv, outputStream)
+//                outputStream.write(encryptionResult.iv)
+                writeSafely(encryptionResult.data, outputStream)
+//                outputStream.write(encryptionResult.data)
             }
         }
 
@@ -235,6 +243,32 @@ class BackupService(
 
     private fun buildRestoreCacheFileName(timestamp: LocalDateTime): String =
         "$timestamp-$RESTORE_CACHE_FILE"
+
+    private suspend fun readSafely(
+        inputStream: InputStream,
+    ): ByteArray = withContext(Dispatchers.IO) {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var bytesRead: Int
+        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+            ensureActive()
+            byteArrayOutputStream.write(buffer, 0, bytesRead)
+        }
+        return@withContext byteArrayOutputStream.toByteArray()
+    }
+
+    private suspend fun writeSafely(
+        byteArray: ByteArray,
+        outputStream: OutputStream
+    ) = withContext(Dispatchers.IO) {
+        val byteArrayInputStream = ByteArrayInputStream(byteArray)
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var bytesRead: Int
+        while (byteArrayInputStream.read(buffer).also { bytesRead = it } != -1) {
+            ensureActive()
+            outputStream.write(buffer, 0, bytesRead)
+        }
+    }
 }
 
 private const val DB_TEMP_CACHE_FILENAME = "DBBackupCache.backup"
