@@ -2,6 +2,7 @@ package dev.ridill.rivo.folders.presentation.folderDetails
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,9 +26,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -56,6 +56,7 @@ import dev.ridill.rivo.core.ui.components.TitleLargeText
 import dev.ridill.rivo.core.ui.components.VerticalNumberSpinnerContent
 import dev.ridill.rivo.core.ui.components.icons.CalendarClock
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
+import dev.ridill.rivo.core.ui.components.rememberSwipeRevealState
 import dev.ridill.rivo.core.ui.navigation.destinations.FolderDetailsScreenSpec
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.spacing
@@ -68,6 +69,7 @@ import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
 import dev.ridill.rivo.transactions.presentation.components.TransactionListItem
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.absoluteValue
 
@@ -381,15 +383,26 @@ private fun TransactionInFolderItem(
     onRemoveFromFolderClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isRevealed by remember { mutableStateOf(false) }
+    val swipeRevealState = rememberSwipeRevealState()
+    val coroutineScope = rememberCoroutineScope()
     SwipeRevealContainer(
-        isRevealed = isRevealed,
-        onRevealedChange = { isRevealed = it },
+        state = swipeRevealState,
         actions = {
             RivoPlainTooltip(
                 tooltipText = stringResource(R.string.cd_remove_from_folder)
             ) {
-                IconButton(onClick = onRemoveFromFolderClick) {
+                IconButton(onClick = {
+                    coroutineScope.launch {
+                        swipeRevealState.anchoredDrag(
+                            targetValue = false,
+                            dragPriority = MutatePriority.PreventUserInput,
+                            block = { anchors, targetValue ->
+                                dragTo(anchors.positionOf(targetValue))
+                            }
+                        )
+                    }
+                    onRemoveFromFolderClick()
+                }) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.ic_outline_remove_folder),
                         contentDescription = stringResource(R.string.cd_remove_from_folder)
@@ -408,7 +421,7 @@ private fun TransactionInFolderItem(
             modifier = modifier
                 .clickable(
                     onClick = {
-                        isRevealed = false
+//                        isRevealed = false
                         onClick()
                     },
                     onClickLabel = stringResource(R.string.cd_tap_to_edit_transaction)

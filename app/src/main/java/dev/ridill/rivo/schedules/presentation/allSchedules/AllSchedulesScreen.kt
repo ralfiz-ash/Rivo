@@ -2,6 +2,7 @@ package dev.ridill.rivo.schedules.presentation.allSchedules
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,9 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -45,6 +44,7 @@ import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.components.SwipeRevealContainer
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
+import dev.ridill.rivo.core.ui.components.rememberSwipeRevealState
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
 import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
@@ -251,16 +251,20 @@ private fun ScheduleItem(
         onLongClickLabel = stringResource(R.string.cd_long_press_to_toggle_selection)
     )
 
-    var isRevealed by remember { mutableStateOf(false) }
-
+    val swipeRevealState = rememberSwipeRevealState()
     // Launched effect added to hide actions whenever some key state changes
     LaunchedEffect(selectionModeActive, canMarkPaid) {
-        isRevealed = false
+        swipeRevealState.anchoredDrag(
+            targetValue = false,
+            dragPriority = MutatePriority.PreventUserInput,
+            block = { anchors, targetValue ->
+                dragTo(anchors.positionOf(targetValue))
+            }
+        )
     }
 
     SwipeRevealContainer(
-        isRevealed = isRevealed,
-        onRevealedChange = { isRevealed = it },
+        state = swipeRevealState,
         actions = {
             RivoPlainTooltip(
                 tooltipText = stringResource(R.string.cd_mark_as_paid)

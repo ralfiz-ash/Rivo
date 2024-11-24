@@ -1,14 +1,18 @@
 package dev.ridill.rivo.core.ui.components
 
-import androidx.annotation.FloatRange
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -36,23 +40,22 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.ui.theme.spacing
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -173,29 +176,15 @@ fun DismissBackground(
 
 @Composable
 fun SwipeRevealContainer(
-    isRevealed: Boolean,
-    onRevealedChange: (Boolean) -> Unit,
+    state: AnchoredDraggableState<Boolean>,
     actions: @Composable RowScope.() -> Unit,
     modifier: Modifier = Modifier,
     revealSide: RevealSide = RevealSide.End,
     containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     gesturesEnabled: Boolean = true,
-    @FloatRange(from = 0.0, to = 1.0) revealThreshold: Float = DEFAULT_REVEAL_THRESHOLD,
-    revealAnimatable: Animatable<Float, AnimationVector1D> = remember { Animatable(initialValue = Float.Zero) },
     actionContentInsets: WindowInsets = SwipeContainerDefaults.contentInsets,
     content: @Composable () -> Unit
 ) {
-    var contextMenuWidth by remember { mutableFloatStateOf(0f) }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(isRevealed, contextMenuWidth, revealSide) {
-        if (isRevealed) {
-            revealAnimatable.animateTo(contextMenuWidth.times(revealSide.multiplier))
-        } else {
-            revealAnimatable.animateTo(Float.Zero)
-        }
-    }
-
     val actionsInsets = remember(revealSide) {
         when (revealSide) {
             RevealSide.Start -> actionContentInsets.only(WindowInsetsSides.Start)
@@ -219,8 +208,15 @@ fun SwipeRevealContainer(
         Row(
             modifier = Modifier
                 .align(actionsAlignment)
-                .onSizeChanged {
-                    contextMenuWidth = it.width.toFloat()
+                .onSizeChanged { measuresSize ->
+                    state.updateAnchors(
+                        newAnchors = DraggableAnchors {
+                            false at Float.Zero
+                            true at measuresSize.width
+                                .toFloat()
+                                .times(revealSide.multiplier)
+                        }
+                    )
                 }
                 .padding(actionsInsets.asPaddingValues())
                 .then(
@@ -236,60 +232,51 @@ fun SwipeRevealContainer(
             content = content,
             modifier = Modifier
                 .fillMaxSize()
-                .offset { IntOffset(revealAnimatable.value.roundToInt(), 0) }
-                .pointerInput(contextMenuWidth, gesturesEnabled) {
-                    if (gesturesEnabled) {
-                        detectHorizontalDragGestures(
-                            onHorizontalDrag = { _, dragAmount ->
-                                scope.launch {
-                                    val newOffset = when (revealSide) {
-                                        RevealSide.Start -> (revealAnimatable.value + dragAmount)
-                                            .coerceIn(0f, contextMenuWidth)
-
-                                        RevealSide.End -> (revealAnimatable.value + dragAmount)
-                                            .coerceIn(-contextMenuWidth, 0f)
-                                    }
-                                    revealAnimatable.snapTo(newOffset)
-                                }
-                            },
-                            onDragEnd = {
-                                when {
-                                    revealSide == RevealSide.Start && revealAnimatable.value >= (contextMenuWidth * revealThreshold) -> {
-                                        scope.launch {
-                                            revealAnimatable.animateTo(contextMenuWidth)
-                                            onRevealedChange(true)
-                                        }
-                                    }
-
-                                    revealSide == RevealSide.End && revealAnimatable.value <= -(contextMenuWidth * revealThreshold) -> {
-                                        scope.launch {
-                                            revealAnimatable.animateTo(-contextMenuWidth)
-                                            onRevealedChange(true)
-                                        }
-                                    }
-
-                                    else -> {
-                                        scope.launch {
-                                            revealAnimatable.animateTo(0f)
-                                            onRevealedChange(false)
-                                        }
-                                    }
-                                }
-                            }
-                        )
-                    }
+                .offset {
+                    IntOffset(
+                        x = state
+                            .requireOffset()
+                            .roundToInt(),
+                        y = 0
+                    )
                 }
+                .anchoredDraggable(
+                    state = state,
+                    orientation = Orientation.Horizontal,
+                    enabled = gesturesEnabled
+                )
         )
     }
 }
-
-private const val DEFAULT_REVEAL_THRESHOLD = 0.5f
 
 enum class RevealSide(
     val multiplier: Int
 ) {
     Start(1),
     End(-1)
+}
+
+@Composable
+fun rememberSwipeRevealState(
+    positionalThreshold: Float = SwipeContainerDefaults.POSITIONAL_THRESHOLD_FRACTION,
+    velocityThreshold: Float = SwipeContainerDefaults.velocityThreshold,
+    snapAnimationSpec: AnimationSpec<Float> = SwipeContainerDefaults.snapAnimationSpec,
+    decayAnimationSpec: DecayAnimationSpec<Float> = SwipeContainerDefaults.decayAnimationSpec
+): AnchoredDraggableState<Boolean> = rememberSaveable(
+    saver = AnchoredDraggableState.Saver(
+        snapAnimationSpec = snapAnimationSpec,
+        decayAnimationSpec = decayAnimationSpec,
+        positionalThreshold = { it * positionalThreshold },
+        velocityThreshold = { velocityThreshold }
+    )
+) {
+    AnchoredDraggableState(
+        initialValue = false,
+        positionalThreshold = { it * positionalThreshold },
+        velocityThreshold = { velocityThreshold },
+        snapAnimationSpec = snapAnimationSpec,
+        decayAnimationSpec = decayAnimationSpec
+    )
 }
 
 object SwipeContainerDefaults {
@@ -299,4 +286,15 @@ object SwipeContainerDefaults {
 
     val contentInsets: WindowInsets
         @Composable get() = WindowInsets.safeGestures.only(WindowInsetsSides.Horizontal)
+
+    val velocityThreshold: Float
+        @Composable get() = with(LocalDensity.current) { 125.dp.toPx() }
+
+    val snapAnimationSpec: AnimationSpec<Float>
+        get() = spring()
+
+    val decayAnimationSpec: DecayAnimationSpec<Float>
+        @Composable get() = rememberSplineBasedDecay()
+
+    const val POSITIONAL_THRESHOLD_FRACTION = 0.5f
 }
