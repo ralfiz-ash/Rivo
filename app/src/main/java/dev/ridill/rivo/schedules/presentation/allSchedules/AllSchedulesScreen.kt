@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +43,7 @@ import dev.ridill.rivo.core.ui.components.PermissionState
 import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
-import dev.ridill.rivo.core.ui.components.SwipeableItemWithActions
+import dev.ridill.rivo.core.ui.components.SwipeRevealContainer
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
 import dev.ridill.rivo.core.ui.theme.elevation
@@ -239,21 +240,25 @@ private fun ScheduleItem(
     selected: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val clickModifier = remember(selectionModeActive) {
-        if (selectionModeActive) Modifier
-            .clickable(
-                onClick = onSelectionToggle
-            )
-        else Modifier
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongPress
-            )
-    }
+    val clickModifier = if (selectionModeActive) Modifier.clickable(
+        onClick = onSelectionToggle,
+        onClickLabel = stringResource(R.string.cd_tap_to_toggle_selection)
+    )
+    else Modifier.combinedClickable(
+        onClick = onClick,
+        onClickLabel = stringResource(R.string.cd_tap_to_edit_schedule),
+        onLongClick = onLongPress,
+        onLongClickLabel = stringResource(R.string.cd_long_press_to_toggle_selection)
+    )
 
     var isRevealed by remember { mutableStateOf(false) }
 
-    SwipeableItemWithActions(
+    // Launched effect added to hide actions whenever some key state changes
+    LaunchedEffect(selectionModeActive, canMarkPaid) {
+        isRevealed = false
+    }
+
+    SwipeRevealContainer(
         isRevealed = isRevealed,
         onRevealedChange = { isRevealed = it },
         actions = {
@@ -261,10 +266,7 @@ private fun ScheduleItem(
                 tooltipText = stringResource(R.string.cd_mark_as_paid)
             ) {
                 IconButton(
-                    onClick = {
-                        isRevealed = false
-                        onMarkPaidClick()
-                    },
+                    onClick = onMarkPaidClick,
                 ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
@@ -274,7 +276,7 @@ private fun ScheduleItem(
             }
         },
         modifier = modifier,
-        gesturesEnabled = canMarkPaid
+        gesturesEnabled = !selectionModeActive && canMarkPaid
     ) {
         ScheduleListItem(
             note = note,

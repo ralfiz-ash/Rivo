@@ -172,7 +172,7 @@ fun DismissBackground(
 }
 
 @Composable
-fun SwipeableItemWithActions(
+fun SwipeRevealContainer(
     isRevealed: Boolean,
     onRevealedChange: (Boolean) -> Unit,
     actions: @Composable RowScope.() -> Unit,

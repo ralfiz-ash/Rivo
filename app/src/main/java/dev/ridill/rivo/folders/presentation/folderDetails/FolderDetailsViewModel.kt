@@ -109,7 +109,7 @@ class FolderDetailsViewModel @Inject constructor(
         }
     }
 
-    override fun onTransactionSwipeToDismiss(id: Long) {
+    override fun onRemoveTransactionFromFolderClick(id: Long) {
         viewModelScope.launch {
             repo.removeTransactionFromFolderById(id)
             eventBus.send(FolderDetailsEvent.TransactionRemovedFromGroup(id))
