@@ -2,8 +2,8 @@ package dev.ridill.rivo.folders.presentation.folderDetails
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -391,18 +391,12 @@ private fun TransactionInFolderItem(
             RivoPlainTooltip(
                 tooltipText = stringResource(R.string.cd_remove_from_folder)
             ) {
-                IconButton(onClick = {
-                    coroutineScope.launch {
-                        swipeRevealState.anchoredDrag(
-                            targetValue = false,
-                            dragPriority = MutatePriority.PreventUserInput,
-                            block = { anchors, targetValue ->
-                                dragTo(anchors.positionOf(targetValue))
-                            }
-                        )
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch { swipeRevealState.animateTo(false) }
+                        onRemoveFromFolderClick()
                     }
-                    onRemoveFromFolderClick()
-                }) {
+                ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.ic_outline_remove_folder),
                         contentDescription = stringResource(R.string.cd_remove_from_folder)

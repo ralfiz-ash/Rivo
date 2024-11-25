@@ -80,6 +80,7 @@ class AllSchedulesViewModel @Inject constructor(
 
     override fun onMarkSchedulePaidClick(id: Long) {
         viewModelScope.launch {
+            repo.disableActionPreview()
             when (val resource = repo.markScheduleAsPaid(id)) {
                 is Resource.Error -> {
                     resource.message?.let {

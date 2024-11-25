@@ -2,12 +2,13 @@ package dev.ridill.rivo.schedules.presentation.allSchedules
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.DeleteForever
@@ -78,6 +79,8 @@ fun AllSchedulesScreen(
         onBack = actions::onMultiSelectionModeDismiss
     )
 
+    val schedulesListState = rememberLazyListState()
+
     RivoScaffold(
         topBar = {
             TopAppBar(
@@ -128,10 +131,11 @@ fun AllSchedulesScreen(
         }
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
+            state = schedulesListState,
             contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+            modifier = Modifier
+                .fillMaxSize()
         ) {
             listEmptyIndicator(
                 isListEmpty = areSchedulesEmpty,
@@ -254,13 +258,7 @@ private fun ScheduleItem(
     val swipeRevealState = rememberSwipeRevealState()
     // Launched effect added to hide actions whenever some key state changes
     LaunchedEffect(selectionModeActive, canMarkPaid) {
-        swipeRevealState.anchoredDrag(
-            targetValue = false,
-            dragPriority = MutatePriority.PreventUserInput,
-            block = { anchors, targetValue ->
-                dragTo(anchors.positionOf(targetValue))
-            }
-        )
+        swipeRevealState.animateTo(false)
     }
 
     SwipeRevealContainer(
