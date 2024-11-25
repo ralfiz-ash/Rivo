@@ -2,6 +2,15 @@ package dev.ridill.rivo.schedules.presentation.allSchedules
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.EaseOutCirc
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.animateTo
@@ -29,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -54,6 +64,7 @@ import dev.ridill.rivo.schedules.domain.model.ScheduleListItemUiModel
 import dev.ridill.rivo.schedules.presentation.components.ScheduleListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDateTime
+import kotlin.math.roundToInt
 
 @Composable
 fun AllSchedulesScreen(
@@ -261,36 +272,74 @@ private fun ScheduleItem(
         swipeRevealState.animateTo(false)
     }
 
-    SwipeRevealContainer(
-        state = swipeRevealState,
-        actions = {
-            RivoPlainTooltip(
-                tooltipText = stringResource(R.string.cd_mark_as_paid)
+    val infiniteTransition = rememberInfiniteTransition(label = "SwipeIndicator")
+    val progress = infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1.10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 6_000,
+                delayMillis = 2_000,
+                easing = EaseInOutCubic
+            ),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "SwipeIndicatorAnimProgress"
+    )
+
+    Layout(
+        content = {
+            SwipeRevealContainer(
+                state = swipeRevealState,
+                actions = {
+                    RivoPlainTooltip(
+                        tooltipText = stringResource(R.string.cd_mark_as_paid)
+                    ) {
+                        IconButton(
+                            onClick = onMarkPaidClick,
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
+                                contentDescription = stringResource(R.string.cd_mark_as_paid)
+                            )
+                        }
+                    }
+                },
+                modifier = modifier,
+                gesturesEnabled = !selectionModeActive && canMarkPaid
             ) {
-                IconButton(
-                    onClick = onMarkPaidClick,
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
-                        contentDescription = stringResource(R.string.cd_mark_as_paid)
-                    )
-                }
+                ScheduleListItem(
+                    note = note,
+                    amount = amount,
+                    type = type,
+                    nextPaymentTimestamp = nextPaymentTimestamp,
+                    lastPaymentTimestamp = lastPaymentTimestamp,
+                    tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
+                    canMarkPaid = false,
+                    onMarkPaidClick = onMarkPaidClick,
+                    modifier = Modifier
+                        .then(clickModifier)
+                )
             }
-        },
-        modifier = modifier,
-        gesturesEnabled = !selectionModeActive && canMarkPaid
-    ) {
-        ScheduleListItem(
-            note = note,
-            amount = amount,
-            type = type,
-            nextPaymentTimestamp = nextPaymentTimestamp,
-            lastPaymentTimestamp = lastPaymentTimestamp,
-            tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
-            canMarkPaid = false,
-            onMarkPaidClick = {},
-            modifier = Modifier
-                .then(clickModifier)
-        )
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_outlined_swipe_left),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    ) { measurables, constraints ->
+        val scheduleItemPlaceable = measurables[0].measure(constraints)
+        val indicatorPlaceable = measurables[1].measure(constraints)
+
+        val width = scheduleItemPlaceable.measuredWidth
+        val height = scheduleItemPlaceable.measuredHeight
+        layout(width, height) {
+            scheduleItemPlaceable.placeRelative(0, 0)
+            indicatorPlaceable.placeRelative(
+                x = (width - ((width + indicatorPlaceable.measuredWidth) * progress.value)).roundToInt(),
+                y = (height / 2) - (indicatorPlaceable.measuredHeight / 2)
+            )
+        }
     }
 }
