@@ -1,13 +1,9 @@
 package dev.ridill.rivo.schedules.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
@@ -16,7 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -42,7 +37,6 @@ import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BodyMediumText
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
-import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
@@ -56,8 +50,6 @@ fun ScheduleListItem(
     type: TransactionType,
     nextPaymentTimestamp: LocalDateTime?,
     lastPaymentTimestamp: LocalDateTime?,
-    canMarkPaid: Boolean,
-    onMarkPaidClick: () -> Unit,
     modifier: Modifier = Modifier,
     colors: ListItemColors = ListItemDefaults.colors(),
     tonalElevation: Dp = ListItemDefaults.Elevation,
@@ -89,19 +81,10 @@ fun ScheduleListItem(
             )
         },
         trailingContent = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AmountWithTypeIndicator(
-                    value = amount,
-                    type = type
-                )
-
-                if (canMarkPaid) {
-                    MarkAsPaidAction(onClick = onMarkPaidClick)
-                }
-            }
+            AmountWithTypeIndicator(
+                value = amount,
+                type = type
+            )
         },
         leadingContent = {
             ListItemLeadingContentContainer {
@@ -137,30 +120,6 @@ fun ScheduleListItem(
         tonalElevation = tonalElevation,
         shadowElevation = shadowElevation
     )
-}
-
-@Composable
-private fun MarkAsPaidAction(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    RivoPlainTooltip(
-        tooltipText = stringResource(R.string.cd_mark_as_paid),
-        modifier = modifier
-    ) {
-        FilledTonalIconButton(
-            onClick = onClick,
-            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
-                contentDescription = stringResource(R.string.cd_mark_as_paid)
-            )
-        }
-    }
 }
 
 @Composable
@@ -224,8 +183,6 @@ private fun PreviewScheduleListItemCard() {
             type = TransactionType.DEBIT,
             nextPaymentTimestamp = DateUtil.now(),
             lastPaymentTimestamp = DateUtil.now(),
-            onMarkPaidClick = {},
-            canMarkPaid = true,
             modifier = Modifier
                 .fillMaxWidth()
         )

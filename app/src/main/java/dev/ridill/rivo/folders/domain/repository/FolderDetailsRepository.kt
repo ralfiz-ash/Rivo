@@ -16,4 +16,6 @@ interface FolderDetailsRepository {
     suspend fun addTransactionsToFolderByIds(folderId: Long, transactionIds: Set<Long>)
     suspend fun removeTransactionFromFolderById(transactionId: Long)
     suspend fun addTransactionToFolder(txId: Long, folderId: Long)
+    fun shouldShowActionPreview(): Flow<Boolean>
+    suspend fun disableActionPreview()
 }

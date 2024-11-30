@@ -5,5 +5,5 @@ interface FolderDetailsActions {
     fun onDeleteDismiss()
     fun onDeleteFolderOnlyClick()
     fun onDeleteFolderAndTransactionsClick()
-    fun onTransactionSwipeToDismiss(id: Long)
+    fun onRemoveTransactionFromFolderClick(id: Long)
 }
