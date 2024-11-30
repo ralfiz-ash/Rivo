@@ -28,6 +28,7 @@ import dev.ridill.rivo.settings.domain.backup.BackupWorkManager
 import dev.ridill.rivo.settings.domain.modal.BackupDetails
 import dev.ridill.rivo.settings.domain.repositoty.BackupRepository
 import dev.ridill.rivo.settings.domain.repositoty.BudgetPreferenceRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -152,10 +153,22 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    fun onAccountPageReached() = viewModelScope.launch {
+    private var pageChangeJob: Job? = null
+    fun onPageChange(page: Int) {
+        pageChangeJob?.cancel()
+        pageChangeJob = viewModelScope.launch {
+            when (page) {
+                OnboardingPage.ACCOUNT_SIGN_IN.ordinal -> {
+                    onAccountPageReached()
+                }
+            }
+        }
+    }
+
+    private suspend fun onAccountPageReached() {
         val isUserUnAuthenticated = authRepo.getAuthState().first() == AuthState.UnAuthenticated
         if (isUserUnAuthenticated) {
-            delay(500L)
+            delay(400L)
             eventBus.send(OnboardingEvent.StartAutoSignInFlow(true))
         }
     }
@@ -194,6 +207,14 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+    private var signInJob: Job? = null
+    override fun onSignInClick() {
+        signInJob?.cancel()
+        signInJob = viewModelScope.launch {
+            eventBus.send(OnboardingEvent.StartManualSignInFlow)
+        }
+    }
+
     override fun onSkipSignInClick() {
         viewModelScope.launch {
             val isAuthenticated = authState.first() is AuthState.Authenticated
@@ -206,15 +227,15 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+    private var backupJob: Job? = null
     override fun onCheckOrRestoreClick() {
-        viewModelScope.launch {
+        backupJob?.cancel()
+        backupJob = viewModelScope.launch {
             when (val result = authRepo.authorizeUserAccount()) {
                 is Result.Error -> {
                     when (result.error) {
                         AuthorizationService.AuthorizationError.NEEDS_RESOLUTION -> {
-                            result.data?.let {
-                                eventBus.send(OnboardingEvent.StartAuthorizationFlow(it))
-                            }
+                            eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN))
                         }
 
                         AuthorizationService.AuthorizationError.AUTHORIZATION_FAILED -> {
@@ -312,7 +333,10 @@ class OnboardingViewModel @Inject constructor(
         data object OnboardingConcluded : OnboardingEvent
         data class ShowUiMessage(val uiText: UiText) : OnboardingEvent
         data object LaunchNotificationPermissionRequest : OnboardingEvent
-        data class StartAutoSignInFlow(val filterByAuthorizedAccounts: Boolean) : OnboardingEvent
+        data class StartAutoSignInFlow(val filterByAuthorizedAccounts: Boolean) :
+            OnboardingEvent
+
+        data object StartManualSignInFlow : OnboardingEvent
         data class StartAuthorizationFlow(val pendingIntent: PendingIntent) : OnboardingEvent
         data object RestartApplication : OnboardingEvent
     }

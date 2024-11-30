@@ -3,7 +3,7 @@ package dev.ridill.rivo.core.ui.navigation.destinations
 import android.Manifest
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.IntentSenderRequest.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -13,7 +13,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,7 +32,6 @@ import dev.ridill.rivo.core.ui.util.restartApplication
 import dev.ridill.rivo.onboarding.domain.model.OnboardingPage
 import dev.ridill.rivo.onboarding.presentation.OnboardingScreen
 import dev.ridill.rivo.onboarding.presentation.OnboardingViewModel
-import kotlinx.coroutines.launch
 
 data object OnboardingScreenSpec : ScreenSpec {
     override val route: String
@@ -59,6 +57,7 @@ data object OnboardingScreenSpec : ScreenSpec {
 
         val snackbarController = rememberSnackbarController()
         val context = LocalContext.current
+        val activity = context.findActivity()
 
         val permissionsState = rememberMultiplePermissionsState(
             permissions = if (BuildUtil.isNotificationRuntimePermissionNeeded())
@@ -75,8 +74,7 @@ data object OnboardingScreenSpec : ScreenSpec {
         }
 
         LaunchedEffect(currentPage) {
-            if (currentPage == OnboardingPage.ACCOUNT_SIGN_IN.ordinal)
-                viewModel.onAccountPageReached()
+            viewModel.onPageChange(currentPage)
         }
 
         val authorizationResultLauncher = rememberLauncherForActivityResult(
@@ -114,28 +112,33 @@ data object OnboardingScreenSpec : ScreenSpec {
                 }
 
                 OnboardingViewModel.OnboardingEvent.RestartApplication -> {
-                    context.restartApplication {
-                        putExtra(RUN_CONFIG_RESTORE_EXTRA, true)
-                    }
+                    context.restartApplication(
+                        editIntent = {
+                            putExtra(RUN_CONFIG_RESTORE_EXTRA, true)
+                        }
+                    )
                 }
 
                 is OnboardingViewModel.OnboardingEvent.StartAutoSignInFlow -> {
                     val result = credentialService.startGetCredentialFlow(
                         filterByAuthorizedUsers = event.filterByAuthorizedAccounts,
-                        activityContext = context.findActivity()
+                        activityContext = activity
                     )
                     viewModel.onCredentialResult(result)
                 }
 
                 is OnboardingViewModel.OnboardingEvent.StartAuthorizationFlow -> {
                     authorizationResultLauncher.launch(
-                        IntentSenderRequest.Builder(event.pendingIntent).build()
+                        Builder(event.pendingIntent).build()
                     )
+                }
+
+                OnboardingViewModel.OnboardingEvent.StartManualSignInFlow -> {
+                    credentialService.startManualGetCredentialFlow(activity)
                 }
             }
         }
 
-        val coroutineScope = rememberCoroutineScope()
         OnboardingScreen(
             snackbarController = snackbarController,
             pagerState = pagerState,
@@ -144,13 +147,6 @@ data object OnboardingScreenSpec : ScreenSpec {
             restoreState = restoreState,
             showEncryptionPasswordInput = showEncryptionPasswordInput,
             budgetInput = { budgetInput.value },
-            onSignInClick = {
-                coroutineScope.launch {
-                    credentialService.startManualGetCredentialFlow(
-                        activityContext = context.findActivity()
-                    )
-                }
-            },
             actions = viewModel
         )
     }

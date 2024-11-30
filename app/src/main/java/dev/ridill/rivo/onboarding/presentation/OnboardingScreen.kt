@@ -56,7 +56,6 @@ fun OnboardingScreen(
     restoreState: DataRestoreState,
     showEncryptionPasswordInput: Boolean,
     budgetInput: () -> String,
-    onSignInClick: () -> Unit,
     actions: OnboardingActions
 ) {
     val view = LocalView.current
@@ -78,10 +77,10 @@ fun OnboardingScreen(
         LocalContentColor provides PrimaryBrandColor.contentColor()
     ) {
         RivoScaffold(
-            modifier = Modifier
-                .imePadding(),
             containerColor = PrimaryBrandColor,
-            snackbarController = snackbarController
+            snackbarController = snackbarController,
+            modifier = Modifier
+                .imePadding()
         ) { paddingValues ->
             Column(
                 modifier = Modifier
@@ -109,7 +108,7 @@ fun OnboardingScreen(
                         OnboardingPage.ACCOUNT_SIGN_IN.ordinal -> {
                             AccountSignInPage(
                                 authState = authState,
-                                onSignInClick = onSignInClick,
+                                onSignInClick = actions::onSignInClick,
                                 onSignInSkip = actions::onSkipSignInClick,
                             )
                         }
