@@ -55,25 +55,21 @@ class BackupService(
             var ivBytesLeft = ivSize
             var ivBytes = ByteArray(0)
             while (ivBytesLeft > 0) {
+                ensureActive()
                 val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, ivBytesLeft))
                 val bytesRead = inputStream.read(data)
                 ivBytes += data.copyOfRange(0, bytesRead)
                 ivBytesLeft -= bytesRead
-                ensureActive()
             }
 
             logI { "Read encrypted data" }
-            val dataBytes = inputStream.readBytes()
+            val dataBytes = readSafely(inputStream)
             logI { "Decrypt data" }
             val decryptedBytes = cryptoManager.decrypt(dataBytes, ivBytes, password)
 
             logI { "Write decrypted data to decrypted cache" }
             decryptedDataCache.outputStream().use decryptedDataCacheOutputStream@{
-                decryptedBytes.forEach { byte ->
-                    it.write(byte.toInt())
-                    ensureActive()
-                }
-//                it.write(decryptedBytes)
+                writeSafely(decryptedBytes, it)
             }
         }
 
@@ -86,15 +82,13 @@ class BackupService(
                 val dbSize = dbSizeBytes.toInt()
 
                 var bytesLeft = dbSize
-                var byteArray = ByteArray(0)
                 while (bytesLeft > 0) {
+                    ensureActive()
                     val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
                     val bytesRead = inputStream.read(data)
-                    byteArray += data.copyOfRange(0, bytesRead)
                     bytesLeft -= bytesRead
-                    ensureActive()
+                    it.write(data)
                 }
-                it.write(byteArray)
             }
 
             // Read WAL Data
@@ -105,15 +99,13 @@ class BackupService(
                 val walSize = walSizeBytes.toInt()
 
                 var bytesLeft = walSize
-                var byteArray = ByteArray(0)
                 while (bytesLeft > 0) {
+                    ensureActive()
                     val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
                     val bytesRead = inputStream.read(data)
-                    byteArray += data.copyOfRange(0, bytesRead)
                     bytesLeft -= bytesRead
-                    ensureActive()
+                    it.write(data)
                 }
-                it.write(byteArray)
             }
 
             // Read SHM Data
@@ -124,15 +116,13 @@ class BackupService(
                 val shmSize = shmSizeBytes.toInt()
 
                 var bytesLeft = shmSize
-                var byteArray = byteArrayOf()
                 while (bytesLeft > 0) {
+                    ensureActive()
                     val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
                     val bytesRead = inputStream.read(data)
-                    byteArray += data.copyOfRange(0, bytesRead)
                     bytesLeft -= bytesRead
-                    ensureActive()
+                    it.write(data)
                 }
-                it.write(byteArray)
             }
         }
         checkpointDb()
@@ -164,7 +154,6 @@ class BackupService(
                 val dbData = readSafely(it)
                 outputStream.write(dbData.size.toByteArray())
                 writeSafely(dbData, outputStream)
-//                outputStream.write(dbData)
             }
 
             // Write WAL Data
@@ -172,7 +161,6 @@ class BackupService(
                 val walData = readSafely(it)
                 outputStream.write(walData.size.toByteArray())
                 writeSafely(walData, outputStream)
-//                outputStream.write(walData)
             }
 
             // Write SHM Data
@@ -180,7 +168,6 @@ class BackupService(
                 val shmData = readSafely(it)
                 outputStream.write(shmData.size.toByteArray())
                 writeSafely(shmData, outputStream)
-//                outputStream.write(shmData)
             }
         }
 
@@ -193,11 +180,9 @@ class BackupService(
             val encryptionResult = cryptoManager.encrypt(rawBytes, password)
             encryptedBackupFile.outputStream().use backupFileOutputStream@{ outputStream ->
                 logI { "Write encrypted temp backup cache data to backup file" }
-                outputStream.write(encryptionResult.iv.size.toByteArray())
+                writeSafely(encryptionResult.iv.size.toByteArray(), outputStream)
                 writeSafely(encryptionResult.iv, outputStream)
-//                outputStream.write(encryptionResult.iv)
                 writeSafely(encryptionResult.data, outputStream)
-//                outputStream.write(encryptionResult.data)
             }
         }
 
@@ -236,7 +221,8 @@ class BackupService(
         if (restoreDataCache.exists() && !refreshCache) return@withContext
         dataStream.use downloadedInputStream@{ inputStream ->
             restoreDataCache.outputStream().use restoreCacheOutputStream@{ outputStream ->
-                inputStream.copyTo(outputStream)
+                val data = readSafely(inputStream)
+                writeSafely(data, outputStream)
             }
         }
     }
@@ -245,7 +231,7 @@ class BackupService(
         "$timestamp-$RESTORE_CACHE_FILE"
 
     private suspend fun readSafely(
-        inputStream: InputStream,
+        inputStream: InputStream
     ): ByteArray = withContext(Dispatchers.IO) {
         val byteArrayOutputStream = ByteArrayOutputStream()
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
