@@ -15,6 +15,7 @@ import dev.ridill.rivo.core.domain.notification.NotificationHelper
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.logE
 import dev.ridill.rivo.core.domain.util.logI
+import dev.ridill.rivo.core.domain.util.rethrowIfCoroutineCancellation
 import dev.ridill.rivo.di.BackupFeature
 import dev.ridill.rivo.settings.data.repository.BackupDownloadFailedThrowable
 import dev.ridill.rivo.settings.data.repository.InvalidEncryptionPasswordThrowable
@@ -24,7 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.crypto.BadPaddingException
 import javax.crypto.IllegalBlockSizeException
-import kotlin.coroutines.cancellation.CancellationException
 
 @HiltWorker
 class GDriveDataRestoreWorker @AssistedInject constructor(
@@ -80,12 +80,14 @@ class GDriveDataRestoreWorker @AssistedInject constructor(
             )
         } catch (t: Throwable) {
             logE(t, GDriveDataRestoreWorker::class.simpleName) { "Throwable" }
-            if (t is CancellationException) throw t
+            t.rethrowIfCoroutineCancellation()
             Result.failure(
                 workDataOf(
                     BackupWorkManager.KEY_MESSAGE to appContext.getString(R.string.error_app_data_restore_failed)
                 )
             )
+        } finally {
+            repo.tryClearLocalCache()
         }
     }
 
