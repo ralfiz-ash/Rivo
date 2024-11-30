@@ -2,18 +2,8 @@ package dev.ridill.rivo.schedules.presentation.allSchedules
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.EaseInOutCubic
-import androidx.compose.animation.core.EaseOutCirc
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,16 +24,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.paging.compose.LazyPagingItems
 import dev.ridill.rivo.R
+import dev.ridill.rivo.core.domain.util.logD
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.CancelButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
@@ -53,9 +45,8 @@ import dev.ridill.rivo.core.ui.components.PermissionState
 import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
-import dev.ridill.rivo.core.ui.components.SwipeRevealContainer
+import dev.ridill.rivo.core.ui.components.SwipeActionsContainer
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
-import dev.ridill.rivo.core.ui.components.rememberSwipeRevealState
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
 import dev.ridill.rivo.core.ui.theme.elevation
 import dev.ridill.rivo.core.ui.theme.spacing
@@ -64,7 +55,6 @@ import dev.ridill.rivo.schedules.domain.model.ScheduleListItemUiModel
 import dev.ridill.rivo.schedules.presentation.components.ScheduleListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDateTime
-import kotlin.math.roundToInt
 
 @Composable
 fun AllSchedulesScreen(
@@ -174,6 +164,7 @@ fun AllSchedulesScreen(
                                 key = item.id,
                                 contentType = "ScheduleListItem"
                             ) {
+                                logD { "Index = $index" }
                                 val selected by remember(state.selectedScheduleIds) {
                                     derivedStateOf { item.id in state.selectedScheduleIds }
                                 }
@@ -190,7 +181,9 @@ fun AllSchedulesScreen(
                                     selectionModeActive = state.multiSelectionModeActive,
                                     selected = selected,
                                     onSelectionToggle = { actions.onScheduleSelectionToggle(item.id) },
+                                    showPreview = state.showActionPreview && item.canMarkPaid && index == 1,
                                     modifier = Modifier
+                                        .fillParentMaxWidth()
                                         .animateItem()
                                 )
                             }
@@ -253,6 +246,7 @@ private fun ScheduleItem(
     onLongPress: () -> Unit,
     onSelectionToggle: () -> Unit,
     selected: Boolean,
+    showPreview: Boolean,
     modifier: Modifier = Modifier
 ) {
     val clickModifier = if (selectionModeActive) Modifier.clickable(
@@ -266,80 +260,42 @@ private fun ScheduleItem(
         onLongClickLabel = stringResource(R.string.cd_long_press_to_toggle_selection)
     )
 
-    val swipeRevealState = rememberSwipeRevealState()
     // Launched effect added to hide actions whenever some key state changes
+    var isRevealed by remember { mutableStateOf(false) }
     LaunchedEffect(selectionModeActive, canMarkPaid) {
-        swipeRevealState.animateTo(false)
+        isRevealed = false
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "SwipeIndicator")
-    val progress = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1.10f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 6_000,
-                delayMillis = 2_000,
-                easing = EaseInOutCubic
-            ),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "SwipeIndicatorAnimProgress"
-    )
-
-    Layout(
-        content = {
-            SwipeRevealContainer(
-                state = swipeRevealState,
-                actions = {
-                    RivoPlainTooltip(
-                        tooltipText = stringResource(R.string.cd_mark_as_paid)
-                    ) {
-                        IconButton(
-                            onClick = onMarkPaidClick,
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
-                                contentDescription = stringResource(R.string.cd_mark_as_paid)
-                            )
-                        }
-                    }
-                },
-                modifier = modifier,
-                gesturesEnabled = !selectionModeActive && canMarkPaid
+    SwipeActionsContainer(
+        isRevealed = isRevealed,
+        onRevealedChange = { isRevealed = it },
+        actions = {
+            RivoPlainTooltip(
+                tooltipText = stringResource(R.string.cd_mark_as_paid)
             ) {
-                ScheduleListItem(
-                    note = note,
-                    amount = amount,
-                    type = type,
-                    nextPaymentTimestamp = nextPaymentTimestamp,
-                    lastPaymentTimestamp = lastPaymentTimestamp,
-                    tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
-                    canMarkPaid = false,
-                    onMarkPaidClick = onMarkPaidClick,
-                    modifier = Modifier
-                        .then(clickModifier)
-                )
+                IconButton(
+                    onClick = onMarkPaidClick,
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
+                        contentDescription = stringResource(R.string.cd_mark_as_paid)
+                    )
+                }
             }
-
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_outlined_swipe_left),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-    ) { measurables, constraints ->
-        val scheduleItemPlaceable = measurables[0].measure(constraints)
-        val indicatorPlaceable = measurables[1].measure(constraints)
-
-        val width = scheduleItemPlaceable.measuredWidth
-        val height = scheduleItemPlaceable.measuredHeight
-        layout(width, height) {
-            scheduleItemPlaceable.placeRelative(0, 0)
-            indicatorPlaceable.placeRelative(
-                x = (width - ((width + indicatorPlaceable.measuredWidth) * progress.value)).roundToInt(),
-                y = (height / 2) - (indicatorPlaceable.measuredHeight / 2)
-            )
-        }
+        },
+        modifier = modifier,
+        gesturesEnabled = !selectionModeActive && canMarkPaid,
+        animatePreview = showPreview
+    ) {
+        ScheduleListItem(
+            note = note,
+            amount = amount,
+            type = type,
+            nextPaymentTimestamp = nextPaymentTimestamp,
+            lastPaymentTimestamp = lastPaymentTimestamp,
+            tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
+            modifier = Modifier
+                .then(clickModifier)
+        )
     }
 }

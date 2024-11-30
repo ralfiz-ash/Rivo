@@ -10,6 +10,6 @@ interface AllSchedulesRepository {
     fun getSchedulesPagingData(): Flow<PagingData<ScheduleListItemUiModel>>
     suspend fun markScheduleAsPaid(id: Long): Resource<Unit>
     suspend fun deleteSchedulesById(ids: Set<Long>)
-    suspend fun showActionPreview(): Boolean
+    fun shouldShowActionPreview(): Flow<Boolean>
     suspend fun disableActionPreview()
 }
