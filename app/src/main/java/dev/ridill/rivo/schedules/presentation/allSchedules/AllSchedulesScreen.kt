@@ -7,6 +7,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.DeleteForever
@@ -20,23 +21,31 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.paging.compose.LazyPagingItems
 import dev.ridill.rivo.R
+import dev.ridill.rivo.core.domain.util.logD
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.CancelButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
 import dev.ridill.rivo.core.ui.components.ListSeparator
 import dev.ridill.rivo.core.ui.components.PermissionRationaleDialog
 import dev.ridill.rivo.core.ui.components.PermissionState
+import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
+import dev.ridill.rivo.core.ui.components.SwipeActionsContainer
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
 import dev.ridill.rivo.core.ui.theme.elevation
@@ -70,6 +79,8 @@ fun AllSchedulesScreen(
         enabled = state.multiSelectionModeActive,
         onBack = actions::onMultiSelectionModeDismiss
     )
+
+    val schedulesListState = rememberLazyListState()
 
     RivoScaffold(
         topBar = {
@@ -121,10 +132,11 @@ fun AllSchedulesScreen(
         }
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
+            state = schedulesListState,
             contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+            modifier = Modifier
+                .fillMaxSize()
         ) {
             listEmptyIndicator(
                 isListEmpty = areSchedulesEmpty,
@@ -152,10 +164,11 @@ fun AllSchedulesScreen(
                                 key = item.id,
                                 contentType = "ScheduleListItem"
                             ) {
+                                logD { "Index = $index" }
                                 val selected by remember(state.selectedScheduleIds) {
                                     derivedStateOf { item.id in state.selectedScheduleIds }
                                 }
-                                ScheduleListItemCard(
+                                ScheduleItem(
                                     amount = item.amountFormatted,
                                     note = item.note,
                                     type = item.type,
@@ -168,7 +181,9 @@ fun AllSchedulesScreen(
                                     selectionModeActive = state.multiSelectionModeActive,
                                     selected = selected,
                                     onSelectionToggle = { actions.onScheduleSelectionToggle(item.id) },
+                                    showPreview = state.showActionPreview && item.canMarkPaid && index == 1,
                                     modifier = Modifier
+                                        .fillParentMaxWidth()
                                         .animateItem()
                                 )
                             }
@@ -218,7 +233,7 @@ private fun NotificationPermissionWarning(
 }
 
 @Composable
-private fun ScheduleListItemCard(
+private fun ScheduleItem(
     selectionModeActive: Boolean,
     amount: String,
     note: String?,
@@ -231,30 +246,56 @@ private fun ScheduleListItemCard(
     onLongPress: () -> Unit,
     onSelectionToggle: () -> Unit,
     selected: Boolean,
+    showPreview: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val clickModifier = remember(selectionModeActive) {
-        if (selectionModeActive) Modifier
-            .clickable(
-                onClick = onSelectionToggle
-            )
-        else Modifier
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongPress
-            )
+    val clickModifier = if (selectionModeActive) Modifier.clickable(
+        onClick = onSelectionToggle,
+        onClickLabel = stringResource(R.string.cd_tap_to_toggle_selection)
+    )
+    else Modifier.combinedClickable(
+        onClick = onClick,
+        onClickLabel = stringResource(R.string.cd_tap_to_edit_schedule),
+        onLongClick = onLongPress,
+        onLongClickLabel = stringResource(R.string.cd_long_press_to_toggle_selection)
+    )
+
+    // Launched effect added to hide actions whenever some key state changes
+    var isRevealed by remember { mutableStateOf(false) }
+    LaunchedEffect(selectionModeActive, canMarkPaid) {
+        isRevealed = false
     }
 
-    ScheduleListItem(
-        note = note,
-        amount = amount,
-        type = type,
-        nextPaymentTimestamp = nextPaymentTimestamp,
-        lastPaymentTimestamp = lastPaymentTimestamp,
-        tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
-        canMarkPaid = !selectionModeActive && canMarkPaid,
-        onMarkPaidClick = onMarkPaidClick,
-        modifier = modifier
-            .then(clickModifier)
-    )
+    SwipeActionsContainer(
+        isRevealed = isRevealed,
+        onRevealedChange = { isRevealed = it },
+        actions = {
+            RivoPlainTooltip(
+                tooltipText = stringResource(R.string.cd_mark_as_paid)
+            ) {
+                IconButton(
+                    onClick = onMarkPaidClick,
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),
+                        contentDescription = stringResource(R.string.cd_mark_as_paid)
+                    )
+                }
+            }
+        },
+        modifier = modifier,
+        gesturesEnabled = !selectionModeActive && canMarkPaid,
+        animatePreview = showPreview
+    ) {
+        ScheduleListItem(
+            note = note,
+            amount = amount,
+            type = type,
+            nextPaymentTimestamp = nextPaymentTimestamp,
+            lastPaymentTimestamp = lastPaymentTimestamp,
+            tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
+            modifier = Modifier
+                .then(clickModifier)
+        )
+    }
 }

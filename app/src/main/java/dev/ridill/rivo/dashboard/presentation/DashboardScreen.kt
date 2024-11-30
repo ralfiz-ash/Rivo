@@ -1,6 +1,7 @@
 package dev.ridill.rivo.dashboard.presentation
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -78,14 +78,11 @@ import dev.ridill.rivo.core.ui.util.isEmpty
 import dev.ridill.rivo.core.ui.util.mergedContentDescription
 import dev.ridill.rivo.schedules.domain.model.ActiveSchedule
 import dev.ridill.rivo.schedules.presentation.components.ActiveScheduleItem
-import dev.ridill.rivo.transactions.domain.model.FolderIndicator
-import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
 import dev.ridill.rivo.transactions.presentation.components.TransactionListItem
 import kotlinx.coroutines.flow.flowOf
-import java.time.LocalDate
 
 @Composable
 fun DashboardScreen(
@@ -249,16 +246,19 @@ fun DashboardScreen(
                 contentType = recentSpends.itemContentType { "RecentSpendCard" }
             ) { index ->
                 recentSpends[index]?.let { transaction ->
-                    RecentSpendCard(
+                    TransactionListItem(
                         note = transaction.note,
                         amount = transaction.amountFormatted,
                         date = transaction.date,
                         type = transaction.type,
                         tag = transaction.tag,
                         folder = transaction.folder,
-                        onClick = { navigateToAddEditTransaction(transaction.id) },
                         modifier = Modifier
                             .fillParentMaxWidth()
+                            .clickable(
+                                onClick = { navigateToAddEditTransaction(transaction.id) },
+                                onClickLabel = stringResource(R.string.cd_tap_to_edit_transaction)
+                            )
                             .animateItem()
                     )
                 }
@@ -494,30 +494,6 @@ private fun ActiveSchedulesRow(
             )
         }
     }
-}
-
-@Composable
-private fun RecentSpendCard(
-    note: String,
-    amount: String,
-    date: LocalDate,
-    type: TransactionType,
-    tag: TagIndicator?,
-    folder: FolderIndicator?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) = Card(
-    onClick = onClick,
-    modifier = modifier
-) {
-    TransactionListItem(
-        note = note,
-        amount = amount,
-        date = date,
-        type = type,
-        tag = tag,
-        folder = folder
-    )
 }
 
 @PreviewScreenSizes

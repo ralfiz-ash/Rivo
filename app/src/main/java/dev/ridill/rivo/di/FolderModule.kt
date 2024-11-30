@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dev.ridill.rivo.core.data.db.RivoDatabase
+import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.folders.data.local.FolderDao
 import dev.ridill.rivo.folders.data.repository.AddEditFolderRepositoryImpl
@@ -36,11 +37,13 @@ object FolderModule {
     fun provideFolderDetailsRepository(
         folderDao: FolderDao,
         transactionDao: TransactionDao,
-        transactionRepo: TransactionRepository
+        transactionRepo: TransactionRepository,
+        preferencesManager: PreferencesManager
     ): FolderDetailsRepository = FolderDetailsRepositoryImpl(
         dao = folderDao,
         transactionDao = transactionDao,
-        transactionRepo = transactionRepo
+        transactionRepo = transactionRepo,
+        preferencesManager = preferencesManager
     )
 
     @Provides

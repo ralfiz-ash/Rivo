@@ -2,6 +2,7 @@ package dev.ridill.rivo.folders.presentation.folderDetails
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,7 +25,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -40,16 +42,16 @@ import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BackArrowButton
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
-import dev.ridill.rivo.core.ui.components.DismissBackground
 import dev.ridill.rivo.core.ui.components.ExcludedIcon
 import dev.ridill.rivo.core.ui.components.ListLabel
 import dev.ridill.rivo.core.ui.components.ListSeparator
 import dev.ridill.rivo.core.ui.components.MultiActionConfirmationDialog
+import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.components.SpacerExtraSmall
 import dev.ridill.rivo.core.ui.components.SpacerSmall
-import dev.ridill.rivo.core.ui.components.SwipeToDismissContainer
+import dev.ridill.rivo.core.ui.components.SwipeActionsContainer
 import dev.ridill.rivo.core.ui.components.TitleLargeText
 import dev.ridill.rivo.core.ui.components.VerticalNumberSpinnerContent
 import dev.ridill.rivo.core.ui.components.icons.CalendarClock
@@ -61,9 +63,12 @@ import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.core.ui.util.isEmpty
 import dev.ridill.rivo.core.ui.util.mergedContentDescription
 import dev.ridill.rivo.folders.domain.model.AggregateType
+import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
+import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
 import dev.ridill.rivo.transactions.presentation.components.TransactionListItem
+import java.time.LocalDate
 import kotlin.math.absoluteValue
 
 @Composable
@@ -180,35 +185,22 @@ fun FolderDetailsScreen(
                                 key = item.id,
                                 contentType = "TransactionListItem"
                             ) {
-                                SwipeToDismissContainer(
-                                    onDismiss = { actions.onTransactionSwipeToDismiss(item.id) },
-                                    backgroundContent = {
-                                        DismissBackground(
-                                            swipeDismissState = it,
-                                            icon = ImageVector.vectorResource(R.drawable.ic_outline_remove_folder),
-                                            contentDescription = stringResource(R.string.cd_remove_from_folder),
-                                            enableDismissFromEndToStart = false,
-                                            modifier = Modifier
-                                                .padding(horizontal = MaterialTheme.spacing.large)
-                                        )
+                                TransactionInFolderItem(
+                                    note = item.note,
+                                    amount = TextFormat.currencyAmount(item.amount),
+                                    date = item.timestamp.toLocalDate(),
+                                    type = item.type,
+                                    tag = item.tag,
+                                    excluded = item.excluded,
+                                    onClick = { navigateToAddEditTransaction(item.id) },
+                                    onRemoveFromFolderClick = {
+                                        actions.onRemoveTransactionFromFolderClick(item.id)
                                     },
-                                    enableDismissFromEndToStart = false,
+                                    showSwipePreview = state.shouldShowActionPreview && index == 1,
                                     modifier = Modifier
+                                        .fillParentMaxWidth()
                                         .animateItem()
-                                ) {
-                                    Card(
-                                        onClick = { navigateToAddEditTransaction(item.id) }
-                                    ) {
-                                        TransactionListItem(
-                                            note = item.note,
-                                            amount = TextFormat.currencyAmount(item.amount),
-                                            date = item.timestamp.toLocalDate(),
-                                            type = item.type,
-                                            tag = item.tag,
-                                            excluded = item.excluded
-                                        )
-                                    }
-                                }
+                                )
                             }
                         }
                     }
@@ -374,5 +366,57 @@ private fun AggregateAmount(
                 style = MaterialTheme.typography.titleMedium
             )
         }
+    }
+}
+
+@Composable
+private fun TransactionInFolderItem(
+    note: String,
+    amount: String,
+    date: LocalDate,
+    type: TransactionType,
+    tag: TagIndicator?,
+    excluded: Boolean,
+    onClick: () -> Unit,
+    onRemoveFromFolderClick: () -> Unit,
+    showSwipePreview: Boolean,
+    modifier: Modifier = Modifier
+) {
+    var isRevealed by remember { mutableStateOf(false) }
+    SwipeActionsContainer(
+        isRevealed = isRevealed,
+        onRevealedChange = { isRevealed = it },
+        actions = {
+            RivoPlainTooltip(
+                tooltipText = stringResource(R.string.cd_remove_from_folder)
+            ) {
+                IconButton(
+                    onClick = {
+                        isRevealed = false
+                        onRemoveFromFolderClick()
+                    }
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_outline_remove_folder),
+                        contentDescription = stringResource(R.string.cd_remove_from_folder)
+                    )
+                }
+            }
+        },
+        animatePreview = showSwipePreview
+    ) {
+        TransactionListItem(
+            note = note,
+            amount = amount,
+            date = date,
+            type = type,
+            tag = tag,
+            excluded = excluded,
+            modifier = modifier
+                .clickable(
+                    onClick = onClick,
+                    onClickLabel = stringResource(R.string.cd_tap_to_edit_transaction)
+                )
+        )
     }
 }

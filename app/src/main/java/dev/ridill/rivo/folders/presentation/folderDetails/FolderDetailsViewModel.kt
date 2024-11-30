@@ -53,6 +53,8 @@ class FolderDetailsViewModel @Inject constructor(
     val transactionPagingData = repo.getTransactionsInFolderPaged(folderIdArg)
         .cachedIn(viewModelScope)
 
+    private val shouldShowActionPreview = repo.shouldShowActionPreview()
+
     private val showDeleteConfirmation = savedStateHandle
         .getStateFlow(SHOW_DELETE_CONFIRMATION, false)
 
@@ -62,6 +64,7 @@ class FolderDetailsViewModel @Inject constructor(
         excluded,
         aggregateAmount,
         aggregateType,
+        shouldShowActionPreview,
         showDeleteConfirmation
     ).map { (
                 name,
@@ -69,6 +72,7 @@ class FolderDetailsViewModel @Inject constructor(
                 excluded,
                 aggregateAmount,
                 aggregateType,
+                shouldShowActionPreview,
                 showDeleteConfirmation
             ) ->
         FolderDetailsState(
@@ -77,6 +81,7 @@ class FolderDetailsViewModel @Inject constructor(
             isExcluded = excluded,
             aggregateAmount = aggregateAmount,
             aggregateType = aggregateType,
+            shouldShowActionPreview = shouldShowActionPreview,
             showDeleteConfirmation = showDeleteConfirmation
         )
     }.asStateFlow(viewModelScope, FolderDetailsState())
@@ -109,8 +114,9 @@ class FolderDetailsViewModel @Inject constructor(
         }
     }
 
-    override fun onTransactionSwipeToDismiss(id: Long) {
+    override fun onRemoveTransactionFromFolderClick(id: Long) {
         viewModelScope.launch {
+            repo.disableActionPreview()
             repo.removeTransactionFromFolderById(id)
             eventBus.send(FolderDetailsEvent.TransactionRemovedFromGroup(id))
         }

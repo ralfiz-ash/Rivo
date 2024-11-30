@@ -39,18 +39,23 @@ class AllSchedulesViewModel @Inject constructor(
     private val showDeleteSelectedSchedulesConfirmation = savedStateHandle
         .getStateFlow(SHOW_DELETE_SELECTED_SCHEDULES_CONFIRMATION, false)
 
+    private val showActionPreview = repo.shouldShowActionPreview()
+
     val state = combineTuple(
+        showActionPreview,
         showNotificationRationale,
         multiSelectionModeActive,
         selectedScheduleIds,
         showDeleteSelectedSchedulesConfirmation
     ).map { (
+                showActionPreview,
                 showNotificationRationale,
                 multiSelectionModeActive,
                 selectedScheduleIds,
                 showDeleteSelectedSchedulesConfirmation
             ) ->
         AllSchedulesState(
+            showActionPreview = showActionPreview,
             showNotificationRationale = showNotificationRationale,
             multiSelectionModeActive = multiSelectionModeActive,
             selectedScheduleIds = selectedScheduleIds,
@@ -80,6 +85,7 @@ class AllSchedulesViewModel @Inject constructor(
 
     override fun onMarkSchedulePaidClick(id: Long) {
         viewModelScope.launch {
+            repo.disableActionPreview()
             when (val resource = repo.markScheduleAsPaid(id)) {
                 is Resource.Error -> {
                     resource.message?.let {

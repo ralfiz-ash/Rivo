@@ -84,7 +84,6 @@
     <string name="cd_folder_created_date">Folder Created Date</string>
     <string name="cd_create_new_folder">Create New Folder</string>
     <string name="cd_show_years_list">Show Years List</string>
-    <string name="cd_toggle_list_mode">Toggle between list and grid view</string>
     <string name="cd_add_transaction_to_folder">Add transaction fo a folder</string>
     <string name="cd_action_continue">Continue</string>
     <string name="cd_transaction_selection_change">Select or Unselect Transaction</string>
@@ -113,6 +112,8 @@
     <string name="cd_convert_to_normal_transaction">Convert to normal transaction</string>
     <string name="cd_clear_search_query">Clear search query</string>
     <string name="cd_mark_as_paid">Mark as paid</string>
+    <string name="cd_tap_to_edit_schedule">Tap to edit schedule</string>
+    <string name="cd_tap_to_toggle_selection">Tap to edit schedule</string>
 
     <!-- Error Messages -->
     <string name="error_no_internet_connection">No internet connection</string>

@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dev.ridill.rivo.core.data.db.RivoDatabase
+import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.schedules.data.local.SchedulesDao
 import dev.ridill.rivo.schedules.data.repository.AllSchedulesRepositoryImpl
@@ -19,11 +20,13 @@ object SchedulesViewModelModule {
     fun provideAllSchedulesRepository(
         db: RivoDatabase,
         dao: SchedulesDao,
-        schedulesRepository: SchedulesRepository
+        schedulesRepository: SchedulesRepository,
+        preferencesManager: PreferencesManager
     ): AllSchedulesRepository = AllSchedulesRepositoryImpl(
         db = db,
         dao = dao,
-        repo = schedulesRepository
+        repo = schedulesRepository,
+        preferencesManager = preferencesManager
     )
 
     @Provides
