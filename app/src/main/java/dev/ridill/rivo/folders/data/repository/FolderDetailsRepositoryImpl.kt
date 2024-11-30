@@ -1,6 +1,7 @@
 package dev.ridill.rivo.folders.data.repository
 
 import androidx.paging.PagingData
+import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.folders.data.local.FolderDao
 import dev.ridill.rivo.folders.data.toFolderDetails
 import dev.ridill.rivo.folders.domain.model.FolderDetails
@@ -10,13 +11,15 @@ import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class FolderDetailsRepositoryImpl(
     private val dao: FolderDao,
     private val transactionDao: TransactionDao,
-    private val transactionRepo: TransactionRepository
+    private val transactionRepo: TransactionRepository,
+    private val preferencesManager: PreferencesManager
 ) : FolderDetailsRepository {
     override fun getFolderDetailsById(id: Long): Flow<FolderDetails?> = dao
         .getFolderAndAggregateById(id).map { it?.toFolderDetails() }
@@ -60,4 +63,10 @@ class FolderDetailsRepositoryImpl(
             folderId = folderId
         )
     }
+
+    override fun shouldShowActionPreview(): Flow<Boolean> = preferencesManager.preferences
+        .map { it.showTxInFolderItemActionPreview }
+        .distinctUntilChanged()
+
+    override suspend fun disableActionPreview() = preferencesManager.disableTxInFolderItemActionPreview()
 }

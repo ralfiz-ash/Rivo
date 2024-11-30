@@ -12,6 +12,7 @@ data class FolderDetailsState(
     val isExcluded: Boolean = false,
     val aggregateAmount: Double = Double.Zero,
     val aggregateType: AggregateType = AggregateType.BALANCED,
+    val shouldShowActionPreview: Boolean = false,
     val showDeleteConfirmation: Boolean = false
 ) {
     val createdTimestampFormatted: String

@@ -3,7 +3,6 @@ package dev.ridill.rivo.folders.presentation.folderDetails
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,8 +25,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -51,12 +51,11 @@ import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.components.SpacerExtraSmall
 import dev.ridill.rivo.core.ui.components.SpacerSmall
-import dev.ridill.rivo.core.ui.components.SwipeRevealContainer
+import dev.ridill.rivo.core.ui.components.SwipeActionsContainer
 import dev.ridill.rivo.core.ui.components.TitleLargeText
 import dev.ridill.rivo.core.ui.components.VerticalNumberSpinnerContent
 import dev.ridill.rivo.core.ui.components.icons.CalendarClock
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
-import dev.ridill.rivo.core.ui.components.rememberSwipeRevealState
 import dev.ridill.rivo.core.ui.navigation.destinations.FolderDetailsScreenSpec
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.spacing
@@ -69,7 +68,6 @@ import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
 import dev.ridill.rivo.transactions.presentation.components.TransactionListItem
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.absoluteValue
 
@@ -196,9 +194,9 @@ fun FolderDetailsScreen(
                                     excluded = item.excluded,
                                     onClick = { navigateToAddEditTransaction(item.id) },
                                     onRemoveFromFolderClick = {
-                                        actions
-                                            .onRemoveTransactionFromFolderClick(item.id)
+                                        actions.onRemoveTransactionFromFolderClick(item.id)
                                     },
+                                    showSwipePreview = state.shouldShowActionPreview && index == 1,
                                     modifier = Modifier
                                         .fillParentMaxWidth()
                                         .animateItem()
@@ -381,19 +379,20 @@ private fun TransactionInFolderItem(
     excluded: Boolean,
     onClick: () -> Unit,
     onRemoveFromFolderClick: () -> Unit,
+    showSwipePreview: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val swipeRevealState = rememberSwipeRevealState()
-    val coroutineScope = rememberCoroutineScope()
-    SwipeRevealContainer(
-        state = swipeRevealState,
+    var isRevealed by remember { mutableStateOf(false) }
+    SwipeActionsContainer(
+        isRevealed = isRevealed,
+        onRevealedChange = { isRevealed = it },
         actions = {
             RivoPlainTooltip(
                 tooltipText = stringResource(R.string.cd_remove_from_folder)
             ) {
                 IconButton(
                     onClick = {
-                        coroutineScope.launch { swipeRevealState.animateTo(false) }
+                        isRevealed = false
                         onRemoveFromFolderClick()
                     }
                 ) {
@@ -403,7 +402,8 @@ private fun TransactionInFolderItem(
                     )
                 }
             }
-        }
+        },
+        animatePreview = showSwipePreview
     ) {
         TransactionListItem(
             note = note,
@@ -414,10 +414,7 @@ private fun TransactionInFolderItem(
             excluded = excluded,
             modifier = modifier
                 .clickable(
-                    onClick = {
-//                        isRevealed = false
-                        onClick()
-                    },
+                    onClick = onClick,
                     onClickLabel = stringResource(R.string.cd_tap_to_edit_transaction)
                 )
         )
