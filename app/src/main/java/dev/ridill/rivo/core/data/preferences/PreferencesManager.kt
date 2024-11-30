@@ -27,6 +27,6 @@ interface PreferencesManager {
     suspend fun updateEncryptionPasswordHash(hash: String?)
     suspend fun updateFatalBackupError(error: FatalBackupError?)
     suspend fun toggleShowAutoDetectTxInfoFalse()
-    suspend fun disableScheduleSwipePreview()
-    suspend fun disableTxInFolderSwipePreview()
+    suspend fun disableScheduleItemActionPreview()
+    suspend fun disableTxInFolderItemActionPreview()
 }

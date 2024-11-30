@@ -57,9 +57,10 @@ class PreferencesManagerImpl(
                 preferences[Keys.FATAL_BACKUP_ERROR]?.let { FatalBackupError.valueOf(it) }
             }
             val showAutoDetectTxInfo = preferences[Keys.SHOW_AUTO_DETECT_TX_INFO].orTrue()
-            val showScheduleSwipePreview = preferences[Keys.SHOW_SCHEDULE_SWIPE_PREVIEW].orTrue()
-            val showTxInFolderSwipePreview =
-                preferences[Keys.SHOW_TX_IN_FOLDER_SWIPE_PREVIEW].orTrue()
+            val showScheduleItemActionPreview =
+                preferences[Keys.SHOW_SCHEDULE_ITEM_ACTION_PREVIEW].orTrue()
+            val showTxInFolderItemActionPreview =
+                preferences[Keys.SHOW_TX_IN_FOLDER_ITEM_ACTION_PREVIEW].orTrue()
 
             RivoPreferences(
                 showOnboarding = showOnboarding,
@@ -75,8 +76,8 @@ class PreferencesManagerImpl(
                 encryptionPasswordHash = encryptionPasswordHash,
                 fatalBackupError = fatalBackupError,
                 showAutoDetectTxInfo = showAutoDetectTxInfo,
-                showScheduleSwipePreview = showScheduleSwipePreview,
-                showTxInFolderSwipePreview = showTxInFolderSwipePreview
+                showScheduleItemActionPreview = showScheduleItemActionPreview,
+                showTxInFolderItemActionPreview = showTxInFolderItemActionPreview
             )
         }
 
@@ -184,18 +185,18 @@ class PreferencesManagerImpl(
         }
     }
 
-    override suspend fun disableScheduleSwipePreview() {
+    override suspend fun disableScheduleItemActionPreview() {
         withContext(Dispatchers.IO) {
             dataStore.edit { preferences ->
-                preferences[Keys.SHOW_SCHEDULE_SWIPE_PREVIEW] = false
+                preferences[Keys.SHOW_SCHEDULE_ITEM_ACTION_PREVIEW] = false
             }
         }
     }
 
-    override suspend fun disableTxInFolderSwipePreview() {
+    override suspend fun disableTxInFolderItemActionPreview() {
         withContext(Dispatchers.IO) {
             dataStore.edit { preferences ->
-                preferences[Keys.SHOW_TX_IN_FOLDER_SWIPE_PREVIEW] = false
+                preferences[Keys.SHOW_TX_IN_FOLDER_ITEM_ACTION_PREVIEW] = false
             }
         }
     }
@@ -215,8 +216,9 @@ class PreferencesManagerImpl(
         val ENCRYPTION_PASSWORD_HASH = stringPreferencesKey("ENCRYPTION_PASSWORD_HASH")
         val FATAL_BACKUP_ERROR = stringPreferencesKey("FATAL_BACKUP_ERROR")
         val SHOW_AUTO_DETECT_TX_INFO = booleanPreferencesKey("SHOW_AUTO_DETECT_TX_INFO")
-        val SHOW_SCHEDULE_SWIPE_PREVIEW = booleanPreferencesKey("SHOW_SCHEDULE_SWIPE_PREVIEW")
-        val SHOW_TX_IN_FOLDER_SWIPE_PREVIEW =
-            booleanPreferencesKey("SHOW_TX_IN_FOLDER_SWIPE_PREVIEW")
+        val SHOW_SCHEDULE_ITEM_ACTION_PREVIEW =
+            booleanPreferencesKey("SHOW_SCHEDULE_ITEM_ACTION_PREVIEW")
+        val SHOW_TX_IN_FOLDER_ITEM_ACTION_PREVIEW =
+            booleanPreferencesKey("SHOW_TX_IN_FOLDER_ITEM_ACTION_PREVIEW")
     }
 }
