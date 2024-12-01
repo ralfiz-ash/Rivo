@@ -11,6 +11,7 @@ import java.time.ZonedDateTime
 data class AddEditTransactionState(
     val isLoading: Boolean = false,
     val transactionType: TransactionType = TransactionType.DEBIT,
+    val isAmountInputAnExpression: Boolean = false,
     val amountRecommendations: List<Long> = emptyList(),
     val timestamp: LocalDateTime = DateUtil.now(),
     val showDatePicker: Boolean = false,

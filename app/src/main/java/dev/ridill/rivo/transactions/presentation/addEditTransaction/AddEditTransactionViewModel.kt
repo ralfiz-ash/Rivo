@@ -33,7 +33,7 @@ import dev.ridill.rivo.transactions.domain.repository.AddEditTransactionReposito
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -63,24 +63,27 @@ class AddEditTransactionViewModel @Inject constructor(
     private val isScheduleTxMode = savedStateHandle.getStateFlow(IS_SCHEDULE_MODE, false)
 
     private val txInput = savedStateHandle.getStateFlow(TX_INPUT, Transaction.DEFAULT)
-    val amountInput = txInput.map { it.amount }
+    val amountInput = txInput.mapLatest { it.amount }
         .asStateFlow(viewModelScope, String.Empty)
 
-    val noteInput = txInput.map { it.note }
-
-    private val selectedTagId = txInput.map { it.tagId }
+    private val isAmountInputAnExpression = amountInput.mapLatest { evalService.isExpression(it) }
         .distinctUntilChanged()
 
-    private val timestamp = txInput.map { it.timestamp }
+    val noteInput = txInput.mapLatest { it.note }
+
+    private val selectedTagId = txInput.mapLatest { it.tagId }
         .distinctUntilChanged()
 
-    private val transactionFolderId = txInput.map { it.folderId }
+    private val timestamp = txInput.mapLatest { it.timestamp }
         .distinctUntilChanged()
 
-    private val transactionType = txInput.map { it.type }
+    private val transactionFolderId = txInput.mapLatest { it.folderId }
         .distinctUntilChanged()
 
-    private val isTransactionExcluded = txInput.map { it.excluded }
+    private val transactionType = txInput.mapLatest { it.type }
+        .distinctUntilChanged()
+
+    private val isTransactionExcluded = txInput.mapLatest { it.excluded }
         .distinctUntilChanged()
 
     val recentTagsPagingData = tagsRepo.getAllTagsPagingData(
@@ -108,6 +111,7 @@ class AddEditTransactionViewModel @Inject constructor(
     val state = combineTuple(
         isLoading,
         transactionType,
+        isAmountInputAnExpression,
         amountRecommendations,
         timestamp,
         showDatePicker,
@@ -119,24 +123,26 @@ class AddEditTransactionViewModel @Inject constructor(
         isScheduleTxMode,
         selectedRepetition,
         showRepetitionSelection
-    ).map { (
-                isLoading,
-                transactionType,
-                amountRecommendations,
-                timestamp,
-                showDatePicker,
-                showTimePicker,
-                isTransactionExcluded,
-                selectedTagId,
-                showDeleteConfirmation,
-                linkedFolderName,
-                isScheduleTxMode,
-                selectedRepetition,
-                showRepetitionSelection
-            ) ->
+    ).mapLatest { (
+                      isLoading,
+                      transactionType,
+                      isAmountInputAnExpression,
+                      amountRecommendations,
+                      timestamp,
+                      showDatePicker,
+                      showTimePicker,
+                      isTransactionExcluded,
+                      selectedTagId,
+                      showDeleteConfirmation,
+                      linkedFolderName,
+                      isScheduleTxMode,
+                      selectedRepetition,
+                      showRepetitionSelection
+                  ) ->
         AddEditTransactionState(
             isLoading = isLoading,
             transactionType = transactionType,
+            isAmountInputAnExpression = isAmountInputAnExpression,
             amountRecommendations = amountRecommendations,
             timestamp = timestamp,
             showDatePicker = showDatePicker,
@@ -190,6 +196,14 @@ class AddEditTransactionViewModel @Inject constructor(
     }
 
     override fun onAmountFocusLost() {
+        evaluateAmountInput()
+    }
+
+    override fun onEvaluateExpressionClick() {
+        evaluateAmountInput()
+    }
+
+    private fun evaluateAmountInput() {
         val amountInput = amountInput.value
             .trim()
             .ifEmpty { return }
