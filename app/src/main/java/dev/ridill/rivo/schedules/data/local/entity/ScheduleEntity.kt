@@ -20,6 +20,9 @@ data class ScheduleEntity(
     @ColumnInfo(name = "note")
     val note: String?,
 
+    @ColumnInfo(name = "currency_code")
+    val currencyCode: String,
+
     @ColumnInfo(name = "type")
     val type: TransactionType,
 

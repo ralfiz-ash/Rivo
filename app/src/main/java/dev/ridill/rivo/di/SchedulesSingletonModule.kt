@@ -16,6 +16,7 @@ import dev.ridill.rivo.schedules.domain.notification.ScheduleReminderNotificatio
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
 import dev.ridill.rivo.schedules.domain.scheduleReminder.AlarmManagerScheduleReminder
 import dev.ridill.rivo.schedules.domain.scheduleReminder.ScheduleReminder
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 
 @Module
@@ -31,13 +32,15 @@ object SchedulesSingletonModule {
         schedulesDao: SchedulesDao,
         transactionDao: TransactionDao,
         scheduler: ScheduleReminder,
-        receiverService: ReceiverService
+        receiverService: ReceiverService,
+        currencyRepo: CurrencyRepository
     ): SchedulesRepository = SchedulesRepositoryImpl(
         db = db,
         schedulesDao = schedulesDao,
         transactionDao = transactionDao,
         scheduler = scheduler,
-        receiverService = receiverService
+        receiverService = receiverService,
+        currencyRepo = currencyRepo
     )
 
     @Provides

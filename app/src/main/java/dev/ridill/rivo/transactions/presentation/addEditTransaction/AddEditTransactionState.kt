@@ -7,8 +7,10 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.Currency
 
 data class AddEditTransactionState(
+    val currency: Currency? = null,
     val isLoading: Boolean = false,
     val transactionType: TransactionType = TransactionType.DEBIT,
     val amountRecommendations: List<Long> = emptyList(),

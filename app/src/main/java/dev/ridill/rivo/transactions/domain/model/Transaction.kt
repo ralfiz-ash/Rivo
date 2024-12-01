@@ -6,12 +6,14 @@ import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.Empty
 import kotlinx.parcelize.Parcelize
 import java.time.LocalDateTime
+import java.util.Currency
 
 @Parcelize
 data class Transaction(
     val id: Long,
     val amount: String,
     val note: String,
+    val currency: Currency?,
     val timestamp: LocalDateTime,
     val type: TransactionType,
     val tagId: Long?,
@@ -26,6 +28,7 @@ data class Transaction(
             note = String.Empty,
             timestamp = DateUtil.now(),
             type = TransactionType.DEBIT,
+            currency = null,
             tagId = null,
             folderId = null,
             excluded = false,

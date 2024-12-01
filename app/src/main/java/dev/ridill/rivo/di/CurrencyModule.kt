@@ -8,8 +8,8 @@ import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.settings.data.local.CurrencyListDao
 import dev.ridill.rivo.settings.data.local.CurrencyPreferenceDao
-import dev.ridill.rivo.settings.data.repository.CurrencyPreferenceRepositoryImpl
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.data.repository.CurrencyRepositoryImpl
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.settings.presentation.currencyUpdate.UpdateCurrencyPreferenceViewModel
 
 @Module
@@ -28,7 +28,7 @@ object CurrencyModule {
     fun provideCurrencyPreferenceRepository(
         dao: CurrencyPreferenceDao,
         currencyListDao: CurrencyListDao
-    ): CurrencyPreferenceRepository = CurrencyPreferenceRepositoryImpl(
+    ): CurrencyRepository = CurrencyRepositoryImpl(
         dao = dao,
         currencyListDao = currencyListDao
     )

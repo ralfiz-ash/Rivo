@@ -2,6 +2,7 @@ package dev.ridill.rivo.schedules.data
 
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.schedules.data.local.entity.ScheduleEntity
 import dev.ridill.rivo.schedules.domain.model.ActiveSchedule
 import dev.ridill.rivo.schedules.domain.model.Schedule
@@ -17,7 +18,9 @@ fun ScheduleEntity.toSchedule(): Schedule = Schedule(
     type = type,
     tagId = tagId,
     folderId = folderId,
-    lastPaymentTimestamp = lastPaymentTimestamp
+    lastPaymentTimestamp = lastPaymentTimestamp,
+    currency = LocaleUtil.currencyForCode(currencyCode)
+
 )
 
 fun Schedule.toTransaction(
@@ -32,10 +35,11 @@ fun Schedule.toTransaction(
     tagId = tagId,
     folderId = folderId,
     excluded = false,
-    scheduleId = id
+    scheduleId = id,
+    currency = currency
 )
 
-fun Schedule.toEntity(): ScheduleEntity = ScheduleEntity(
+fun Schedule.toEntity(currencyCode: String): ScheduleEntity = ScheduleEntity(
     id = id,
     amount = amount,
     note = note,
@@ -44,7 +48,8 @@ fun Schedule.toEntity(): ScheduleEntity = ScheduleEntity(
     tagId = tagId,
     folderId = folderId,
     nextPaymentTimestamp = nextPaymentTimestamp,
-    lastPaymentTimestamp = lastPaymentTimestamp
+    lastPaymentTimestamp = lastPaymentTimestamp,
+    currencyCode = currencyCode
 )
 
 fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(

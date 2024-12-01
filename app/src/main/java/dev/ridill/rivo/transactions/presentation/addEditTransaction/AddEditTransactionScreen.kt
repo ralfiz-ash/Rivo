@@ -106,6 +106,7 @@ import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.Currency
 
 @Composable
 fun AddEditTransactionScreen(
@@ -240,6 +241,7 @@ fun AddEditTransactionScreen(
                 )
 
                 AmountInput(
+                    currency = state.currency ?: LocalCurrencyPreference.current,
                     amount = amountInput,
                     onAmountChange = actions::onAmountChange,
                     onTransformClick = navigateToAmountTransformation,
@@ -370,6 +372,7 @@ fun AddEditTransactionScreen(
 
 @Composable
 private fun AmountInput(
+    currency: Currency,
     amount: () -> String,
     onAmountChange: (String) -> Unit,
     onFocusLost: () -> Unit,
@@ -391,7 +394,7 @@ private fun AmountInput(
             .semantics {
                 contentDescription = amountContentDescription
             },
-        prefix = { Text(LocalCurrencyPreference.current.symbol) },
+        prefix = { Text(currency.symbol) },
         textStyle = MaterialTheme.typography.headlineMedium,
         placeholder = {
             Text(

@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -63,24 +64,27 @@ class AddEditTransactionViewModel @Inject constructor(
     private val isScheduleTxMode = savedStateHandle.getStateFlow(IS_SCHEDULE_MODE, false)
 
     private val txInput = savedStateHandle.getStateFlow(TX_INPUT, Transaction.DEFAULT)
-    val amountInput = txInput.map { it.amount }
+    private val currency = txInput.mapLatest { it.currency }
+        .distinctUntilChanged()
+
+    val amountInput = txInput.mapLatest { it.amount }
         .asStateFlow(viewModelScope, String.Empty)
 
-    val noteInput = txInput.map { it.note }
+    val noteInput = txInput.mapLatest { it.note }
 
-    private val selectedTagId = txInput.map { it.tagId }
+    private val selectedTagId = txInput.mapLatest { it.tagId }
         .distinctUntilChanged()
 
-    private val timestamp = txInput.map { it.timestamp }
+    private val timestamp = txInput.mapLatest { it.timestamp }
         .distinctUntilChanged()
 
-    private val transactionFolderId = txInput.map { it.folderId }
+    private val transactionFolderId = txInput.mapLatest { it.folderId }
         .distinctUntilChanged()
 
-    private val transactionType = txInput.map { it.type }
+    private val transactionType = txInput.mapLatest { it.type }
         .distinctUntilChanged()
 
-    private val isTransactionExcluded = txInput.map { it.excluded }
+    private val isTransactionExcluded = txInput.mapLatest { it.excluded }
         .distinctUntilChanged()
 
     val recentTagsPagingData = tagsRepo.getAllTagsPagingData(
@@ -106,6 +110,7 @@ class AddEditTransactionViewModel @Inject constructor(
         .getStateFlow(SELECTED_REPETITION, ScheduleRepetition.NO_REPEAT)
 
     val state = combineTuple(
+        currency,
         isLoading,
         transactionType,
         amountRecommendations,
@@ -120,6 +125,7 @@ class AddEditTransactionViewModel @Inject constructor(
         selectedRepetition,
         showRepetitionSelection
     ).map { (
+                currency,
                 isLoading,
                 transactionType,
                 amountRecommendations,
@@ -135,6 +141,7 @@ class AddEditTransactionViewModel @Inject constructor(
                 showRepetitionSelection
             ) ->
         AddEditTransactionState(
+            currency = currency,
             isLoading = isLoading,
             transactionType = transactionType,
             amountRecommendations = amountRecommendations,

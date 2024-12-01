@@ -13,6 +13,7 @@ import dev.ridill.rivo.transactions.domain.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Currency
 
 interface TransactionRepository {
     fun getAllTransactionsPaged(
@@ -42,7 +43,8 @@ interface TransactionRepository {
         tagId: Long? = null,
         folderId: Long? = null,
         scheduleId: Long? = null,
-        excluded: Boolean = false
+        excluded: Boolean = false,
+        currency: Currency? = null
     ): Transaction
 
     suspend fun deleteSafely(id: Long): Result<Unit, BasicError>

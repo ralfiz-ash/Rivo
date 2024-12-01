@@ -9,10 +9,8 @@ import dev.ridill.rivo.transactions.domain.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.Currency
 
 interface AllTransactionsRepository {
-    fun getCurrencyPreference(date: LocalDate): Flow<Currency>
     fun getDateLimits(): Flow<Pair<LocalDate, LocalDate>>
     fun getAmountAggregate(
         dateRange: Pair<LocalDate, LocalDate>? = null,

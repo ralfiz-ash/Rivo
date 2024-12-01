@@ -10,7 +10,7 @@ import dev.ridill.rivo.core.domain.util.tryOrNull
 import dev.ridill.rivo.settings.data.local.CurrencyListDao
 import dev.ridill.rivo.settings.data.local.CurrencyPreferenceDao
 import dev.ridill.rivo.settings.data.local.entity.CurrencyPreferenceEntity
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -19,10 +19,10 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.Currency
 
-class CurrencyPreferenceRepositoryImpl(
+class CurrencyRepositoryImpl(
     private val dao: CurrencyPreferenceDao,
     private val currencyListDao: CurrencyListDao
-) : CurrencyPreferenceRepository {
+) : CurrencyRepository {
     override fun getCurrencyPreferenceForMonth(date: LocalDate): Flow<Currency> = dao
         .getCurrencyCodeForDateOrLast(date)
         .map { currencyCode ->
@@ -41,13 +41,13 @@ class CurrencyPreferenceRepositoryImpl(
         }
     }
 
-    override fun getCurrencyListPaged(searchQuery: String): Flow<PagingData<Currency>> =
-        Pager(
-            config = PagingConfig(pageSize = UtilConstants.DEFAULT_PAGE_SIZE)
-        ) {
-            currencyListDao.getAllCurrencyCodesPaged(searchQuery)
-        }.flow
-            .map { pagingData ->
-                pagingData.map { Currency.getInstance(it) }
-            }
+    override fun getCurrencyListPaged(
+        searchQuery: String
+    ): Flow<PagingData<Currency>> = Pager(
+        config = PagingConfig(pageSize = UtilConstants.DEFAULT_PAGE_SIZE),
+        pagingSourceFactory = { currencyListDao.getAllCurrencyCodesPaged(searchQuery) }
+    ).flow
+        .map { pagingData ->
+            pagingData.map { Currency.getInstance(it) }
+        }
 }

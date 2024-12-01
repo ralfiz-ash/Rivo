@@ -8,7 +8,7 @@ import dev.ridill.rivo.core.domain.model.BasicError
 import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.core.domain.util.Zero
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.local.entity.TransactionEntity
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
@@ -19,11 +19,11 @@ import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.Currency
 import kotlin.math.absoluteValue
 
 class AllTransactionsRepositoryImpl(
@@ -31,11 +31,8 @@ class AllTransactionsRepositoryImpl(
     private val dao: TransactionDao,
     private val repo: TransactionRepository,
     private val preferencesManager: PreferencesManager,
-    private val currencyPrefRepo: CurrencyPreferenceRepository,
+    private val currencyPrefRepo: CurrencyRepository,
 ) : AllTransactionsRepository {
-    override fun getCurrencyPreference(date: LocalDate): Flow<Currency> = currencyPrefRepo
-        .getCurrencyPreferenceForMonth(date)
-
     override fun getAmountAggregate(
         dateRange: Pair<LocalDate, LocalDate>?,
         type: TransactionType?,
@@ -112,6 +109,7 @@ class AllTransactionsRepositoryImpl(
         dateTime: LocalDateTime
     ): Long = withContext(Dispatchers.IO) {
         db.withTransaction {
+            val currentCurrencyPref = currencyPrefRepo.getCurrencyPreferenceForMonth().first()
             val aggregatedAmount = dao.getAggregateAmountByIds(ids)
             var insertedId = -1L
             if (aggregatedAmount != Double.Zero) {
@@ -125,7 +123,8 @@ class AllTransactionsRepositoryImpl(
                     isExcluded = false,
                     tagId = null,
                     folderId = null,
-                    scheduleId = null
+                    scheduleId = null,
+                    currencyCode = currentCurrencyPref.currencyCode
                 )
                 insertedId = dao.upsert(entity).first()
             }

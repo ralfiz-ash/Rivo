@@ -7,7 +7,7 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.core.domain.util.EventBus
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.Currency
@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UpdateCurrencyPreferenceViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val repo: CurrencyPreferenceRepository,
+    private val repo: CurrencyRepository,
     private val eventBus: EventBus<UpdateCurrencyEvent>
 ) : ViewModel() {
 

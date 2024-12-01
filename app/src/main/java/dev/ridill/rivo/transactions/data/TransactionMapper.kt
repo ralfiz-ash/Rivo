@@ -1,7 +1,9 @@
 package dev.ridill.rivo.transactions.data
 
 import androidx.compose.ui.graphics.Color
+import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.core.domain.util.orZero
+import dev.ridill.rivo.core.domain.util.tryOrNull
 import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.transactions.data.local.entity.TransactionEntity
 import dev.ridill.rivo.transactions.data.local.views.TransactionDetailsView
@@ -9,7 +11,6 @@ import dev.ridill.rivo.transactions.domain.model.FolderIndicator
 import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import dev.ridill.rivo.transactions.domain.model.TransactionListItem
-import dev.ridill.rivo.transactions.domain.model.TransactionListItemUIModel
 
 fun TransactionEntity.toTransaction(): Transaction = Transaction(
     id = id,
@@ -24,13 +25,15 @@ fun TransactionEntity.toTransaction(): Transaction = Transaction(
     folderId = folderId,
     tagId = tagId,
     excluded = isExcluded,
-    scheduleId = scheduleId
+    scheduleId = scheduleId,
+    currency = tryOrNull { LocaleUtil.currencyForCode(currencyCode) }
 )
 
-fun Transaction.toEntity(): TransactionEntity = TransactionEntity(
+fun Transaction.toEntity(currencyCode: String): TransactionEntity = TransactionEntity(
     id = id,
     note = note,
     amount = TextFormat.parseNumber(amount).orZero(),
+    currencyCode = currencyCode,
     timestamp = timestamp,
     type = type,
     isExcluded = excluded,
@@ -67,18 +70,7 @@ fun TransactionDetailsView.toTransactionListItem(): TransactionListItem {
         excluded = excluded,
         tag = tag,
         folder = folder,
-        scheduleId = scheduleId
+        scheduleId = scheduleId,
+        currency = LocaleUtil.currencyForCode(currencyCode)
     )
 }
-
-fun TransactionListItemUIModel.TransactionItem.toEntity(): TransactionEntity = TransactionEntity(
-    id = id,
-    note = note,
-    amount = amount,
-    timestamp = timestamp,
-    type = type,
-    isExcluded = excluded,
-    tagId = tag?.id,
-    folderId = folder?.id,
-    scheduleId = scheduleId
-)
