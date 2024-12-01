@@ -21,7 +21,8 @@ import java.time.LocalDateTime
         (CASE WHEN 1 IN (tx.is_excluded, tag.is_excluded, folder.is_excluded) THEN 1 ELSE 0 END) AS excluded
         FROM transaction_table tx
         LEFT OUTER JOIN tag_table tag ON tx.tag_id = tag.id
-        LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id""",
+        LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id
+        """,
     viewName = "transaction_details_view"
 )
 data class TransactionDetailsView(
@@ -38,5 +39,6 @@ data class TransactionDetailsView(
     val folderName: String?,
     val folderCreatedTimestamp: LocalDateTime?,
     val scheduleId: Long?,
-    val excluded: Boolean
+    val excluded: Boolean,
+//    val currencyCode: String?
 )
