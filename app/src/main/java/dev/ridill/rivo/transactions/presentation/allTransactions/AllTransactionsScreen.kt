@@ -104,7 +104,6 @@ import dev.ridill.rivo.core.ui.components.slideInHorizontallyWithFadeIn
 import dev.ridill.rivo.core.ui.components.slideInVerticallyWithFadeIn
 import dev.ridill.rivo.core.ui.components.slideOutHorizontallyWithFadeOut
 import dev.ridill.rivo.core.ui.components.slideOutVerticallyWithFadeOut
-import dev.ridill.rivo.core.ui.navigation.destinations.AllTagsScreenSpec
 import dev.ridill.rivo.core.ui.navigation.destinations.AllTransactionsScreenSpec
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
@@ -139,7 +138,6 @@ fun AllTransactionsScreen(
     searchResultsLazyPagingItems: LazyPagingItems<TransactionListItem>,
     state: AllTransactionsState,
     actions: AllTransactionsActions,
-    navigateToAllTags: () -> Unit,
     navigateToAddEditTransaction: (Long?) -> Unit,
     navigateUp: () -> Unit
 ) {
@@ -204,10 +202,8 @@ fun AllTransactionsScreen(
                 ) {
                     TagsInfoList(
                         tagsPagingItems = tagsPagingItems,
-                        onAllTagsClick = navigateToAllTags,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = TagsRowMinHeight)
+                            .padding(top = MaterialTheme.spacing.medium)
                             .animateItem()
                     )
                 }
@@ -516,7 +512,6 @@ private val TagsRowMinHeight = 100.dp
 @Composable
 private fun TagsInfoList(
     tagsPagingItems: LazyPagingItems<TagInfo>,
-    onAllTagsClick: () -> Unit,
     modifier: Modifier = Modifier,
     tagsListState: LazyListState = rememberLazyListState()
 ) {
@@ -532,26 +527,18 @@ private fun TagsInfoList(
     }
 
     Column(
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+        ListLabel(
+            text = stringResource(R.string.your_top_tags),
+            modifier = Modifier
+                .padding(horizontal = MaterialTheme.spacing.medium),
+        )
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-        ) {
-            ListLabel(
-                text = stringResource(R.string.your_top_tags),
-                modifier = Modifier
-                    .padding(horizontal = MaterialTheme.spacing.medium),
-            )
-            SpacerSmall()
-            TextButton(onClick = onAllTagsClick) {
-                Text(text = "${stringResource(AllTagsScreenSpec.labelRes)} >")
-            }
-        }
-        Box(
-            modifier = modifier,
+                .heightIn(min = TagsRowMinHeight),
             contentAlignment = Alignment.Center
         ) {
             if (isTagsEmpty) {

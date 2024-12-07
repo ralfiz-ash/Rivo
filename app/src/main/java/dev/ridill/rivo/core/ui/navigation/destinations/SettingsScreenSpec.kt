@@ -102,10 +102,11 @@ data object SettingsScreenSpec : ScreenSpec {
             navigateUp = navController::navigateUp,
             navigateToAccountDetails = { navController.navigate(AccountDetailsScreenSpec.route) },
             navigateToNotificationSettings = context::launchAppNotificationSettings,
-            navigateToBackupSettings = { navController.navigate(BackupSettingsScreenSpec.route) },
-            navigateToSecuritySettings = { navController.navigate(SecuritySettingsScreenSpec.route) },
             navigateToUpdateBudget = { navController.navigate(UpdateBudgetSheetSpec.route) },
             navigateToUpdateCurrency = { navController.navigate(UpdateCurrencyPreferenceSheetSpec.route) },
+            navigateToManageTags = { navController.navigate(TagsGraphSpec.route) },
+            navigateToBackupSettings = { navController.navigate(BackupSettingsScreenSpec.route) },
+            navigateToSecuritySettings = { navController.navigate(SecuritySettingsScreenSpec.route) },
             launchUriInBrowser = {
                 val intent = Intent(Intent.ACTION_VIEW, it)
                 context.startActivity(intent)

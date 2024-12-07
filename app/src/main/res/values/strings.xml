@@ -205,6 +205,8 @@
     <string name="preference_delete_account_summary">Delete your account data</string>
     <string name="preference_title_google_sign_in">Google Sign In</string>
     <string name="preference_google_sign_in_message">%s uses Google sign in for authentication. Signing in to your google account also enables functionality like data backup.</string>
+    <string name="preference_tags">Tags</string>
+    <string name="preference_tags_summary">Tap to manage your tags</string>
 
     <!-- Texts -->
     <string name="onboarding_page_welcome_title">Welcome to\n%s</string>

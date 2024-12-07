@@ -75,6 +75,7 @@ fun SettingsScreen(
     navigateToNotificationSettings: () -> Unit,
     navigateToUpdateBudget: () -> Unit,
     navigateToUpdateCurrency: () -> Unit,
+    navigateToManageTags: () -> Unit,
     navigateToBackupSettings: () -> Unit,
     navigateToSecuritySettings: () -> Unit,
     launchUriInBrowser: (Uri) -> Unit
@@ -150,6 +151,12 @@ fun SettingsScreen(
                 titleRes = R.string.preference_currency,
                 summary = LocalCurrencyPreference.current.currencyCode,
                 onClick = navigateToUpdateCurrency
+            )
+
+            SimpleSettingsPreference(
+                titleRes = R.string.preference_tags,
+                summary = stringResource(R.string.preference_tags_summary),
+                onClick = navigateToManageTags
             )
 
             SwitchPreference(
