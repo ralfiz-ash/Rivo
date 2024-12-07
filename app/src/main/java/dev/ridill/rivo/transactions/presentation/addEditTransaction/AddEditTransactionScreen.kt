@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -90,6 +91,7 @@ import dev.ridill.rivo.core.ui.components.TitleLargeText
 import dev.ridill.rivo.core.ui.components.icons.CalendarClock
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
 import dev.ridill.rivo.core.ui.navigation.destinations.AllSchedulesScreenSpec
+import dev.ridill.rivo.core.ui.theme.IconSizeMedium
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
@@ -243,7 +245,9 @@ fun AddEditTransactionScreen(
                 AmountInput(
                     currency = state.currency ?: LocalCurrencyPreference.current,
                     amount = amountInput,
+                    isInputAnExpression = state.isAmountInputAnExpression,
                     onAmountChange = actions::onAmountChange,
+                    onExpressionEvalClick = actions::onEvaluateExpressionClick,
                     onTransformClick = navigateToAmountTransformation,
                     onFocusLost = actions::onAmountFocusLost,
                     modifier = Modifier
@@ -374,8 +378,10 @@ fun AddEditTransactionScreen(
 private fun AmountInput(
     currency: Currency,
     amount: () -> String,
+    isInputAnExpression: Boolean,
     onAmountChange: (String) -> Unit,
     onFocusLost: () -> Unit,
+    onExpressionEvalClick: () -> Unit,
     onTransformClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -418,12 +424,25 @@ private fun AmountInput(
         ),
         visualTransformation = remember { AmountVisualTransformation() },
         trailingIcon = {
-            AnimatedVisibility(visible = showTransformButton) {
-                IconButton(onClick = onTransformClick) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.ic_rounded_gears),
-                        contentDescription = stringResource(R.string.cd_transform_amount)
-                    )
+            when {
+                isInputAnExpression -> {
+                    IconButton(onClick = onExpressionEvalClick) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_rounded_equals),
+                            contentDescription = stringResource(R.string.cd_evaluate_expression),
+                            modifier = Modifier
+                                .size(IconSizeMedium)
+                        )
+                    }
+                }
+
+                showTransformButton -> {
+                    IconButton(onClick = onTransformClick) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_rounded_gears),
+                            contentDescription = stringResource(R.string.cd_transform_amount)
+                        )
+                    }
                 }
             }
         }
@@ -681,6 +700,7 @@ private fun PreviewScreenContent() {
             actions = object : AddEditTransactionActions {
                 override fun onAmountChange(value: String) {}
                 override fun onAmountFocusLost() {}
+                override fun onEvaluateExpressionClick() {}
                 override fun onNoteChange(value: String) {}
                 override fun onRecommendedAmountClick(amount: Long) {}
                 override fun onTagSelect(tagId: Long) {}

@@ -33,7 +33,6 @@ import dev.ridill.rivo.transactions.domain.repository.AddEditTransactionReposito
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -69,6 +68,8 @@ class AddEditTransactionViewModel @Inject constructor(
 
     val amountInput = txInput.mapLatest { it.amount }
         .asStateFlow(viewModelScope, String.Empty)
+
+    private val isAmountInputAnExpression = amountInput.mapLatest { evalService.isExpression(it) }
 
     val noteInput = txInput.mapLatest { it.note }
 
@@ -110,9 +111,10 @@ class AddEditTransactionViewModel @Inject constructor(
         .getStateFlow(SELECTED_REPETITION, ScheduleRepetition.NO_REPEAT)
 
     val state = combineTuple(
-        currency,
         isLoading,
+        currency,
         transactionType,
+        isAmountInputAnExpression,
         amountRecommendations,
         timestamp,
         showDatePicker,
@@ -124,26 +126,28 @@ class AddEditTransactionViewModel @Inject constructor(
         isScheduleTxMode,
         selectedRepetition,
         showRepetitionSelection
-    ).map { (
-                currency,
-                isLoading,
-                transactionType,
-                amountRecommendations,
-                timestamp,
-                showDatePicker,
-                showTimePicker,
-                isTransactionExcluded,
-                selectedTagId,
-                showDeleteConfirmation,
-                linkedFolderName,
-                isScheduleTxMode,
-                selectedRepetition,
-                showRepetitionSelection
-            ) ->
+    ).mapLatest { (
+                      isLoading,
+                      currency,
+                      transactionType,
+                      isAmountInputAnExpression,
+                      amountRecommendations,
+                      timestamp,
+                      showDatePicker,
+                      showTimePicker,
+                      isTransactionExcluded,
+                      selectedTagId,
+                      showDeleteConfirmation,
+                      linkedFolderName,
+                      isScheduleTxMode,
+                      selectedRepetition,
+                      showRepetitionSelection
+                  ) ->
         AddEditTransactionState(
-            currency = currency,
             isLoading = isLoading,
+            currency = currency,
             transactionType = transactionType,
+            isAmountInputAnExpression = isAmountInputAnExpression,
             amountRecommendations = amountRecommendations,
             timestamp = timestamp,
             showDatePicker = showDatePicker,
@@ -197,6 +201,14 @@ class AddEditTransactionViewModel @Inject constructor(
     }
 
     override fun onAmountFocusLost() {
+        evaluateAmountInput()
+    }
+
+    override fun onEvaluateExpressionClick() {
+        evaluateAmountInput()
+    }
+
+    private fun evaluateAmountInput() {
         val amountInput = amountInput.value
             .trim()
             .ifEmpty { return }
