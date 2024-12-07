@@ -31,6 +31,7 @@ android {
 
         buildConfigField("String", "GOOGLE_APIS_BASE_URL", "\"https://www.googleapis.com/\"")
         buildConfigField("String", "SOURCE_CODE_URL", "\"https://github.com/RemijiusBrian/Rivo\"")
+        buildConfigField("String", "CURRENCY_API_BASE_URL", "\"http://data.fixer.io/api/\"")
     }
 
     buildTypes {
