@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -26,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -64,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -455,13 +458,18 @@ fun NoteInput(
     TextField(
         value = input(),
         onValueChange = onValueChange,
-        modifier = modifier,
-        placeholder = { Text(stringResource(R.string.add_a_note)) },
+        modifier = modifier
+            .defaultMinSize(minWidth = NoteMinWidth),
+        placeholder = {
+            Text(
+                text = stringResource(R.string.add_a_note),
+                textAlign = TextAlign.Center,
+                style = LocalTextStyle.current,
+                modifier = Modifier
+                    .defaultMinSize(minWidth = NoteMinWidth),
+            )
+        },
         shape = MaterialTheme.shapes.medium,
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
-            imeAction = ImeAction.Default
-        ),
         singleLine = false,
         maxLines = NOTE_MAX_LINES,
         colors = TextFieldDefaults.colors(
@@ -469,11 +477,19 @@ fun NoteInput(
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             errorIndicatorColor = Color.Transparent
+        ),
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Sentences,
+            imeAction = ImeAction.Default
+        ),
+        textStyle = LocalTextStyle.current.copy(
+            textAlign = TextAlign.Center
         )
     )
 }
 
 private const val NOTE_MAX_LINES = 5
+private val NoteMinWidth = 160.dp
 
 private const val TRANSACTION_DIRECTION_SELECTOR_WIDTH_FRACTION = 0.80f
 private const val AMOUNT_RECOMMENDATION_WIDTH_FRACTION = 0.80f
