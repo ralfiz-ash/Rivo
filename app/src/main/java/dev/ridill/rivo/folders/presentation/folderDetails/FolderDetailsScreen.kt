@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.LastBaseline
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.paging.compose.LazyPagingItems
@@ -211,14 +212,20 @@ fun FolderDetailsScreen(
         if (state.showDeleteConfirmation) {
             if (transactionPagingItems.itemCount == 0) {
                 ConfirmationDialog(
-                    titleRes = R.string.delete_folder_confirmation_title,
-                    contentRes = R.string.action_irreversible_message,
+                    title = pluralStringResource(
+                        R.plurals.delete_folders_confirmation_title,
+                        Int.One
+                    ),
+                    content = stringResource(R.string.action_irreversible_message),
                     onConfirm = actions::onDeleteFolderOnlyClick,
                     onDismiss = actions::onDeleteDismiss
                 )
             } else {
                 MultiActionConfirmationDialog(
-                    title = stringResource(R.string.delete_folder_confirmation_title),
+                    title = pluralStringResource(
+                        R.plurals.delete_folders_confirmation_title,
+                        Int.One
+                    ),
                     text = stringResource(R.string.action_irreversible_message),
                     primaryActionLabelRes = R.string.delete_folder,
                     additionalNote = stringResource(R.string.delete_folder_confirmation_note),

@@ -48,6 +48,31 @@ fun ConfirmationDialog(
     showDismissButton: Boolean = true,
     properties: DialogProperties = DialogProperties(),
     additionalNote: String? = null
+) = ConfirmationDialog(
+    title = stringResource(titleRes),
+    content = stringResource(contentRes),
+    onConfirm = onConfirm,
+    onDismiss = onDismiss,
+    modifier = modifier,
+    confirmActionRes = confirmActionRes,
+    dismissActionRes = dismissActionRes,
+    showDismissButton = showDismissButton,
+    properties = properties,
+    additionalNote = additionalNote
+)
+
+@Composable
+fun ConfirmationDialog(
+    title: String,
+    content: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    @StringRes confirmActionRes: Int = R.string.action_confirm,
+    @StringRes dismissActionRes: Int = R.string.action_cancel,
+    showDismissButton: Boolean = true,
+    properties: DialogProperties = DialogProperties(),
+    additionalNote: String? = null
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -63,12 +88,12 @@ fun ConfirmationDialog(
                 }
             }
         },
-        title = { Text(stringResource(titleRes)) },
+        title = { Text(title) },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
             ) {
-                Text(stringResource(contentRes))
+                Text(content)
                 additionalNote?.let {
                     Text(
                         text = it,

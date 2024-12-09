@@ -2,6 +2,7 @@ package dev.ridill.rivo.core.ui.navigation.destinations
 
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -28,6 +29,7 @@ data object AllTagsScreenSpec : ScreenSpec {
         val viewModel: AllTagsViewModel = hiltViewModel(navBackStackEntry)
         val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
         val tagsLazyPagingItems = viewModel.allTagsPagingData.collectAsLazyPagingItems()
+        val state by viewModel.state.collectAsStateWithLifecycle()
 
         val snackbarController = rememberSnackbarController()
 
@@ -35,6 +37,7 @@ data object AllTagsScreenSpec : ScreenSpec {
             snackbarController = snackbarController,
             tagsLazyPagingItems = tagsLazyPagingItems,
             searchQuery = { searchQuery.value },
+            state = state,
             actions = viewModel,
             navigateUp = navController::navigateUp,
             navigateToAddEditTag = { navController.navigate(AddEditTagSheetSpec.routeWithArg(it)) }

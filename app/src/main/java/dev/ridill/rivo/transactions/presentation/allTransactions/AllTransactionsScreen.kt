@@ -69,6 +69,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -249,9 +250,8 @@ fun AllTransactionsScreen(
                                 key = item.id,
                                 contentType = "TransactionListItem"
                             ) {
-                                val selected = remember(state.selectedTransactionIds) {
-                                    item.id in state.selectedTransactionIds
-                                }
+                                val selected = item.id in state.selectedTransactionIds
+
                                 val clickableModifier =
                                     if (state.transactionMultiSelectionModeActive) Modifier
                                         .toggleable(
@@ -296,8 +296,11 @@ fun AllTransactionsScreen(
 
     if (state.showDeleteTransactionConfirmation) {
         ConfirmationDialog(
-            titleRes = R.string.delete_multiple_transaction_confirmation_title,
-            contentRes = R.string.action_irreversible_message,
+            title = pluralStringResource(
+                R.plurals.delete_transactions_confirmation_title,
+                state.selectedTransactionIds.size
+            ),
+            content = stringResource(R.string.action_irreversible_message),
             onConfirm = actions::onDeleteTransactionConfirm,
             onDismiss = actions::onDeleteTransactionDismiss
         )
