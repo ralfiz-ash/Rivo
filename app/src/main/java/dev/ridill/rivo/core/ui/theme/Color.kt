@@ -95,8 +95,8 @@ val RivoSelectableColorsList: List<Color>
 
 
 object ContentAlpha {
-    const val PERCENT_16 = 0.16f
     const val PERCENT_32 = 0.32f
+    const val PERCENT_50 = 0.50f
     const val SUB_CONTENT = 0.72f
 
     const val EXCLUDED = 0.50f

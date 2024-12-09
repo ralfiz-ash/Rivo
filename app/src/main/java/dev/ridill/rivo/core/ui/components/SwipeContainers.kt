@@ -52,6 +52,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import dev.ridill.rivo.core.domain.util.Zero
+import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.spacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -184,7 +185,7 @@ fun SwipeActionsContainer(
     actionsSide: SwipeActionsSide = SwipeActionsSide.End,
     gesturesEnabled: Boolean = true,
     animationSpec: AnimationSpec<Float> = SwipeContainerDefaults.animationSpec,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = ContentAlpha.PERCENT_50),
     positionalThreshold: Float = SwipeContainerDefaults.POSITIONAL_THRESHOLD_FRACTION,
     previewFraction: Float = SwipeContainerDefaults.PREVIEW_FRACTION,
     actionContentInsets: WindowInsets = SwipeContainerDefaults.contentInsets,
@@ -272,6 +273,7 @@ fun SwipeActionsContainer(
             verticalAlignment = Alignment.CenterVertically,
             content = actions
         )
+
         Surface(
             content = content,
             modifier = Modifier
