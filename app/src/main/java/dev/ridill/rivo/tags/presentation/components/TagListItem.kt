@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import dev.ridill.rivo.core.ui.components.ExcludedIcon
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
 import dev.ridill.rivo.core.ui.components.icons.Tags
@@ -25,7 +26,8 @@ fun TagListItem(
     color: Color,
     excluded: Boolean,
     createdTimestamp: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    tonalElevation: Dp = MaterialTheme.elevation.level0
 ) {
     ListItem(
         headlineContent = {
@@ -55,5 +57,6 @@ fun TagListItem(
         },
         modifier = modifier
             .exclusionGraphicsLayer(excluded),
+        tonalElevation = tonalElevation
     )
 }

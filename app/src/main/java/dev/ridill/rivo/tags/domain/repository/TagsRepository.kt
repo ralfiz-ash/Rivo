@@ -30,6 +30,7 @@ interface TagsRepository {
     ): Long
 
     suspend fun deleteTagById(id: Long)
+    suspend fun deleteMultipleTagsByIds(ids: Set<Long>)
     suspend fun deleteTagWithTransactions(tagId: Long)
     suspend fun getTagById(id: Long): Tag?
     fun getTagsListFlowByIds(ids: Set<Long>): Flow<List<Tag>>

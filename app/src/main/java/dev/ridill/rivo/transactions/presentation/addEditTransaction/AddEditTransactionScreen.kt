@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
@@ -75,6 +76,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.orZero
 import dev.ridill.rivo.core.ui.components.AmountVisualTransformation
@@ -339,9 +341,15 @@ fun AddEditTransactionScreen(
 
         if (state.showDeleteConfirmation) {
             ConfirmationDialog(
-                titleRes = if (state.isScheduleTxMode) R.string.delete_schedule_confirmation_title
-                else R.string.delete_transaction_confirmation_title,
-                contentRes = R.string.action_irreversible_message,
+                title = if (state.isScheduleTxMode) pluralStringResource(
+                    R.plurals.delete_schedules_confirmation_title,
+                    Int.One
+                )
+                else pluralStringResource(
+                    R.plurals.delete_transactions_confirmation_title,
+                    Int.One
+                ),
+                content = stringResource(R.string.action_irreversible_message),
                 onConfirm = actions::onDeleteConfirm,
                 onDismiss = actions::onDeleteDismiss
             )

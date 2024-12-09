@@ -115,6 +115,9 @@
     <string name="cd_tap_to_edit_schedule">Tap to edit schedule</string>
     <string name="cd_tap_to_toggle_selection">Tap to edit schedule</string>
     <string name="cd_evaluate_expression">Evaluate expression</string>
+    <string name="cd_tap_to_edit_tag">Tap to edit tag</string>
+    <string name="cd_clear_tag_selection">Clear tag selection</string>
+    <string name="cd_delete_selected_tags">Delete selected tags</string>
 
     <!-- Error Messages -->
     <string name="error_no_internet_connection">No internet connection</string>
@@ -224,12 +227,23 @@
     <string name="part_of_day_afternoon">Afternoon</string>
     <string name="part_of_day_evening">Evening</string>
 
-    <string name="delete_transaction_confirmation_title">Delete Transaction?</string>
-    <string name="delete_schedule_confirmation_title">Delete Schedule?</string>
-    <string name="delete_multiple_transaction_confirmation_title">Delete Transactions?</string>
-    <string name="delete_tag_confirmation_title">Delete Tag?</string>
+    <plurals name="delete_transactions_confirmation_title">
+        <item quantity="one">Delete Transaction?</item>
+        <item quantity="other">Delete Transactions?</item>
+    </plurals>
+    <plurals name="delete_tags_confirmation_title">
+        <item quantity="one">Delete Tag?</item>
+        <item quantity="other">Delete Tags?</item>
+    </plurals>
+    <plurals name="delete_folders_confirmation_title">
+        <item quantity="one">Delete Folder?</item>
+        <item quantity="other">Delete Folders?</item>
+    </plurals>
+    <plurals name="delete_schedules_confirmation_title">
+        <item quantity="one">Delete Schedule?</item>
+        <item quantity="other">Delete Schedules?</item>
+    </plurals>
     <string name="delete_tag_confirmation_note">Note: Transactions assigned with this tag will not be deleted</string>
-    <string name="delete_folder_confirmation_title">Delete Folder?</string>
     <string name="delete_folder_confirmation_note">Note: Deleting folder alone will not delete the transactions associated with this folder</string>
     <string name="delete_selected_schedules_confirmation_title">Delete Selected Schedules?</string>
     <string name="account_logout_confirmation_title">Logout of your account?</string>

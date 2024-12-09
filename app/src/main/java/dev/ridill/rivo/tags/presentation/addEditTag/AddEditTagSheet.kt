@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -128,8 +129,11 @@ fun AddEditTagSheet(
 
     if (showDeleteTagConfirmation) {
         ConfirmationDialog(
-            titleRes = R.string.delete_tag_confirmation_title,
-            contentRes = R.string.action_irreversible_message,
+            title = pluralStringResource(
+                R.plurals.delete_tags_confirmation_title,
+                Int.One
+            ),
+            content = stringResource(R.string.action_irreversible_message),
             additionalNote = stringResource(R.string.delete_tag_confirmation_note),
             onConfirm = actions::onDeleteTagConfirm,
             onDismiss = actions::onDeleteTagDismiss

@@ -75,6 +75,10 @@ class TagsRepositoryImpl(
         dao.untagTransactionsAndDeleteTag(id)
     }
 
+    override suspend fun deleteMultipleTagsByIds(ids: Set<Long>) = withContext(Dispatchers.IO) {
+        dao.untagTransactionsAndDeleteTags(ids)
+    }
+
     override suspend fun deleteTagWithTransactions(tagId: Long) = withContext(Dispatchers.IO) {
         dao.deleteTagWithTransactions(tagId)
     }
