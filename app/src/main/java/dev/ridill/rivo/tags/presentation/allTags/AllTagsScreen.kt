@@ -1,6 +1,8 @@
 package dev.ridill.rivo.tags.presentation.allTags
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,6 +63,12 @@ fun AllTagsScreen(
     val isTagsListEmpty by remember(tagsLazyPagingItems) {
         derivedStateOf { tagsLazyPagingItems.isEmpty() }
     }
+
+    BackHandler(
+        enabled = state.multiSelectionModeActive,
+        onBack = actions::onMultiSelectionModeDismiss
+    )
+
     RivoScaffold(
         snackbarController = snackbarController,
         modifier = modifier,
@@ -124,7 +132,8 @@ fun AllTagsScreen(
                 contentPadding = PaddingValues(
                     top = MaterialTheme.spacing.medium,
                     bottom = PaddingScrollEnd
-                )
+                ),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
             ) {
                 listEmptyIndicator(
                     isListEmpty = isTagsListEmpty,
