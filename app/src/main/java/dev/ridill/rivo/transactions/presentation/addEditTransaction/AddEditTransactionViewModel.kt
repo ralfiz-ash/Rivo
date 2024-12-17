@@ -108,8 +108,23 @@ class AddEditTransactionViewModel @Inject constructor(
     private val selectedRepetition = savedStateHandle
         .getStateFlow(SELECTED_REPETITION, ScheduleRepetition.NO_REPEAT)
 
+    private val menuOptions = isScheduleTxMode.mapLatest { scheduleMode ->
+        var optionEntries = AddEditTxOption.entries.toSet()
+
+        if (transactionIdArg == NavDestination.ARG_INVALID_ID_LONG) {
+            optionEntries = optionEntries - AddEditTxOption.DELETE
+            optionEntries = optionEntries - AddEditTxOption.DUPLICATE
+        }
+
+        optionEntries = if (scheduleMode) optionEntries - AddEditTxOption.CONVERT_TO_SCHEDULE
+        else optionEntries - AddEditTxOption.CONVERT_TO_NORMAL_TRANSACTION
+
+        optionEntries
+    }
+
     val state = combineTuple(
         isLoading,
+        menuOptions,
         transactionType,
         isAmountInputAnExpression,
         amountRecommendations,
@@ -125,6 +140,7 @@ class AddEditTransactionViewModel @Inject constructor(
         showRepetitionSelection
     ).mapLatest { (
                       isLoading,
+                      menuOptions,
                       transactionType,
                       isAmountInputAnExpression,
                       amountRecommendations,
@@ -141,6 +157,7 @@ class AddEditTransactionViewModel @Inject constructor(
                   ) ->
         AddEditTransactionState(
             isLoading = isLoading,
+            menuOptions = menuOptions,
             transactionType = transactionType,
             isAmountInputAnExpression = isAmountInputAnExpression,
             amountRecommendations = amountRecommendations,
@@ -312,8 +329,24 @@ class AddEditTransactionViewModel @Inject constructor(
         )
     }
 
-    override fun onDeleteClick() {
-        savedStateHandle[SHOW_DELETE_CONFIRMATION] = true
+    override fun onOptionClick(option: AddEditTxOption) {
+        when (option) {
+            AddEditTxOption.DELETE -> {
+                savedStateHandle[SHOW_DELETE_CONFIRMATION] = true
+            }
+
+            AddEditTxOption.CONVERT_TO_SCHEDULE -> {
+                toggleScheduling(true)
+            }
+
+            AddEditTxOption.CONVERT_TO_NORMAL_TRANSACTION -> {
+                toggleScheduling(false)
+            }
+
+            AddEditTxOption.DUPLICATE -> {
+                // TODO: Duplicate action
+            }
+        }
     }
 
     override fun onDeleteDismiss() {
@@ -343,10 +376,6 @@ class AddEditTransactionViewModel @Inject constructor(
         savedStateHandle[TX_INPUT] = txInput.value.copy(
             folderId = id.takeIf { it != NavDestination.ARG_INVALID_ID_LONG }
         )
-    }
-
-    override fun onScheduleModeToggleClick() {
-        toggleScheduling(isScheduleTxMode.value.not())
     }
 
     private fun toggleScheduling(enable: Boolean) {

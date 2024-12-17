@@ -17,9 +17,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -47,7 +49,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -184,27 +188,10 @@ fun AddEditTransactionScreen(
                 },
                 navigationIcon = { BackArrowButton(onClick = navigateUp) },
                 actions = {
-                    IconButton(onClick = actions::onScheduleModeToggleClick) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(
-                                if (state.isScheduleTxMode) R.drawable.ic_rounded_time_delete
-                                else R.drawable.ic_rounded_time_forward
-                            ),
-                            contentDescription = stringResource(
-                                if (state.isScheduleTxMode) R.string.cd_convert_to_normal_transaction
-                                else R.string.cd_convert_to_schedule
-                            )
-                        )
-                    }
-
-                    if (isEditMode) {
-                        IconButton(onClick = actions::onDeleteClick) {
-                            Icon(
-                                imageVector = Icons.Rounded.DeleteForever,
-                                contentDescription = stringResource(R.string.cd_delete_transaction)
-                            )
-                        }
-                    }
+                    OptionsMenu(
+                        options = state.menuOptions,
+                        onOptionClick = actions::onOptionClick
+                    )
                 },
                 scrollBehavior = topAppBarScrollBehavior
             )
@@ -704,6 +691,49 @@ private fun RepetitionSelectionSheet(
     }
 }
 
+@Composable
+private fun OptionsMenu(
+    options: Set<AddEditTxOption>,
+    onOptionClick: (AddEditTxOption) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var actionsExpanded by remember { mutableStateOf(false) }
+    Box(
+        modifier = modifier
+    ) {
+        IconButton(
+            onClick = { actionsExpanded = !actionsExpanded }
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.MoreVert,
+                contentDescription = stringResource(R.string.cd_show_options)
+            )
+        }
+
+        DropdownMenu(
+            expanded = actionsExpanded,
+            onDismissRequest = { actionsExpanded = false },
+            shape = MaterialTheme.shapes.small
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(option.labelRes)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(option.iconRes),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        actionsExpanded = false
+                        onOptionClick(option)
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun PreviewScreenContent() {
@@ -735,12 +765,11 @@ private fun PreviewScreenContent() {
                 override fun onTimeSelectionConfirm(hour: Int, minute: Int) {}
                 override fun onTypeChange(type: TransactionType) {}
                 override fun onExclusionToggle(excluded: Boolean) {}
-                override fun onDeleteClick() {}
                 override fun onDeleteDismiss() {}
                 override fun onDeleteConfirm() {}
                 override fun onSelectFolderClick() {}
-                override fun onScheduleModeToggleClick() {}
                 override fun onRepeatModeClick() {}
+                override fun onOptionClick(option: AddEditTxOption) {}
                 override fun onRepeatModeDismiss() {}
                 override fun onRepetitionSelect(repetition: ScheduleRepetition) {}
                 override fun onSaveClick() {}

@@ -9,6 +9,7 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 data class AddEditTransactionState(
+    val menuOptions: Set<AddEditTxOption> = emptySet(),
     val isLoading: Boolean = false,
     val transactionType: TransactionType = TransactionType.DEBIT,
     val isAmountInputAnExpression: Boolean = false,
