@@ -523,6 +523,7 @@ class AllTransactionsViewModel @Inject constructor(
                 dateTime = dateTimeNow
             )
             savedStateHandle[SHOW_AGGREGATION_CONFIRMATION] = false
+            dismissMultiSelectionMode()
             eventBus.send(AllTransactionsEvent.NavigateToAddEditTx(insertedId))
         }
     }
