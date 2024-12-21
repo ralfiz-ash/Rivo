@@ -121,6 +121,7 @@ import java.time.ZoneOffset
 @Composable
 fun AddEditTransactionScreen(
     isEditMode: Boolean,
+    isDuplicateMode: Boolean,
     snackbarController: SnackbarController,
     amountInput: () -> String,
     noteInput: () -> String,
@@ -248,6 +249,7 @@ fun AddEditTransactionScreen(
                 )
 
                 NoteInput(
+                    isDuplicateMode = isDuplicateMode,
                     input = noteInput,
                     onValueChange = actions::onNoteChange,
                     modifier = Modifier
@@ -448,6 +450,7 @@ private fun AmountInput(
 
 @Composable
 fun NoteInput(
+    isDuplicateMode: Boolean,
     input: () -> String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -459,7 +462,10 @@ fun NoteInput(
             .defaultMinSize(minWidth = NoteMinWidth),
         placeholder = {
             Text(
-                text = stringResource(R.string.add_a_note),
+                text = if (isDuplicateMode) stringResource(
+                    R.string.value_bracket_copy,
+                    stringResource(R.string.add_a_note)
+                ) else stringResource(R.string.add_a_note),
                 textAlign = TextAlign.Center,
                 style = LocalTextStyle.current,
                 modifier = Modifier
@@ -742,6 +748,7 @@ private fun PreviewScreenContent() {
     RivoTheme {
         AddEditTransactionScreen(
             isEditMode = false,
+            isDuplicateMode = false,
             snackbarController = rememberSnackbarController(),
             amountInput = { "" },
             noteInput = { "" },

@@ -13,7 +13,6 @@ import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.UtilConstants
-import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.asStateFlow
 import dev.ridill.rivo.core.domain.util.ifInfinite
@@ -31,7 +30,6 @@ import dev.ridill.rivo.transactions.domain.model.AmountTransformation
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.domain.repository.AddEditTransactionRepository
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -56,6 +54,9 @@ class AddEditTransactionViewModel @Inject constructor(
 
     private val scheduleModeArg = AddEditTransactionScreenSpec
         .getIsScheduleModeFromSavedStateHandle(savedStateHandle)
+
+    private val isDuplicateModeArg = AddEditTransactionScreenSpec
+        .getIsDuplicateModeFromSavedStateHandle(savedStateHandle)
 
     private val isLoading = MutableStateFlow(false)
 
@@ -110,11 +111,9 @@ class AddEditTransactionViewModel @Inject constructor(
     private val selectedRepetition = savedStateHandle
         .getStateFlow(SELECTED_REPETITION, ScheduleRepetition.NO_REPEAT)
 
-    private val duplicateMode = savedStateHandle.getStateFlow(DUPLICATE_MODE, false)
     private val menuOptions = combineTuple(
-        duplicateMode,
         isScheduleTxMode
-    ).mapLatest { (duplicateMode, scheduleMode) ->
+    ).mapLatest { (scheduleMode) ->
         var optionEntries = AddEditTxOption.entries.toSet()
 
         if (transactionIdArg == NavDestination.ARG_INVALID_ID_LONG) {
@@ -122,7 +121,7 @@ class AddEditTransactionViewModel @Inject constructor(
             optionEntries = optionEntries - AddEditTxOption.DUPLICATE
         }
 
-        if (duplicateMode) {
+        if (isDuplicateModeArg) {
             optionEntries = optionEntries - AddEditTxOption.DUPLICATE
         }
 
@@ -203,7 +202,13 @@ class AddEditTransactionViewModel @Inject constructor(
                 txId = transactionIdArg
             )
         } else {
-            transactionRepo.getTransactionById(transactionIdArg)
+            var transaction = transactionRepo.getTransactionById(transactionIdArg)
+            if (isDuplicateModeArg) {
+                transaction = transaction?.copy(
+                    id = RivoDatabase.DEFAULT_ID_LONG
+                )
+            }
+            transaction
         } ?: Transaction.DEFAULT
         savedStateHandle[IS_SCHEDULE_MODE] = scheduleModeArg
         val dateNow = DateUtil.now()
@@ -353,28 +358,13 @@ class AddEditTransactionViewModel @Inject constructor(
             }
 
             AddEditTxOption.DUPLICATE -> {
-                enableDuplicateMode()
+                onDuplicateOptionClick()
             }
         }
     }
 
-    private var enableDuplicateModeJob: Job? = null
-    private fun enableDuplicateMode() {
-        enableDuplicateModeJob?.cancel()
-        enableDuplicateModeJob = viewModelScope.launch {
-            savedStateHandle[DUPLICATE_MODE] = true
-            val txInput = txInput.value
-            savedStateHandle[TX_INPUT] = txInput.copy(
-                id = RivoDatabase.DEFAULT_ID_LONG,
-                note = buildString {
-                    append(txInput.note)
-                    append(String.WhiteSpace)
-                    append("(Copy)")
-                }
-            )
-
-            eventBus.send(AddEditTransactionEvent.StartDuplicateModeAnim)
-        }
+    private fun onDuplicateOptionClick() = viewModelScope.launch {
+        eventBus.send(AddEditTransactionEvent.NavigateToDuplicateTransactionCreation(txInput.value.id))
     }
 
     override fun onDeleteDismiss() {
@@ -509,7 +499,7 @@ class AddEditTransactionViewModel @Inject constructor(
         data class NavigateUpWithResult(val result: AddEditTxResult) : AddEditTransactionEvent
         data class LaunchFolderSelection(val preselectedId: Long?) : AddEditTransactionEvent
         data class LaunchTagSelection(val preselectedId: Long?) : AddEditTransactionEvent
-        data object StartDuplicateModeAnim : AddEditTransactionEvent
+        data class NavigateToDuplicateTransactionCreation(val id: Long) : AddEditTransactionEvent
     }
 }
 
@@ -520,4 +510,3 @@ private const val SHOW_DATE_PICKER = "SHOW_DATE_PICKER"
 private const val SHOW_TIME_PICKER = "SHOW_TIME_PICKER"
 private const val SHOW_REPETITION_SELECTION = "SHOW_REPETITION_SELECTION"
 private const val SELECTED_REPETITION = "SELECTED_REPETITION"
-private const val DUPLICATE_MODE = "DUPLICATE_MODE"

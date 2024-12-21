@@ -39,6 +39,7 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
         {$ARG_TRANSACTION_ID}
         ?$ARG_LINK_FOLDER_ID={$ARG_LINK_FOLDER_ID}
         &$ARG_IS_SCHEDULE_MODE_ACTIVE={$ARG_IS_SCHEDULE_MODE_ACTIVE}
+        &$ARG_IS_DUPLICATE_MODE={$ARG_IS_DUPLICATE_MODE}
     """.trimIndent()
             .replace(String.NewLine, String.Empty)
 
@@ -60,6 +61,11 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
                 type = NavType.BoolType
                 nullable = false
                 defaultValue = false
+            },
+            navArgument(ARG_IS_DUPLICATE_MODE) {
+                type = NavType.BoolType
+                nullable = false
+                defaultValue = false
             }
         )
 
@@ -77,7 +83,8 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
     fun routeWithArg(
         transactionId: Long? = null,
         folderId: Long? = null,
-        isScheduleTxMode: Boolean = false
+        isScheduleTxMode: Boolean = false,
+        isDuplicateMode: Boolean = false
     ): String = route
         .replace(
             oldValue = "{$ARG_TRANSACTION_ID}",
@@ -91,6 +98,10 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
             oldValue = "{$ARG_IS_SCHEDULE_MODE_ACTIVE}",
             newValue = isScheduleTxMode.toString()
         )
+        .replace(
+            oldValue = "{$ARG_IS_DUPLICATE_MODE}",
+            newValue = isDuplicateMode.toString()
+        )
 
     fun getTransactionIdFromSavedStateHandle(savedStateHandle: SavedStateHandle): Long =
         savedStateHandle.get<Long>(ARG_TRANSACTION_ID) ?: NavDestination.ARG_INVALID_ID_LONG
@@ -100,6 +111,12 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
 
     fun getIsScheduleModeFromSavedStateHandle(savedStateHandle: SavedStateHandle): Boolean =
         savedStateHandle.get<Boolean>(ARG_IS_SCHEDULE_MODE_ACTIVE) == true
+
+    fun getIsDuplicateModeFromSavedStateHandle(savedStateHandle: SavedStateHandle): Boolean =
+        savedStateHandle.get<Boolean>(ARG_IS_DUPLICATE_MODE) == true
+
+    private fun isArgDuplicateMode(navBackStackEntry: NavBackStackEntry): Boolean =
+        navBackStackEntry.arguments?.getBoolean(ARG_IS_DUPLICATE_MODE) == true
 
     private fun isArgEditMode(navBackStackEntry: NavBackStackEntry): Boolean =
         navBackStackEntry.arguments?.getLong(ARG_TRANSACTION_ID) != NavDestination.ARG_INVALID_ID_LONG
@@ -124,6 +141,7 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
         val recentTagsLazyPagingItems = viewModel.recentTagsPagingData.collectAsLazyPagingItems()
 
         val isEditMode = isArgEditMode(navBackStackEntry)
+        val isDuplicateMode = isArgDuplicateMode(navBackStackEntry)
 
         val snackbarController = rememberSnackbarController()
         val context = LocalContext.current
@@ -182,11 +200,28 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
                         event.result
                     )
                 }
+
+                is AddEditTransactionViewModel.AddEditTransactionEvent.NavigateToDuplicateTransactionCreation -> {
+                    navController.navigate(
+                        routeWithArg(
+                            transactionId = event.id,
+                            isDuplicateMode = true
+                        )
+                    ) {
+                        navBackStackEntry.destination.route
+                            ?.let {
+                                popUpTo(it) {
+                                    this.inclusive = true
+                                }
+                            }
+                    }
+                }
             }
         }
 
         AddEditTransactionScreen(
             isEditMode = isEditMode,
+            isDuplicateMode = isDuplicateMode,
             snackbarController = snackbarController,
             amountInput = { amount.value },
             noteInput = { note.value },
@@ -210,6 +245,7 @@ enum class AddEditTxResult {
 const val ARG_TRANSACTION_ID = "ARG_TRANSACTION_ID"
 private const val ARG_LINK_FOLDER_ID = "ARG_LINK_FOLDER_ID"
 private const val ARG_IS_SCHEDULE_MODE_ACTIVE = "ARG_IS_SCHEDULE_MODE_ACTIVE"
+private const val ARG_IS_DUPLICATE_MODE = "ARG_IS_DUPLICATE_MODE"
 
 private const val DEEPLINK_URI_PATTERN =
     "${NavDestination.DEEP_LINK_URI}/add_edit_transaction?$ARG_TRANSACTION_ID={$ARG_TRANSACTION_ID}"

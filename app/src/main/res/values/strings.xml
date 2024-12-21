@@ -494,4 +494,5 @@
     <string name="delete">Delete</string>
     <string name="convert_to_schedule">Convert to schedule</string>
     <string name="convert_to_normal_transaction">Convert to normal transaction</string>
+    <string name="value_bracket_copy">%s (Copy)</string>
 </resources>
