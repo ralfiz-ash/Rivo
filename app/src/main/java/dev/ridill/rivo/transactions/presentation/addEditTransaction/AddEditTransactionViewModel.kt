@@ -55,6 +55,9 @@ class AddEditTransactionViewModel @Inject constructor(
     private val scheduleModeArg = AddEditTransactionScreenSpec
         .getIsScheduleModeFromSavedStateHandle(savedStateHandle)
 
+    private val isDuplicateModeArg = AddEditTransactionScreenSpec
+        .getIsDuplicateModeFromSavedStateHandle(savedStateHandle)
+
     private val isLoading = MutableStateFlow(false)
 
     private val coercedIdArg: Long
@@ -108,8 +111,29 @@ class AddEditTransactionViewModel @Inject constructor(
     private val selectedRepetition = savedStateHandle
         .getStateFlow(SELECTED_REPETITION, ScheduleRepetition.NO_REPEAT)
 
+    private val menuOptions = combineTuple(
+        isScheduleTxMode
+    ).mapLatest { (scheduleMode) ->
+        var optionEntries = AddEditTxOption.entries.toSet()
+
+        if (transactionIdArg == NavDestination.ARG_INVALID_ID_LONG) {
+            optionEntries = optionEntries - AddEditTxOption.DELETE
+            optionEntries = optionEntries - AddEditTxOption.DUPLICATE
+        }
+
+        if (isDuplicateModeArg) {
+            optionEntries = optionEntries - AddEditTxOption.DUPLICATE
+        }
+
+        optionEntries = if (scheduleMode) optionEntries - AddEditTxOption.CONVERT_TO_SCHEDULE
+        else optionEntries - AddEditTxOption.CONVERT_TO_NORMAL_TRANSACTION
+
+        optionEntries
+    }
+
     val state = combineTuple(
         isLoading,
+        menuOptions,
         transactionType,
         isAmountInputAnExpression,
         amountRecommendations,
@@ -125,6 +149,7 @@ class AddEditTransactionViewModel @Inject constructor(
         showRepetitionSelection
     ).mapLatest { (
                       isLoading,
+                      menuOptions,
                       transactionType,
                       isAmountInputAnExpression,
                       amountRecommendations,
@@ -141,6 +166,7 @@ class AddEditTransactionViewModel @Inject constructor(
                   ) ->
         AddEditTransactionState(
             isLoading = isLoading,
+            menuOptions = menuOptions,
             transactionType = transactionType,
             isAmountInputAnExpression = isAmountInputAnExpression,
             amountRecommendations = amountRecommendations,
@@ -176,7 +202,12 @@ class AddEditTransactionViewModel @Inject constructor(
                 txId = transactionIdArg
             )
         } else {
-            val transaction = transactionRepo.getTransactionById(transactionIdArg)
+            var transaction = transactionRepo.getTransactionById(transactionIdArg)
+            if (isDuplicateModeArg) {
+                transaction = transaction?.copy(
+                    id = RivoDatabase.DEFAULT_ID_LONG
+                )
+            }
             transaction
         } ?: Transaction.DEFAULT
         savedStateHandle[IS_SCHEDULE_MODE] = scheduleModeArg
@@ -312,8 +343,28 @@ class AddEditTransactionViewModel @Inject constructor(
         )
     }
 
-    override fun onDeleteClick() {
-        savedStateHandle[SHOW_DELETE_CONFIRMATION] = true
+    override fun onOptionClick(option: AddEditTxOption) {
+        when (option) {
+            AddEditTxOption.DELETE -> {
+                savedStateHandle[SHOW_DELETE_CONFIRMATION] = true
+            }
+
+            AddEditTxOption.CONVERT_TO_SCHEDULE -> {
+                toggleScheduling(true)
+            }
+
+            AddEditTxOption.CONVERT_TO_NORMAL_TRANSACTION -> {
+                toggleScheduling(false)
+            }
+
+            AddEditTxOption.DUPLICATE -> {
+                onDuplicateOptionClick()
+            }
+        }
+    }
+
+    private fun onDuplicateOptionClick() = viewModelScope.launch {
+        eventBus.send(AddEditTransactionEvent.NavigateToDuplicateTransactionCreation(txInput.value.id))
     }
 
     override fun onDeleteDismiss() {
@@ -343,10 +394,6 @@ class AddEditTransactionViewModel @Inject constructor(
         savedStateHandle[TX_INPUT] = txInput.value.copy(
             folderId = id.takeIf { it != NavDestination.ARG_INVALID_ID_LONG }
         )
-    }
-
-    override fun onScheduleModeToggleClick() {
-        toggleScheduling(isScheduleTxMode.value.not())
     }
 
     private fun toggleScheduling(enable: Boolean) {
@@ -452,6 +499,7 @@ class AddEditTransactionViewModel @Inject constructor(
         data class NavigateUpWithResult(val result: AddEditTxResult) : AddEditTransactionEvent
         data class LaunchFolderSelection(val preselectedId: Long?) : AddEditTransactionEvent
         data class LaunchTagSelection(val preselectedId: Long?) : AddEditTransactionEvent
+        data class NavigateToDuplicateTransactionCreation(val id: Long) : AddEditTransactionEvent
     }
 }
 

@@ -58,7 +58,6 @@
     <string name="cd_transaction_list_item_tag_append">tagged as %s</string>
     <string name="cd_new_transaction_fab">Add new transaction</string>
     <string name="cd_navigate_back">Navigate Back</string>
-    <string name="cd_delete_transaction">Delete transaction</string>
     <string name="cd_save_transaction">Save transaction</string>
     <string name="cd_save_schedule">Save schedule</string>
     <string name="cd_transaction_type_selector">Transaction type selector, set to %s</string>
@@ -108,8 +107,6 @@
     <string name="cd_notification_off_warning">Warning! Notifications permission is required but is currently off</string>
     <string name="cd_profile_picture">Profile picture</string>
     <string name="cd_create_new_tag">Create New Tag</string>
-    <string name="cd_convert_to_schedule">Convert to schedule</string>
-    <string name="cd_convert_to_normal_transaction">Convert to normal transaction</string>
     <string name="cd_clear_search_query">Clear search query</string>
     <string name="cd_mark_as_paid">Mark as paid</string>
     <string name="cd_tap_to_edit_schedule">Tap to edit schedule</string>
@@ -118,6 +115,7 @@
     <string name="cd_tap_to_edit_tag">Tap to edit tag</string>
     <string name="cd_clear_tag_selection">Clear tag selection</string>
     <string name="cd_delete_selected_tags">Delete selected tags</string>
+    <string name="cd_show_options">Show options</string>
 
     <!-- Error Messages -->
     <string name="error_no_internet_connection">No internet connection</string>
@@ -492,4 +490,9 @@
     <string name="select_schedule_repetition">Select Schedule Repetition</string>
     <string name="clear_all">Clear All</string>
     <string name="last_payment_colon_value">Last payment: %s</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="delete">Delete</string>
+    <string name="convert_to_schedule">Convert to schedule</string>
+    <string name="convert_to_normal_transaction">Convert to normal transaction</string>
+    <string name="value_bracket_copy">%s (Copy)</string>
 </resources>
