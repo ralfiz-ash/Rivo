@@ -129,6 +129,7 @@ fun AddEditTransactionScreen(
     actions: AddEditTransactionActions,
     navigateUp: () -> Unit,
     navigateToAmountTransformation: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -209,7 +210,8 @@ fun AddEditTransactionScreen(
         },
         modifier = Modifier
             .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
-            .imePadding(),
+            .imePadding()
+            .then(modifier),
         snackbarController = snackbarController
     ) { paddingValues ->
         Box {
