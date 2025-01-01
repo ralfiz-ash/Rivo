@@ -25,6 +25,7 @@ import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.schedules.data.toTransaction
 import dev.ridill.rivo.schedules.domain.model.ScheduleRepetition
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.tags.domain.repository.TagsRepository
 import dev.ridill.rivo.transactions.domain.model.AmountTransformation
 import dev.ridill.rivo.transactions.domain.model.Transaction
@@ -32,10 +33,12 @@ import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.domain.repository.AddEditTransactionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Currency
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,6 +46,7 @@ class AddEditTransactionViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val transactionRepo: AddEditTransactionRepository,
     tagsRepo: TagsRepository,
+    private val currencyRepo: CurrencyRepository,
     private val evalService: ExpEvalService,
     private val eventBus: EventBus<AddEditTransactionEvent>
 ) : ViewModel(), AddEditTransactionActions {
@@ -196,6 +200,7 @@ class AddEditTransactionViewModel @Inject constructor(
     }
 
     private fun onInit() = viewModelScope.launch {
+        val currentCurrencyPref = currencyRepo.getCurrencyPreferenceForMonth().first()
         val transaction: Transaction = if (scheduleModeArg) {
             val schedule = transactionRepo.getScheduleById(transactionIdArg)
             savedStateHandle[SELECTED_REPETITION] = schedule?.repetition
@@ -215,7 +220,9 @@ class AddEditTransactionViewModel @Inject constructor(
                 )
             }
             transaction
-        } ?: Transaction.DEFAULT
+        } ?: Transaction.DEFAULT.copy(
+            currency = currentCurrencyPref
+        )
         savedStateHandle[IS_SCHEDULE_MODE] = scheduleModeArg
         val dateNow = DateUtil.now()
         val timestamp = if (isScheduleTxMode.value && transaction.timestamp <= dateNow)
@@ -226,6 +233,10 @@ class AddEditTransactionViewModel @Inject constructor(
             folderId = linkFolderIdArg ?: transaction.folderId,
             timestamp = timestamp
         )
+    }
+
+    fun onCurrencySelect(currency: Currency) {
+        savedStateHandle[TX_INPUT] = txInput.value.copy(currency = currency)
     }
 
     override fun onAmountChange(value: String) {

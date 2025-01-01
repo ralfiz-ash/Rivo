@@ -10,11 +10,12 @@ import androidx.paging.compose.itemKey
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.ui.components.LabelledRadioButton
 import dev.ridill.rivo.core.ui.components.ListSearchSheet
-import dev.ridill.rivo.core.ui.util.LocalCurrencyPreference
+import dev.ridill.rivo.core.ui.navigation.destinations.CurrencySelectionSheetSpec
 import java.util.Currency
 
 @Composable
-fun UpdateCurrencyPreferenceSheet(
+fun CurrencySelectionSheet(
+    selectedCode: String?,
     searchQuery: () -> String,
     onSearchQueryChange: (String) -> Unit,
     currenciesPagingData: LazyPagingItems<Currency>,
@@ -22,12 +23,11 @@ fun UpdateCurrencyPreferenceSheet(
     onConfirm: (Currency) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentCurrency = LocalCurrencyPreference.current
     ListSearchSheet(
         searchQuery = searchQuery,
         onSearchQueryChange = onSearchQueryChange,
         onDismiss = onDismiss,
-        title = stringResource(R.string.update_currency_title),
+        title = stringResource(CurrencySelectionSheetSpec.labelRes),
         placeholder = stringResource(R.string.search_currency),
         modifier = modifier
     ) {
@@ -39,7 +39,7 @@ fun UpdateCurrencyPreferenceSheet(
             currenciesPagingData[index]?.let { currency ->
                 LabelledRadioButton(
                     label = "${currency.displayName} (${currency.currencyCode})",
-                    selected = currency.currencyCode == currentCurrency.currencyCode,
+                    selected = currency.currencyCode == selectedCode,
                     onClick = { onConfirm(currency) },
                     modifier = Modifier
                         .fillMaxWidth()

@@ -28,14 +28,12 @@ object TransactionViewModelModule {
         dao: TransactionDao,
         repo: TransactionRepository,
         schedulesRepo: SchedulesRepository,
-        folderRepo: FolderDetailsRepository,
-        currencyRepository: CurrencyRepository
+        folderRepo: FolderDetailsRepository
     ): AddEditTransactionRepository = AddEditTransactionRepositoryImpl(
         dao = dao,
         repo = repo,
         schedulesRepo = schedulesRepo,
-        folderRepo = folderRepo,
-        currencyPrefRepo = currencyRepository
+        folderRepo = folderRepo
     )
 
     @Provides

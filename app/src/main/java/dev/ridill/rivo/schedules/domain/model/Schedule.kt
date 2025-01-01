@@ -10,7 +10,7 @@ data class Schedule(
     val id: Long,
     val amount: Double,
     val note: String?,
-    val currency: Currency?,
+    val currency: Currency,
     val type: TransactionType,
     val tagId: Long?,
     val folderId: Long?,

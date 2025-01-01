@@ -51,9 +51,8 @@ class SettingsRepositoryImpl(
         budgetRepo.getBudgetPreferenceForMonth(it)
     }.distinctUntilChanged()
 
-    override fun getCurrencyPreference(): Flow<Currency> = currentDate.flatMapLatest {
-        currencyRepo.getCurrencyPreferenceForMonth(it)
-    }.distinctUntilChanged()
+    override suspend fun updateCurrencyPreference(currency: Currency) =
+        currencyRepo.saveCurrencyPreference(currency)
 
     override fun getTransactionAutoDetectEnabled(): Flow<Boolean> = preferences
         .mapLatest { it.transactionAutoDetectEnabled }

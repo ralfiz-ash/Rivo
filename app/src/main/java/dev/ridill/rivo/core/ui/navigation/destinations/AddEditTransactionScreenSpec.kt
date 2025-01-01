@@ -31,6 +31,7 @@ import dev.ridill.rivo.core.ui.components.navigateUpWithResult
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
 import dev.ridill.rivo.transactions.presentation.addEditTransaction.AddEditTransactionScreen
 import dev.ridill.rivo.transactions.presentation.addEditTransaction.AddEditTransactionViewModel
+import java.util.Currency
 
 data object AddEditTransactionScreenSpec : ScreenSpec {
     override val route: String
@@ -168,6 +169,13 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
             ids.firstOrNull()?.let(viewModel::onTagSelect)
         }
 
+        FloatingWindowNavigationResultEffect<Currency>(
+            resultKey = CurrencySelectionSheetSpec.SELECTED_CURRENCY,
+            navBackStackEntry = navBackStackEntry,
+            viewModel,
+            onResult = viewModel::onCurrencySelect
+        )
+
         CollectFlowEffect(viewModel.events, snackbarController, context) { event ->
             when (event) {
                 is AddEditTransactionViewModel.AddEditTransactionEvent.ShowUiMessage -> {
@@ -232,6 +240,9 @@ data object AddEditTransactionScreenSpec : ScreenSpec {
             navigateToAmountTransformation = {
                 navController.navigate(AmountTransformationSheetSpec.route)
             },
+            navigateToCurrencySelection = {
+                navController.navigate(CurrencySelectionSheetSpec.routeWithArg(state.currency.currencyCode))
+            }
         )
     }
 }

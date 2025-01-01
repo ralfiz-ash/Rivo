@@ -58,23 +58,24 @@ import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
-import dev.ridill.rivo.core.ui.util.LocalCurrencyPreference
 import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.settings.domain.modal.AppTheme
 import dev.ridill.rivo.settings.presentation.components.PreferenceIcon
 import dev.ridill.rivo.settings.presentation.components.SimpleSettingsPreference
 import dev.ridill.rivo.settings.presentation.components.SwitchPreference
+import java.util.Currency
 
 @Composable
 fun SettingsScreen(
     snackbarController: SnackbarController,
+    currencyPreference: Currency,
     state: SettingsState,
     actions: SettingsActions,
     navigateUp: () -> Unit,
     navigateToAccountDetails: () -> Unit,
     navigateToNotificationSettings: () -> Unit,
     navigateToUpdateBudget: () -> Unit,
-    navigateToUpdateCurrency: () -> Unit,
+    navigateToCurrencySelection: () -> Unit,
     navigateToManageTags: () -> Unit,
     navigateToBackupSettings: () -> Unit,
     navigateToSecuritySettings: () -> Unit,
@@ -149,8 +150,8 @@ fun SettingsScreen(
 
             SimpleSettingsPreference(
                 titleRes = R.string.preference_currency,
-                summary = LocalCurrencyPreference.current.currencyCode,
-                onClick = navigateToUpdateCurrency
+                summary = currencyPreference.currencyCode,
+                onClick = navigateToCurrencySelection
             )
 
             SimpleSettingsPreference(

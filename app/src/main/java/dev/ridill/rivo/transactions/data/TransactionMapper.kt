@@ -3,7 +3,6 @@ package dev.ridill.rivo.transactions.data
 import androidx.compose.ui.graphics.Color
 import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.core.domain.util.orZero
-import dev.ridill.rivo.core.domain.util.tryOrNull
 import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.transactions.data.local.entity.TransactionEntity
 import dev.ridill.rivo.transactions.data.local.views.TransactionDetailsView
@@ -26,14 +25,14 @@ fun TransactionEntity.toTransaction(): Transaction = Transaction(
     tagId = tagId,
     excluded = isExcluded,
     scheduleId = scheduleId,
-    currency = tryOrNull { LocaleUtil.currencyForCode(currencyCode) }
+    currency = LocaleUtil.currencyForCode(currencyCode)
 )
 
-fun Transaction.toEntity(currencyCode: String): TransactionEntity = TransactionEntity(
+fun Transaction.toEntity(): TransactionEntity = TransactionEntity(
     id = id,
     note = note,
     amount = TextFormat.parseNumber(amount).orZero(),
-    currencyCode = currencyCode,
+    currencyCode = currency.currencyCode,
     timestamp = timestamp,
     type = type,
     isExcluded = excluded,

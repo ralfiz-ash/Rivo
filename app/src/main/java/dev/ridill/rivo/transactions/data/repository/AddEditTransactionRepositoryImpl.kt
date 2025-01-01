@@ -6,7 +6,6 @@ import dev.ridill.rivo.folders.domain.repository.FolderDetailsRepository
 import dev.ridill.rivo.schedules.domain.model.Schedule
 import dev.ridill.rivo.schedules.domain.model.ScheduleRepetition
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.toEntity
 import dev.ridill.rivo.transactions.data.toTransaction
@@ -16,7 +15,6 @@ import dev.ridill.rivo.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -26,8 +24,7 @@ class AddEditTransactionRepositoryImpl(
     private val dao: TransactionDao,
     private val repo: TransactionRepository,
     private val schedulesRepo: SchedulesRepository,
-    private val folderRepo: FolderDetailsRepository,
-    private val currencyPrefRepo: CurrencyRepository
+    private val folderRepo: FolderDetailsRepository
 ) : AddEditTransactionRepository {
     override suspend fun getTransactionById(id: Long): Transaction? =
         withContext(Dispatchers.IO) {
@@ -54,9 +51,7 @@ class AddEditTransactionRepositoryImpl(
     override suspend fun saveTransaction(
         transaction: Transaction
     ): Long = withContext(Dispatchers.IO) {
-        val currency = transaction.currency
-            ?: currencyPrefRepo.getCurrencyPreferenceForMonth().first()
-        dao.upsert(transaction.toEntity(currency.currencyCode)).first()
+        dao.upsert(transaction.toEntity()).first()
     }
 
     override suspend fun deleteTransaction(id: Long) = repo.deleteSafely(id)

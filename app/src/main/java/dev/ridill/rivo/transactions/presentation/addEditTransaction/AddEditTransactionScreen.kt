@@ -104,7 +104,6 @@ import dev.ridill.rivo.core.ui.theme.IconSizeMedium
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
-import dev.ridill.rivo.core.ui.util.LocalCurrencyPreference
 import dev.ridill.rivo.schedules.domain.model.ScheduleRepetition
 import dev.ridill.rivo.settings.presentation.components.SimplePreference
 import dev.ridill.rivo.settings.presentation.components.SwitchPreference
@@ -131,6 +130,7 @@ fun AddEditTransactionScreen(
     actions: AddEditTransactionActions,
     navigateUp: () -> Unit,
     navigateToAmountTransformation: () -> Unit,
+    navigateToCurrencySelection: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
@@ -238,7 +238,8 @@ fun AddEditTransactionScreen(
                 )
 
                 AmountInput(
-                    currency = state.currency ?: LocalCurrencyPreference.current,
+                    currency = state.currency,
+                    onCurrencyClick = navigateToCurrencySelection,
                     amount = amountInput,
                     isInputAnExpression = state.isAmountInputAnExpression,
                     onAmountChange = actions::onAmountChange,
@@ -379,6 +380,7 @@ fun AddEditTransactionScreen(
 @Composable
 private fun AmountInput(
     currency: Currency,
+    onCurrencyClick: () -> Unit,
     amount: () -> String,
     isInputAnExpression: Boolean,
     onAmountChange: (String) -> Unit,
@@ -402,7 +404,13 @@ private fun AmountInput(
             .semantics {
                 contentDescription = amountContentDescription
             },
-        prefix = { Text(currency.symbol) },
+        leadingIcon = {
+            FilledTonalIconButton(
+                onClick = onCurrencyClick,
+            ) {
+                Text(currency.symbol)
+            }
+        },
         textStyle = MaterialTheme.typography.headlineMedium,
         placeholder = {
             Text(
@@ -787,7 +795,8 @@ private fun PreviewScreenContent() {
                 override fun onSaveClick() {}
             },
             navigateUp = {},
-            navigateToAmountTransformation = {}
+            navigateToAmountTransformation = {},
+            navigateToCurrencySelection = {}
         )
     }
 }

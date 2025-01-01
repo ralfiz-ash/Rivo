@@ -1,6 +1,7 @@
 package dev.ridill.rivo.transactions.presentation.addEditTransaction
 
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.schedules.domain.model.ScheduleRepetition
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDateTime
@@ -11,7 +12,7 @@ import java.util.Currency
 
 data class AddEditTransactionState(
     val menuOptions: Set<AddEditTxOption> = emptySet(),
-    val currency: Currency? = null,
+    val currency: Currency = LocaleUtil.defaultCurrency,
     val isLoading: Boolean = false,
     val transactionType: TransactionType = TransactionType.DEBIT,
     val isAmountInputAnExpression: Boolean = false,

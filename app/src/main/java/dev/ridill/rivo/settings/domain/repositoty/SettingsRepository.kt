@@ -13,7 +13,7 @@ interface SettingsRepository {
     fun getDynamicColorsEnabled(): Flow<Boolean>
     suspend fun toggleDynamicColors(enabled: Boolean)
     fun getCurrentBudget(): Flow<Long>
-    fun getCurrencyPreference(): Flow<Currency>
+    suspend fun updateCurrencyPreference(currency: Currency)
     fun getTransactionAutoDetectEnabled(): Flow<Boolean>
     suspend fun toggleAutoDetectTransactions(enabled: Boolean)
     suspend fun getShowTransactionAutoDetectInfoValue(): Boolean
