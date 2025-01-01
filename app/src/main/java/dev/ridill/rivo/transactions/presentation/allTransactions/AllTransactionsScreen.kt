@@ -69,6 +69,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -104,7 +105,6 @@ import dev.ridill.rivo.core.ui.components.slideInHorizontallyWithFadeIn
 import dev.ridill.rivo.core.ui.components.slideInVerticallyWithFadeIn
 import dev.ridill.rivo.core.ui.components.slideOutHorizontallyWithFadeOut
 import dev.ridill.rivo.core.ui.components.slideOutVerticallyWithFadeOut
-import dev.ridill.rivo.core.ui.navigation.destinations.AllTagsScreenSpec
 import dev.ridill.rivo.core.ui.navigation.destinations.AllTransactionsScreenSpec
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
@@ -139,7 +139,6 @@ fun AllTransactionsScreen(
     searchResultsLazyPagingItems: LazyPagingItems<TransactionListItem>,
     state: AllTransactionsState,
     actions: AllTransactionsActions,
-    navigateToAllTags: () -> Unit,
     navigateToAddEditTransaction: (Long?) -> Unit,
     navigateUp: () -> Unit
 ) {
@@ -204,10 +203,8 @@ fun AllTransactionsScreen(
                 ) {
                     TagsInfoList(
                         tagsPagingItems = tagsPagingItems,
-                        onAllTagsClick = navigateToAllTags,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = TagsRowMinHeight)
+                            .padding(top = MaterialTheme.spacing.medium)
                             .animateItem()
                     )
                 }
@@ -253,9 +250,8 @@ fun AllTransactionsScreen(
                                 key = item.id,
                                 contentType = "TransactionListItem"
                             ) {
-                                val selected = remember(state.selectedTransactionIds) {
-                                    item.id in state.selectedTransactionIds
-                                }
+                                val selected = item.id in state.selectedTransactionIds
+
                                 val clickableModifier =
                                     if (state.transactionMultiSelectionModeActive) Modifier
                                         .toggleable(
@@ -300,8 +296,11 @@ fun AllTransactionsScreen(
 
     if (state.showDeleteTransactionConfirmation) {
         ConfirmationDialog(
-            titleRes = R.string.delete_multiple_transaction_confirmation_title,
-            contentRes = R.string.action_irreversible_message,
+            title = pluralStringResource(
+                R.plurals.delete_transactions_confirmation_title,
+                state.selectedTransactionIds.size
+            ),
+            content = stringResource(R.string.action_irreversible_message),
             onConfirm = actions::onDeleteTransactionConfirm,
             onDismiss = actions::onDeleteTransactionDismiss
         )
@@ -516,7 +515,6 @@ private val TagsRowMinHeight = 100.dp
 @Composable
 private fun TagsInfoList(
     tagsPagingItems: LazyPagingItems<TagInfo>,
-    onAllTagsClick: () -> Unit,
     modifier: Modifier = Modifier,
     tagsListState: LazyListState = rememberLazyListState()
 ) {
@@ -532,26 +530,18 @@ private fun TagsInfoList(
     }
 
     Column(
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+        ListLabel(
+            text = stringResource(R.string.your_top_tags),
+            modifier = Modifier
+                .padding(horizontal = MaterialTheme.spacing.medium),
+        )
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-        ) {
-            ListLabel(
-                text = stringResource(R.string.your_top_tags),
-                modifier = Modifier
-                    .padding(horizontal = MaterialTheme.spacing.medium),
-            )
-            SpacerSmall()
-            TextButton(onClick = onAllTagsClick) {
-                Text(text = "${stringResource(AllTagsScreenSpec.labelRes)} >")
-            }
-        }
-        Box(
-            modifier = modifier,
+                .heightIn(min = TagsRowMinHeight),
             contentAlignment = Alignment.Center
         ) {
             if (isTagsEmpty) {

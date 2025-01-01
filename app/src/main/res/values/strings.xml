@@ -58,7 +58,6 @@
     <string name="cd_transaction_list_item_tag_append">tagged as %s</string>
     <string name="cd_new_transaction_fab">Add new transaction</string>
     <string name="cd_navigate_back">Navigate Back</string>
-    <string name="cd_delete_transaction">Delete transaction</string>
     <string name="cd_save_transaction">Save transaction</string>
     <string name="cd_save_schedule">Save schedule</string>
     <string name="cd_transaction_type_selector">Transaction type selector, set to %s</string>
@@ -92,8 +91,6 @@
     <string name="cd_clear_transaction_selection">Clear Transaction Selection</string>
     <string name="cd_folder_aggregate_amount_balanced">Your credits and debits are balanced</string>
     <string name="cd_folder_aggregate_amount_unbalanced">You have an aggregated amount of %1$s %2$s</string>
-    <string name="cd_select_tag_color">Select Tag Color</string>
-    <string name="cd_tag_color_selected">Tag Color Selected</string>
     <string name="cd_tap_tag_to_filter_transactions">Tap tag to filter transactions</string>
     <string name="cd_tap_tag_to_assign_to_transactions">Tap to assign tag to transactions</string>
     <string name="cd_long_press_tag_to_edit">Long press to edit tag</string>
@@ -108,13 +105,15 @@
     <string name="cd_notification_off_warning">Warning! Notifications permission is required but is currently off</string>
     <string name="cd_profile_picture">Profile picture</string>
     <string name="cd_create_new_tag">Create New Tag</string>
-    <string name="cd_convert_to_schedule">Convert to schedule</string>
-    <string name="cd_convert_to_normal_transaction">Convert to normal transaction</string>
     <string name="cd_clear_search_query">Clear search query</string>
     <string name="cd_mark_as_paid">Mark as paid</string>
     <string name="cd_tap_to_edit_schedule">Tap to edit schedule</string>
     <string name="cd_tap_to_toggle_selection">Tap to edit schedule</string>
     <string name="cd_evaluate_expression">Evaluate expression</string>
+    <string name="cd_tap_to_edit_tag">Tap to edit tag</string>
+    <string name="cd_clear_tag_selection">Clear tag selection</string>
+    <string name="cd_delete_selected_tags">Delete selected tags</string>
+    <string name="cd_show_options">Show options</string>
 
     <!-- Error Messages -->
     <string name="error_no_internet_connection">No internet connection</string>
@@ -205,6 +204,8 @@
     <string name="preference_delete_account_summary">Delete your account data</string>
     <string name="preference_title_google_sign_in">Google Sign In</string>
     <string name="preference_google_sign_in_message">%s uses Google sign in for authentication. Signing in to your google account also enables functionality like data backup.</string>
+    <string name="preference_tags">Tags</string>
+    <string name="preference_tags_summary">Tap to manage your tags</string>
 
     <!-- Texts -->
     <string name="onboarding_page_welcome_title">Welcome to\n%s</string>
@@ -222,12 +223,23 @@
     <string name="part_of_day_afternoon">Afternoon</string>
     <string name="part_of_day_evening">Evening</string>
 
-    <string name="delete_transaction_confirmation_title">Delete Transaction?</string>
-    <string name="delete_schedule_confirmation_title">Delete Schedule?</string>
-    <string name="delete_multiple_transaction_confirmation_title">Delete Transactions?</string>
-    <string name="delete_tag_confirmation_title">Delete Tag?</string>
+    <plurals name="delete_transactions_confirmation_title">
+        <item quantity="one">Delete Transaction?</item>
+        <item quantity="other">Delete Transactions?</item>
+    </plurals>
+    <plurals name="delete_tags_confirmation_title">
+        <item quantity="one">Delete Tag?</item>
+        <item quantity="other">Delete Tags?</item>
+    </plurals>
+    <plurals name="delete_folders_confirmation_title">
+        <item quantity="one">Delete Folder?</item>
+        <item quantity="other">Delete Folders?</item>
+    </plurals>
+    <plurals name="delete_schedules_confirmation_title">
+        <item quantity="one">Delete Schedule?</item>
+        <item quantity="other">Delete Schedules?</item>
+    </plurals>
     <string name="delete_tag_confirmation_note">Note: Transactions assigned with this tag will not be deleted</string>
-    <string name="delete_folder_confirmation_title">Delete Folder?</string>
     <string name="delete_folder_confirmation_note">Note: Deleting folder alone will not delete the transactions associated with this folder</string>
     <string name="delete_selected_schedules_confirmation_title">Delete Selected Schedules?</string>
     <string name="account_logout_confirmation_title">Logout of your account?</string>
@@ -476,4 +488,9 @@
     <string name="select_schedule_repetition">Select Schedule Repetition</string>
     <string name="clear_all">Clear All</string>
     <string name="last_payment_colon_value">Last payment: %s</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="delete">Delete</string>
+    <string name="convert_to_schedule">Convert to schedule</string>
+    <string name="convert_to_normal_transaction">Convert to normal transaction</string>
+    <string name="value_bracket_copy">%s (Copy)</string>
 </resources>

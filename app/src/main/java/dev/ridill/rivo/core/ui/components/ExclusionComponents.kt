@@ -27,7 +27,7 @@ import dev.ridill.rivo.R
 import dev.ridill.rivo.core.ui.theme.IconSizeSmall
 import dev.ridill.rivo.core.ui.theme.spacing
 
-@Composable
+/*@Composable
 fun ExclusionIcon(
     excluded: Boolean,
     modifier: Modifier = Modifier
@@ -38,7 +38,7 @@ fun ExclusionIcon(
     ),
     contentDescription = null,
     modifier = modifier
-)
+)*/
 
 @Composable
 fun ExcludedIcon(
@@ -76,20 +76,18 @@ fun MarkExcludedSwitch(
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge
 ) {
-    val toggleableModifier = if (onToggle != null) Modifier
-        .toggleable(
-            value = excluded,
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            enabled = true,
-            role = Role.Switch,
-            onValueChange = onToggle
-        )
-    else Modifier
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-        modifier = toggleableModifier
+        modifier = Modifier
+            .toggleable(
+                value = excluded,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                enabled = onToggle != null,
+                role = Role.Switch,
+                onValueChange = { onToggle?.invoke(it) }
+            )
             .then(modifier)
     ) {
         Icon(

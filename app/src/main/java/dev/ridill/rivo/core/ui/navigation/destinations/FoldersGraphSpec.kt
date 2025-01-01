@@ -2,7 +2,7 @@ package dev.ridill.rivo.core.ui.navigation.destinations
 
 import dev.ridill.rivo.R
 
-object FoldersGraph : NavGraphSpec, BottomNavDestination {
+object FoldersGraphSpec : NavGraphSpec, BottomNavDestination {
     override val route: String
         get() = "transaction_folders_graph"
 

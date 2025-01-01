@@ -29,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.paging.compose.LazyPagingItems
@@ -74,6 +76,8 @@ fun AllSchedulesScreen(
     val areSchedulesEmpty by remember {
         derivedStateOf { allSchedulesPagingItems.isEmpty() }
     }
+
+    val hapticFeedback = LocalHapticFeedback.current
 
     BackHandler(
         enabled = state.multiSelectionModeActive,
@@ -177,7 +181,10 @@ fun AllSchedulesScreen(
                                     canMarkPaid = item.canMarkPaid,
                                     onMarkPaidClick = { actions.onMarkSchedulePaidClick(item.id) },
                                     onClick = { navigateToAddEditSchedule(item.id) },
-                                    onLongPress = { actions.onScheduleLongPress(item.id) },
+                                    onLongPress = {
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        actions.onScheduleLongPress(item.id)
+                                    },
                                     selectionModeActive = state.multiSelectionModeActive,
                                     selected = selected,
                                     onSelectionToggle = { actions.onScheduleSelectionToggle(item.id) },

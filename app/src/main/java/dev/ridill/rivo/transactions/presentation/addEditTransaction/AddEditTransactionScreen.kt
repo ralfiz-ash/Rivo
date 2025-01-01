@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -16,9 +17,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -26,6 +29,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -45,7 +49,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -56,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
@@ -64,6 +71,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -72,6 +80,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.orZero
 import dev.ridill.rivo.core.ui.components.AmountVisualTransformation
@@ -113,6 +122,7 @@ import java.util.Currency
 @Composable
 fun AddEditTransactionScreen(
     isEditMode: Boolean,
+    isDuplicateMode: Boolean,
     snackbarController: SnackbarController,
     amountInput: () -> String,
     noteInput: () -> String,
@@ -121,6 +131,7 @@ fun AddEditTransactionScreen(
     actions: AddEditTransactionActions,
     navigateUp: () -> Unit,
     navigateToAmountTransformation: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -180,27 +191,10 @@ fun AddEditTransactionScreen(
                 },
                 navigationIcon = { BackArrowButton(onClick = navigateUp) },
                 actions = {
-                    IconButton(onClick = actions::onScheduleModeToggleClick) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(
-                                if (state.isScheduleTxMode) R.drawable.ic_rounded_time_delete
-                                else R.drawable.ic_rounded_time_forward
-                            ),
-                            contentDescription = stringResource(
-                                if (state.isScheduleTxMode) R.string.cd_convert_to_normal_transaction
-                                else R.string.cd_convert_to_schedule
-                            )
-                        )
-                    }
-
-                    if (isEditMode) {
-                        IconButton(onClick = actions::onDeleteClick) {
-                            Icon(
-                                imageVector = Icons.Rounded.DeleteForever,
-                                contentDescription = stringResource(R.string.cd_delete_transaction)
-                            )
-                        }
-                    }
+                    OptionsMenu(
+                        options = state.menuOptions,
+                        onOptionClick = actions::onOptionClick
+                    )
                 },
                 scrollBehavior = topAppBarScrollBehavior
             )
@@ -218,7 +212,8 @@ fun AddEditTransactionScreen(
         },
         modifier = Modifier
             .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
-            .imePadding(),
+            .imePadding()
+            .then(modifier),
         snackbarController = snackbarController
     ) { paddingValues ->
         Box {
@@ -256,6 +251,7 @@ fun AddEditTransactionScreen(
                 )
 
                 NoteInput(
+                    isDuplicateMode = isDuplicateMode,
                     input = noteInput,
                     onValueChange = actions::onNoteChange,
                     modifier = Modifier
@@ -338,9 +334,15 @@ fun AddEditTransactionScreen(
 
         if (state.showDeleteConfirmation) {
             ConfirmationDialog(
-                titleRes = if (state.isScheduleTxMode) R.string.delete_schedule_confirmation_title
-                else R.string.delete_transaction_confirmation_title,
-                contentRes = R.string.action_irreversible_message,
+                title = if (state.isScheduleTxMode) pluralStringResource(
+                    R.plurals.delete_schedules_confirmation_title,
+                    Int.One
+                )
+                else pluralStringResource(
+                    R.plurals.delete_transactions_confirmation_title,
+                    Int.One
+                ),
+                content = stringResource(R.string.action_irreversible_message),
                 onConfirm = actions::onDeleteConfirm,
                 onDismiss = actions::onDeleteDismiss
             )
@@ -451,6 +453,7 @@ private fun AmountInput(
 
 @Composable
 fun NoteInput(
+    isDuplicateMode: Boolean,
     input: () -> String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -458,13 +461,21 @@ fun NoteInput(
     TextField(
         value = input(),
         onValueChange = onValueChange,
-        modifier = modifier,
-        placeholder = { Text(stringResource(R.string.add_a_note)) },
+        modifier = modifier
+            .defaultMinSize(minWidth = NoteMinWidth),
+        placeholder = {
+            Text(
+                text = if (isDuplicateMode) stringResource(
+                    R.string.value_bracket_copy,
+                    stringResource(R.string.add_a_note)
+                ) else stringResource(R.string.add_a_note),
+                textAlign = TextAlign.Center,
+                style = LocalTextStyle.current,
+                modifier = Modifier
+                    .defaultMinSize(minWidth = NoteMinWidth),
+            )
+        },
         shape = MaterialTheme.shapes.medium,
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
-            imeAction = ImeAction.Default
-        ),
         singleLine = false,
         maxLines = NOTE_MAX_LINES,
         colors = TextFieldDefaults.colors(
@@ -472,11 +483,19 @@ fun NoteInput(
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             errorIndicatorColor = Color.Transparent
+        ),
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Sentences,
+            imeAction = ImeAction.Default
+        ),
+        textStyle = LocalTextStyle.current.copy(
+            textAlign = TextAlign.Center
         )
     )
 }
 
 private const val NOTE_MAX_LINES = 5
+private val NoteMinWidth = 160.dp
 
 private const val TRANSACTION_DIRECTION_SELECTOR_WIDTH_FRACTION = 0.80f
 private const val AMOUNT_RECOMMENDATION_WIDTH_FRACTION = 0.80f
@@ -683,12 +702,56 @@ private fun RepetitionSelectionSheet(
     }
 }
 
+@Composable
+private fun OptionsMenu(
+    options: Set<AddEditTxOption>,
+    onOptionClick: (AddEditTxOption) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var actionsExpanded by remember { mutableStateOf(false) }
+    Box(
+        modifier = modifier
+    ) {
+        IconButton(
+            onClick = { actionsExpanded = !actionsExpanded }
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.MoreVert,
+                contentDescription = stringResource(R.string.cd_show_options)
+            )
+        }
+
+        DropdownMenu(
+            expanded = actionsExpanded,
+            onDismissRequest = { actionsExpanded = false },
+            shape = MaterialTheme.shapes.small
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(option.labelRes)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(option.iconRes),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        actionsExpanded = false
+                        onOptionClick(option)
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun PreviewScreenContent() {
     RivoTheme {
         AddEditTransactionScreen(
             isEditMode = false,
+            isDuplicateMode = false,
             snackbarController = rememberSnackbarController(),
             amountInput = { "" },
             noteInput = { "" },
@@ -714,12 +777,11 @@ private fun PreviewScreenContent() {
                 override fun onTimeSelectionConfirm(hour: Int, minute: Int) {}
                 override fun onTypeChange(type: TransactionType) {}
                 override fun onExclusionToggle(excluded: Boolean) {}
-                override fun onDeleteClick() {}
                 override fun onDeleteDismiss() {}
                 override fun onDeleteConfirm() {}
                 override fun onSelectFolderClick() {}
-                override fun onScheduleModeToggleClick() {}
                 override fun onRepeatModeClick() {}
+                override fun onOptionClick(option: AddEditTxOption) {}
                 override fun onRepeatModeDismiss() {}
                 override fun onRepetitionSelect(repetition: ScheduleRepetition) {}
                 override fun onSaveClick() {}

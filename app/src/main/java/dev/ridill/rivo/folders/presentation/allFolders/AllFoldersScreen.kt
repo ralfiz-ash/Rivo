@@ -123,6 +123,7 @@ fun AllFoldersScreen(
                                     ) {
                                         ListSeparator(
                                             label = stringResource(item.type.labelRes),
+                                            shape = MaterialTheme.shapes.small,
                                             modifier = Modifier
                                                 .animateItem()
                                         )

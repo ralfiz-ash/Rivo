@@ -2,7 +2,7 @@ package dev.ridill.rivo.core.ui.navigation.destinations
 
 import dev.ridill.rivo.R
 
-data object TagsGraph : NavGraphSpec {
+data object TagsGraphSpec : NavGraphSpec {
     override val route: String
         get() = "tags_graph"
 

@@ -10,6 +10,7 @@ import java.time.ZonedDateTime
 import java.util.Currency
 
 data class AddEditTransactionState(
+    val menuOptions: Set<AddEditTxOption> = emptySet(),
     val currency: Currency? = null,
     val isLoading: Boolean = false,
     val transactionType: TransactionType = TransactionType.DEBIT,

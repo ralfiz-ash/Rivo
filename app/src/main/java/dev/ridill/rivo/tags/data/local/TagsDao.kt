@@ -67,6 +67,12 @@ interface TagsDao : BaseDao<TagEntity> {
     }
 
     @Transaction
+    suspend fun untagTransactionsAndDeleteTags(ids: Set<Long>) {
+        untagTransactionsByTags(ids)
+        deleteTagsByIds(ids)
+    }
+
+    @Transaction
     suspend fun deleteTagWithTransactions(id: Long) {
         deleteTransactionsByTag(id)
         deleteTagById(id)
@@ -75,8 +81,14 @@ interface TagsDao : BaseDao<TagEntity> {
     @Query("UPDATE transaction_table SET tag_id = NULL WHERE tag_id = :id")
     suspend fun untagTransactionsByTag(id: Long)
 
+    @Query("UPDATE transaction_table SET tag_id = NULL WHERE tag_id IN (:ids)")
+    suspend fun untagTransactionsByTags(ids: Set<Long>)
+
     @Query("DELETE FROM tag_table WHERE id = :id")
     suspend fun deleteTagById(id: Long)
+
+    @Query("DELETE FROM tag_table WHERE id IN (:ids)")
+    suspend fun deleteTagsByIds(ids: Set<Long>)
 
     @Query("DELETE FROM transaction_table WHERE tag_id = :id")
     suspend fun deleteTransactionsByTag(id: Long)

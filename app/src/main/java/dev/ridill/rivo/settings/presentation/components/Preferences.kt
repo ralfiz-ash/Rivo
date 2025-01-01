@@ -58,13 +58,9 @@ fun SimpleSettingsPreference(
     },
     modifier = Modifier
         .fillMaxWidth()
-        .then(
-            if (onClick != null) Modifier
-                .clickable(
-                    role = Role.Button,
-                    onClick = onClick
-                )
-            else Modifier
+        .clickable(
+            onClick = { onClick?.invoke() },
+            enabled = onClick != null
         )
         .then(modifier),
     contentPadding = contentPadding,
@@ -88,13 +84,9 @@ fun SimplePreference(
     leadingIcon = leadingIcon,
     modifier = Modifier
         .fillMaxWidth()
-        .then(
-            if (onClick != null) Modifier
-                .clickable(
-                    role = Role.Button,
-                    onClick = onClick
-                )
-            else Modifier
+        .clickable(
+            onClick = { onClick?.invoke() },
+            enabled = onClick != null
         )
         .then(modifier),
     trailingContent = trailingIcon,
@@ -118,13 +110,9 @@ fun SimplePreference(
     leadingIcon = leadingIcon,
     modifier = Modifier
         .fillMaxWidth()
-        .then(
-            if (onClick != null) Modifier
-                .clickable(
-                    role = Role.Button,
-                    onClick = onClick
-                )
-            else Modifier
+        .clickable(
+            onClick = { onClick?.invoke() },
+            enabled = onClick != null
         )
         .then(modifier),
     trailingContent = trailingIcon,
