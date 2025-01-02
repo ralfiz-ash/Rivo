@@ -6,7 +6,7 @@ import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.settings.domain.modal.AppTheme
 import dev.ridill.rivo.settings.domain.repositoty.BudgetPreferenceRepository
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.settings.domain.repositoty.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +21,7 @@ class SettingsRepositoryImpl(
     private val authRepo: AuthRepository,
     private val preferencesManager: PreferencesManager,
     private val budgetRepo: BudgetPreferenceRepository,
-    private val currencyRepo: CurrencyPreferenceRepository
+    private val currencyRepo: CurrencyRepository
 ) : SettingsRepository {
     private val currentDate = MutableStateFlow(DateUtil.dateNow())
     private val preferences = preferencesManager.preferences
@@ -51,9 +51,8 @@ class SettingsRepositoryImpl(
         budgetRepo.getBudgetPreferenceForMonth(it)
     }.distinctUntilChanged()
 
-    override fun getCurrencyPreference(): Flow<Currency> = currentDate.flatMapLatest {
-        currencyRepo.getCurrencyPreferenceForMonth(it)
-    }.distinctUntilChanged()
+    override suspend fun updateCurrencyPreference(currency: Currency) =
+        currencyRepo.saveCurrencyPreference(currency)
 
     override fun getTransactionAutoDetectEnabled(): Flow<Boolean> = preferences
         .mapLatest { it.transactionAutoDetectEnabled }

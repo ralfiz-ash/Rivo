@@ -11,7 +11,7 @@ import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.settings.domain.appInit.AppInitWorkManager
 import dev.ridill.rivo.settings.domain.appLock.AppLockServiceManager
 import dev.ridill.rivo.settings.domain.backup.BackupWorkManager
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,7 +29,7 @@ class RivoViewModel @Inject constructor(
     private val appLockServiceManager: AppLockServiceManager,
     private val backupWorkManager: BackupWorkManager,
     private val appInitWorkManager: AppInitWorkManager,
-    currencyPreferenceRepo: CurrencyPreferenceRepository,
+    currencyPreferenceRepo: CurrencyRepository,
     private val eventBus: EventBus<RivoEvent>
 ) : ViewModel() {
     private val preferences = preferencesManager.preferences

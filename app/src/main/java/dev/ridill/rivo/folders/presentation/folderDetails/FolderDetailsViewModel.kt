@@ -46,6 +46,9 @@ class FolderDetailsViewModel @Inject constructor(
     private val aggregateAmount = folderDetails
         .mapLatest { it?.aggregate.orZero() }
         .distinctUntilChanged()
+//    private val currency = folderDetails
+//        .mapLatest { it?.currency ?: LocaleUtil.defaultCurrency }
+//        .distinctUntilChanged()
     private val aggregateType = folderDetails
         .map { it?.aggregateType ?: AggregateType.BALANCED }
         .distinctUntilChanged()
@@ -63,6 +66,7 @@ class FolderDetailsViewModel @Inject constructor(
         createdTimestamp,
         excluded,
         aggregateAmount,
+//        currency,
         aggregateType,
         shouldShowActionPreview,
         showDeleteConfirmation
@@ -71,6 +75,7 @@ class FolderDetailsViewModel @Inject constructor(
                 createdTimestamp,
                 excluded,
                 aggregateAmount,
+//                currency,
                 aggregateType,
                 shouldShowActionPreview,
                 showDeleteConfirmation
@@ -80,6 +85,7 @@ class FolderDetailsViewModel @Inject constructor(
             createdTimestamp = createdTimestamp,
             isExcluded = excluded,
             aggregateAmount = aggregateAmount,
+//            currency = currency,
             aggregateType = aggregateType,
             shouldShowActionPreview = shouldShowActionPreview,
             showDeleteConfirmation = showDeleteConfirmation

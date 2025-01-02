@@ -50,6 +50,9 @@ data class TransactionEntity(
     @ColumnInfo(name = "amount")
     val amount: Double,
 
+    @ColumnInfo(name = "currency_code")
+    val currencyCode: String,
+
     @ColumnInfo(name = "timestamp")
     val timestamp: LocalDateTime,
 

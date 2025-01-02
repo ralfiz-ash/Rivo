@@ -9,7 +9,7 @@ import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.folders.domain.repository.FolderDetailsRepository
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.repository.AddEditTransactionRepositoryImpl
 import dev.ridill.rivo.transactions.data.repository.AllTransactionsRepositoryImpl
@@ -46,13 +46,13 @@ object TransactionViewModelModule {
         dao: TransactionDao,
         transactionRepo: TransactionRepository,
         preferencesManager: PreferencesManager,
-        currencyPreferenceRepository: CurrencyPreferenceRepository
+        currencyRepository: CurrencyRepository
     ): AllTransactionsRepository = AllTransactionsRepositoryImpl(
         db = db,
         dao = dao,
         repo = transactionRepo,
         preferencesManager = preferencesManager,
-        currencyPrefRepo = currencyPreferenceRepository
+        currencyPrefRepo = currencyRepository
     )
 
     @Provides

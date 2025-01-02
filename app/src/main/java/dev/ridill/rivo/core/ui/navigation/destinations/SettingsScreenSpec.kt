@@ -15,11 +15,13 @@ import dev.ridill.rivo.core.ui.components.CollectFlowEffect
 import dev.ridill.rivo.core.ui.components.FloatingWindowNavigationResultEffect
 import dev.ridill.rivo.core.ui.components.rememberPermissionState
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
+import dev.ridill.rivo.core.ui.util.LocalCurrencyPreference
 import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.core.ui.util.launchAppNotificationSettings
 import dev.ridill.rivo.core.ui.util.launchAppSettings
 import dev.ridill.rivo.settings.presentation.settings.SettingsScreen
 import dev.ridill.rivo.settings.presentation.settings.SettingsViewModel
+import java.util.Currency
 
 data object SettingsScreenSpec : ScreenSpec {
 
@@ -37,6 +39,7 @@ data object SettingsScreenSpec : ScreenSpec {
     ) {
         val viewModel: SettingsViewModel = hiltViewModel(navBackStackEntry)
         val state by viewModel.state.collectAsStateWithLifecycle()
+        val currencyPreference = LocalCurrencyPreference.current
 
         val smsPermissionState = rememberPermissionState(
             permission = Manifest.permission.RECEIVE_SMS,
@@ -79,31 +82,31 @@ data object SettingsScreenSpec : ScreenSpec {
             }
         }
 
-        FloatingWindowNavigationResultEffect<String>(
-            resultKey = UpdateCurrencyPreferenceSheetSpec.UPDATE_CURRENCY_RESULT,
+        FloatingWindowNavigationResultEffect<Currency>(
+            resultKey = CurrencySelectionSheetSpec.SELECTED_CURRENCY,
             navBackStackEntry = navBackStackEntry,
             viewModel,
             snackbarController,
-            context
-        ) { result ->
-            when (result) {
-                UpdateCurrencyPreferenceSheetSpec.RESULT_CURRENCY_UPDATED -> {
-                    snackbarController.showSnackbar(
-                        UiText.StringResource(R.string.currency_updated).asString(context)
-                    )
-                }
-            }
-        }
+            context,
+            onResult = viewModel::onBaseCurrencySelected
+        )
 
         SettingsScreen(
             snackbarController = snackbarController,
+            currencyPreference = currencyPreference,
             state = state,
             actions = viewModel,
             navigateUp = navController::navigateUp,
             navigateToAccountDetails = { navController.navigate(AccountDetailsScreenSpec.route) },
             navigateToNotificationSettings = context::launchAppNotificationSettings,
             navigateToUpdateBudget = { navController.navigate(UpdateBudgetSheetSpec.route) },
-            navigateToUpdateCurrency = { navController.navigate(UpdateCurrencyPreferenceSheetSpec.route) },
+            navigateToCurrencySelection = {
+                navController.navigate(
+                    CurrencySelectionSheetSpec.routeWithArg(
+                        preSelectedCurrencyCode = currencyPreference.currencyCode
+                    )
+                )
+            },
             navigateToManageTags = { navController.navigate(TagsGraphSpec.route) },
             navigateToBackupSettings = { navController.navigate(BackupSettingsScreenSpec.route) },
             navigateToSecuritySettings = { navController.navigate(SecuritySettingsScreenSpec.route) },

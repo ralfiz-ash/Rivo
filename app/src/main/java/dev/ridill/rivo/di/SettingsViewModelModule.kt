@@ -17,7 +17,7 @@ import dev.ridill.rivo.settings.domain.appInit.AppInitWorkManager
 import dev.ridill.rivo.settings.domain.backup.BackupWorkManager
 import dev.ridill.rivo.settings.domain.repositoty.BackupSettingsRepository
 import dev.ridill.rivo.settings.domain.repositoty.BudgetPreferenceRepository
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.settings.domain.repositoty.SettingsRepository
 import dev.ridill.rivo.settings.presentation.backupEncryption.BackupEncryptionViewModel
 import dev.ridill.rivo.settings.presentation.backupSettings.BackupSettingsViewModel
@@ -33,7 +33,7 @@ object SettingsViewModelModule {
         authRepo: AuthRepository,
         preferencesManager: PreferencesManager,
         budgetRepo: BudgetPreferenceRepository,
-        currencyRepo: CurrencyPreferenceRepository
+        currencyRepo: CurrencyRepository
     ): SettingsRepository = SettingsRepositoryImpl(
         authRepo = authRepo,
         preferencesManager = preferencesManager,

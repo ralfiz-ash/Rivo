@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.util.Currency
 
-interface CurrencyPreferenceRepository {
+interface CurrencyRepository {
     fun getCurrencyPreferenceForMonth(
         date: LocalDate = DateUtil.dateNow()
     ): Flow<Currency>

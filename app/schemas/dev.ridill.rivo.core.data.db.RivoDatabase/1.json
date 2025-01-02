@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ee3edd89838e12a34c6216a3ded2561c",
+    "identityHash": "53aae3f306f1388fc89f1c0cc24de2db",
     "entities": [
       {
         "tableName": "budget_preference_table",
@@ -32,7 +32,7 @@
       },
       {
         "tableName": "transaction_table",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `note` TEXT NOT NULL, `amount` REAL NOT NULL, `timestamp` TEXT NOT NULL, `type` TEXT NOT NULL, `is_excluded` INTEGER NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `schedule_id` INTEGER, FOREIGN KEY(`tag_id`) REFERENCES `tag_table`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`folder_id`) REFERENCES `folder_table`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`schedule_id`) REFERENCES `schedules_table`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `note` TEXT NOT NULL, `amount` REAL NOT NULL, `currency_code` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `type` TEXT NOT NULL, `is_excluded` INTEGER NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `schedule_id` INTEGER, FOREIGN KEY(`tag_id`) REFERENCES `tag_table`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`folder_id`) REFERENCES `folder_table`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`schedule_id`) REFERENCES `schedules_table`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -50,6 +50,12 @@
             "fieldPath": "amount",
             "columnName": "amount",
             "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currencyCode",
+            "columnName": "currency_code",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -253,7 +259,7 @@
       },
       {
         "tableName": "schedules_table",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` REAL NOT NULL, `note` TEXT, `type` TEXT NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `repetition` TEXT NOT NULL, `last_payment_timestamp` TEXT, `next_payment_timestamp` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` REAL NOT NULL, `note` TEXT, `currency_code` TEXT NOT NULL, `type` TEXT NOT NULL, `tag_id` INTEGER, `folder_id` INTEGER, `repetition` TEXT NOT NULL, `last_payment_timestamp` TEXT, `next_payment_timestamp` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -272,6 +278,12 @@
             "columnName": "note",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "currencyCode",
+            "columnName": "currency_code",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "type",
@@ -401,7 +413,7 @@
     "views": [
       {
         "viewName": "transaction_details_view",
-        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT tx.id AS transactionId,\n        tx.note AS transactionNote,\n        tx.amount AS transactionAmount,\n        tx.timestamp AS transactionTimestamp,\n        tx.type AS transactionType,\n        tag.id AS tagId,\n        tag.name AS tagName,\n        tag.color_code AS tagColorCode,\n        tag.created_timestamp AS tagCreatedTimestamp,\n        folder.id AS folderId,\n        folder.name AS folderName,\n        folder.created_timestamp AS folderCreatedTimestamp,\n        tx.schedule_id as scheduleId,\n        (CASE WHEN 1 IN (tx.is_excluded, tag.is_excluded, folder.is_excluded) THEN 1 ELSE 0 END) AS excluded\n        FROM transaction_table tx\n        LEFT OUTER JOIN tag_table tag ON tx.tag_id = tag.id\n        LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id"
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT tx.id AS transactionId,\n        tx.note AS transactionNote,\n        tx.amount AS transactionAmount,\n        tx.timestamp AS transactionTimestamp,\n        tx.type AS transactionType,\n        tx.currency_code AS currencyCode,\n        tag.id AS tagId,\n        tag.name AS tagName,\n        tag.color_code AS tagColorCode,\n        tag.created_timestamp AS tagCreatedTimestamp,\n        folder.id AS folderId,\n        folder.name AS folderName,\n        folder.created_timestamp AS folderCreatedTimestamp,\n        tx.schedule_id as scheduleId,\n        (CASE WHEN 1 IN (tx.is_excluded, tag.is_excluded, folder.is_excluded) THEN 1 ELSE 0 END) AS excluded\n        FROM transaction_table tx\n        LEFT OUTER JOIN tag_table tag ON tx.tag_id = tag.id\n        LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id"
       },
       {
         "viewName": "folder_and_aggregate_view",
@@ -410,7 +422,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ee3edd89838e12a34c6216a3ded2561c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '53aae3f306f1388fc89f1c0cc24de2db')"
     ]
   }
 }

@@ -24,7 +24,7 @@ class SchedulesRepositoryImpl(
     private val schedulesDao: SchedulesDao,
     private val transactionDao: TransactionDao,
     private val scheduler: ScheduleReminder,
-    private val receiverService: ReceiverService
+    private val receiverService: ReceiverService,
 ) : SchedulesRepository {
     override suspend fun getScheduleById(
         id: Long
@@ -82,7 +82,8 @@ class SchedulesRepositoryImpl(
                 tagId = schedule.tagId,
                 folderId = schedule.folderId,
                 scheduleId = schedule.id,
-                isExcluded = false
+                isExcluded = false,
+                currencyCode = schedule.currency.currencyCode
             )
             transactionDao.upsert(transaction)
             val nextReminderDate = schedule.nextPaymentTimestamp

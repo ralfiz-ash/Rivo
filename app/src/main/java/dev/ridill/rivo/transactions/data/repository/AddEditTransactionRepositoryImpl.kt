@@ -48,10 +48,11 @@ class AddEditTransactionRepositoryImpl(
             else listOf(roundedLower, roundedLower + (range / 2), roundedUpper)
         }
 
-    override suspend fun saveTransaction(transaction: Transaction): Long =
-        withContext(Dispatchers.IO) {
-            dao.upsert(transaction.toEntity()).first()
-        }
+    override suspend fun saveTransaction(
+        transaction: Transaction
+    ): Long = withContext(Dispatchers.IO) {
+        dao.upsert(transaction.toEntity()).first()
+    }
 
     override suspend fun deleteTransaction(id: Long) = repo.deleteSafely(id)
 
@@ -64,7 +65,12 @@ class AddEditTransactionRepositoryImpl(
         ?.let { schedule ->
             val nextPaymentTimestamp = schedule.nextPaymentTimestamp
                 ?: schedule.lastPaymentTimestamp
-                    ?.let { schedulesRepo.calculateNextPaymentTimestampFromDate(it, schedule.repetition) }
+                    ?.let {
+                        schedulesRepo.calculateNextPaymentTimestampFromDate(
+                            it,
+                            schedule.repetition
+                        )
+                    }
 
             schedule.copy(
                 nextPaymentTimestamp = nextPaymentTimestamp

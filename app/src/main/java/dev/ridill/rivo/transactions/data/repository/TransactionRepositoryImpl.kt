@@ -10,9 +10,10 @@ import dev.ridill.rivo.R
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.model.BasicError
 import dev.ridill.rivo.core.domain.model.Result
+import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.core.domain.util.UtilConstants
-import dev.ridill.rivo.core.domain.util.rethrowIfCoroutineCancellation
 import dev.ridill.rivo.core.domain.util.logE
+import dev.ridill.rivo.core.domain.util.rethrowIfCoroutineCancellation
 import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Currency
 
 class TransactionRepositoryImpl(
     private val db: RivoDatabase,
@@ -106,8 +108,10 @@ class TransactionRepositoryImpl(
         tagId: Long?,
         folderId: Long?,
         scheduleId: Long?,
-        excluded: Boolean
+        excluded: Boolean,
+        currency: Currency?
     ): Transaction = withContext(Dispatchers.IO) {
+        val currencyPref = currency ?: LocaleUtil.defaultCurrency
         val entity = TransactionEntity(
             id = id,
             note = note.orEmpty(),
@@ -117,7 +121,8 @@ class TransactionRepositoryImpl(
             isExcluded = excluded,
             tagId = tagId,
             folderId = folderId,
-            scheduleId = scheduleId
+            scheduleId = scheduleId,
+            currencyCode = currencyPref.currencyCode
         )
         val insertedId = transactionDao.upsert(entity).first()
         entity.copy(id = insertedId)

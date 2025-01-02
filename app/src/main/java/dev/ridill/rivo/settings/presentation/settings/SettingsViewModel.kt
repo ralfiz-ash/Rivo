@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhuinden.flowcombinetuplekt.combineTuple
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.asStateFlow
 import dev.ridill.rivo.core.ui.util.UiText
@@ -13,6 +14,7 @@ import dev.ridill.rivo.settings.domain.repositoty.SettingsRepository
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.util.Currency
 import javax.inject.Inject
 
 @HiltViewModel
@@ -137,6 +139,11 @@ class SettingsViewModel @Inject constructor(
             savedStateHandle[SHOW_SMS_PERMISSION_RATIONALE] = false
             eventBus.send(SettingsEvent.LaunchAppSettings)
         }
+    }
+
+    fun onBaseCurrencySelected(currency: Currency) = viewModelScope.launch {
+        repo.updateCurrencyPreference(currency)
+        eventBus.send(SettingsEvent.ShowUiMessage(UiText.StringResource(R.string.currency_updated)))
     }
 
     sealed interface SettingsEvent {

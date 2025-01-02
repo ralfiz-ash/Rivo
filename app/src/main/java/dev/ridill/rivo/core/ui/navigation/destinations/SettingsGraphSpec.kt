@@ -20,7 +20,6 @@ object SettingsGraphSpec : NavGraphSpec, BottomNavDestination {
         get() = listOf(
             SettingsScreenSpec,
             UpdateBudgetSheetSpec,
-            UpdateCurrencyPreferenceSheetSpec,
             BackupSettingsScreenSpec,
             BackupEncryptionScreenSpec,
             SecuritySettingsScreenSpec,

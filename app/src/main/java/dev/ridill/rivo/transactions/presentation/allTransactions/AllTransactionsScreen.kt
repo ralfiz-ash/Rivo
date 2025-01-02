@@ -274,7 +274,7 @@ fun AllTransactionsScreen(
 
                                 TransactionListItem(
                                     note = item.note,
-                                    amount = TextFormat.currencyAmount(item.amount),
+                                    amount = TextFormat.currency(item.amount, item.currency),
                                     date = item.timestamp.toLocalDate(),
                                     type = item.type,
                                     tag = item.tag,

@@ -10,6 +10,7 @@ import java.time.LocalDateTime
         tx.amount AS transactionAmount,
         tx.timestamp AS transactionTimestamp,
         tx.type AS transactionType,
+        tx.currency_code AS currencyCode,
         tag.id AS tagId,
         tag.name AS tagName,
         tag.color_code AS tagColorCode,
@@ -21,7 +22,8 @@ import java.time.LocalDateTime
         (CASE WHEN 1 IN (tx.is_excluded, tag.is_excluded, folder.is_excluded) THEN 1 ELSE 0 END) AS excluded
         FROM transaction_table tx
         LEFT OUTER JOIN tag_table tag ON tx.tag_id = tag.id
-        LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id""",
+        LEFT OUTER JOIN folder_table folder ON tx.folder_id = folder.id
+        """,
     viewName = "transaction_details_view"
 )
 data class TransactionDetailsView(
@@ -30,6 +32,7 @@ data class TransactionDetailsView(
     val transactionAmount: Double,
     val transactionTimestamp: LocalDateTime,
     val transactionType: TransactionType,
+    val currencyCode: String,
     val tagId: Long?,
     val tagName: String?,
     val tagColorCode: Int?,

@@ -31,7 +31,7 @@ object SchedulesSingletonModule {
         schedulesDao: SchedulesDao,
         transactionDao: TransactionDao,
         scheduler: ScheduleReminder,
-        receiverService: ReceiverService
+        receiverService: ReceiverService,
     ): SchedulesRepository = SchedulesRepositoryImpl(
         db = db,
         schedulesDao = schedulesDao,
