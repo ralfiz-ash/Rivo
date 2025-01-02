@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 
 object DateUtil {
     fun now(zoneId: ZoneId = ZoneId.systemDefault()): LocalDateTime = LocalDateTime.now(zoneId)
@@ -76,6 +77,9 @@ object DateUtil {
         .withSecond(time.second)
         .withNano(time.nano)
         .toLocalDateTime()
+
+    fun currentMonthDateRange(): Pair<LocalDate, LocalDate> = dateNow().withDayOfMonth(Int.One)
+        .to(dateNow().with(TemporalAdjusters.lastDayOfMonth()))
 
     object Formatters {
         val isoLocalDateTime: DateTimeFormatter

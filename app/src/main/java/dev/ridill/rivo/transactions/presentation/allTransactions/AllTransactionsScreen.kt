@@ -534,7 +534,7 @@ private fun TagsInfoList(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
     ) {
         ListLabel(
-            text = stringResource(R.string.your_top_tags),
+            text = stringResource(R.string.your_top_tags_this_month),
             modifier = Modifier
                 .padding(horizontal = MaterialTheme.spacing.medium),
         )

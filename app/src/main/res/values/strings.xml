@@ -475,7 +475,7 @@
     <string name="date">Date</string>
     <string name="search_tags">Search Tags</string>
     <string name="view_all">View All…</string>
-    <string name="your_top_tags">Your top tags</string>
+    <string name="your_top_tags_this_month">Your top tags this month</string>
     <string name="tap_to_select_folder">Tap to select folder</string>
     <string name="exclude_from_expenditure">Exclude from expenditure</string>
     <string name="clear">Clear</string>

@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.Period
 import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
@@ -47,7 +46,7 @@ class AllTransactionsViewModel @Inject constructor(
     val searchQuery = savedStateHandle.getStateFlow<String?>(SEARCH_QUERY, null)
     private val dateLimits = transactionRepo.getDateLimits()
         .distinctUntilChanged()
-        .asStateFlow(viewModelScope, LocalDate.now() to LocalDate.now())
+        .asStateFlow(viewModelScope, DateUtil.dateNow() to DateUtil.dateNow())
 
     private val dateRangeSteps = dateLimits.mapLatest { (start, end) ->
         val period = Period.between(start, end)
@@ -89,9 +88,13 @@ class AllTransactionsViewModel @Inject constructor(
             )
     }.distinctUntilChanged()
 
-    val tagInfoPagingData = selectedDates.flatMapLatest {
+    val tagInfoPagingData = combineTuple(
+        selectedDateRangeFloats,
+        selectedDates
+    ).flatMapLatest { (dateRangeFloats, selectedDates) ->
         tagsRepo.getTagInfoPagingData(
-            dateRange = it,
+            dateRange = if (dateRangeFloats == null) DateUtil.currentMonthDateRange()
+            else selectedDates,
             limit = 5
         )
     }.cachedIn(viewModelScope)
