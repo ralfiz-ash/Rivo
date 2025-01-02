@@ -17,6 +17,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.ridill.rivo.application.RivoViewModel
+import dev.ridill.rivo.core.data.db.MIGRATION_1_2
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.data.preferences.PreferencesManagerImpl
@@ -43,6 +44,7 @@ object AppModule {
             klass = RivoDatabase::class.java,
             name = RivoDatabase.NAME
         )
+        .addMigrations(MIGRATION_1_2)
         .fallbackToDestructiveMigration()
         .build()
 

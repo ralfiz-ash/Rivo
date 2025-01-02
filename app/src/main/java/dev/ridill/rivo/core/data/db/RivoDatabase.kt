@@ -1,8 +1,13 @@
 package dev.ridill.rivo.core.data.db
 
+import androidx.core.database.getStringOrNull
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.folders.data.local.FolderDao
 import dev.ridill.rivo.folders.data.local.entity.FolderEntity
 import dev.ridill.rivo.folders.data.local.views.FolderAndAggregateView
@@ -37,7 +42,7 @@ import dev.ridill.rivo.transactions.data.local.views.TransactionDetailsView
         TransactionDetailsView::class,
         FolderAndAggregateView::class
     ],
-    version = 1
+    version = 2
 )
 @TypeConverters(DateTimeConverter::class)
 abstract class RivoDatabase : RoomDatabase() {
@@ -56,4 +61,49 @@ abstract class RivoDatabase : RoomDatabase() {
     abstract fun currencyListDao(): CurrencyListDao
     abstract fun currencyPreferenceDao(): CurrencyPreferenceDao
     abstract fun configDao(): ConfigDao
+}
+
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE transaction_table ADD COLUMN currency_code TEXT NOT NULL")
+
+        updateTransactions(db)
+        updateSchedules(db)
+    }
+
+    private fun updateTransactions(db: SupportSQLiteDatabase) {
+        db.query("SELECT id, timestamp FROM transaction_table").use { cursor ->
+            val id = cursor.getLong(0)
+            val timestamp = cursor.getString(1)
+            db.query(
+                """SELECT currency_code
+        FROM currency_preference_table
+        WHERE DATE(date) <= DATE($timestamp)
+        ORDER BY DATE(date) DESC
+        LIMIT 1"""
+            ).use { currencyCursor ->
+                val currencyCode = currencyCursor.getStringOrNull(0)
+                    ?: LocaleUtil.defaultCurrency.currencyCode
+                db.execSQL("UPDATE transaction_table SET currency_code = $currencyCode WHERE id = $id")
+            }
+        }
+    }
+
+    private fun updateSchedules(db: SupportSQLiteDatabase) {
+        db.query("SELECT id, last_payment_timestamp FROM schedules_table").use { cursor ->
+            val id = cursor.getLong(0)
+            val timestamp = cursor.getStringOrNull(1) ?: DateUtil.now().toString()
+            db.query(
+                """SELECT currency_code
+        FROM currency_preference_table
+        WHERE DATE(date) <= DATE($timestamp)
+        ORDER BY DATE(date) DESC
+        LIMIT 1"""
+            ).use { currencyCursor ->
+                val currencyCode = currencyCursor.getStringOrNull(0)
+                    ?: LocaleUtil.defaultCurrency.currencyCode
+                db.execSQL("UPDATE schedules_table SET currency_code = $currencyCode WHERE id = $id")
+            }
+        }
+    }
 }
