@@ -21,10 +21,9 @@ class FolderListRepositoryImpl(
     private val folderDao: FolderDao
 ) : FolderListRepository {
     override fun getFolderAndAggregatesPaged(): Flow<PagingData<FolderUIModel>> = Pager(
-        config = PagingConfig(pageSize = UtilConstants.DEFAULT_PAGE_SIZE)
-    ) {
-        folderDao.getFolderAndAggregatesPaged()
-    }.flow
+        config = PagingConfig(pageSize = UtilConstants.DEFAULT_PAGE_SIZE),
+        pagingSourceFactory = { folderDao.getFolderAndAggregatesPaged() }
+    ).flow
         .map { it.map(FolderAndAggregateView::toFolderDetails) }
         .map { pagingData ->
             pagingData.map { FolderUIModel.FolderListItem(it) }
@@ -40,10 +39,9 @@ class FolderListRepositoryImpl(
                 }
         }
 
-    override fun getFoldersListPaged(searchQuery: String): Flow<PagingData<Folder>> =
-        Pager(
-            config = PagingConfig(pageSize = UtilConstants.DEFAULT_PAGE_SIZE)
-        ) { folderDao.getFoldersPaged(searchQuery) }
-            .flow
-            .map { it.map(FolderEntity::toFolder) }
+    override fun getFoldersListPaged(searchQuery: String): Flow<PagingData<Folder>> = Pager(
+        config = PagingConfig(pageSize = UtilConstants.DEFAULT_PAGE_SIZE),
+        pagingSourceFactory = { folderDao.getFoldersPaged(searchQuery) }
+    ).flow
+        .map { it.map(FolderEntity::toFolder) }
 }

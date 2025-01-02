@@ -26,24 +26,30 @@ class TagsRepositoryImpl(
     override fun getAllTagsPagingData(
         searchQuery: String,
         limit: Int
-    ): Flow<PagingData<Tag>> = Pager(PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE)) {
-        dao.getAllTagsPaged(
-            query = searchQuery,
-            limit = limit
-        )
-    }.flow
+    ): Flow<PagingData<Tag>> = Pager(
+        config = PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE),
+        pagingSourceFactory = {
+            dao.getAllTagsPaged(
+                query = searchQuery,
+                limit = limit
+            )
+        }
+    ).flow
         .map { pagingData -> pagingData.map(TagEntity::toTag) }
 
     override fun getTagInfoPagingData(
         dateRange: Pair<LocalDate, LocalDate>?,
         limit: Int
-    ): Flow<PagingData<TagInfo>> = Pager(PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE)) {
-        dao.getTagAndAggregatePaged(
-            startDate = dateRange?.first,
-            endDate = dateRange?.second,
-            limit = limit
-        )
-    }.flow
+    ): Flow<PagingData<TagInfo>> = Pager(
+        config = PagingConfig(UtilConstants.DEFAULT_PAGE_SIZE),
+        pagingSourceFactory = {
+            dao.getTagAndAggregatePaged(
+                startDate = dateRange?.first,
+                endDate = dateRange?.second,
+                limit = limit
+            )
+        }
+    ).flow
         .map { pagingData -> pagingData.map(TagAndAggregateRelation::toTagInfo) }
 
     override suspend fun getTagById(id: Long): Tag? = withContext(Dispatchers.IO) {
