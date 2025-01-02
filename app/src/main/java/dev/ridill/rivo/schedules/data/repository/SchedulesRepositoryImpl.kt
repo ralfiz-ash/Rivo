@@ -13,11 +13,9 @@ import dev.ridill.rivo.schedules.domain.model.Schedule
 import dev.ridill.rivo.schedules.domain.model.ScheduleRepetition
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
 import dev.ridill.rivo.schedules.domain.scheduleReminder.ScheduleReminder
-import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import dev.ridill.rivo.transactions.data.local.TransactionDao
 import dev.ridill.rivo.transactions.data.local.entity.TransactionEntity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
@@ -27,7 +25,6 @@ class SchedulesRepositoryImpl(
     private val transactionDao: TransactionDao,
     private val scheduler: ScheduleReminder,
     private val receiverService: ReceiverService,
-    private val currencyRepo: CurrencyRepository
 ) : SchedulesRepository {
     override suspend fun getScheduleById(
         id: Long
@@ -60,13 +57,7 @@ class SchedulesRepositoryImpl(
     override suspend fun saveScheduleAndSetReminder(
         schedule: Schedule
     ) = withContext(Dispatchers.IO) {
-        val currentCurrencyPref = currencyRepo.getCurrencyPreferenceForMonth().first()
-        val insertedId = schedulesDao.upsert(
-            schedule.toEntity(
-                currencyCode = schedule.currency?.currencyCode
-                    ?: currentCurrencyPref.currencyCode
-            )
-        ).first()
+        val insertedId = schedulesDao.upsert(schedule.toEntity()).first()
             .takeIf { it > RivoDatabase.DEFAULT_ID_LONG }
             ?: schedule.id
         scheduleReminder(schedule.copy(id = insertedId))
@@ -83,7 +74,6 @@ class SchedulesRepositoryImpl(
         dateTime: LocalDateTime
     ) = withContext(Dispatchers.IO) {
         db.withTransaction {
-            val currentCurrencyPref = currencyRepo.getCurrencyPreferenceForMonth().first()
             val transaction = TransactionEntity(
                 amount = schedule.amount,
                 note = schedule.note.orEmpty(),
@@ -93,8 +83,7 @@ class SchedulesRepositoryImpl(
                 folderId = schedule.folderId,
                 scheduleId = schedule.id,
                 isExcluded = false,
-                currencyCode = schedule.currency?.currencyCode
-                    ?: currentCurrencyPref.currencyCode
+                currencyCode = schedule.currency.currencyCode
             )
             transactionDao.upsert(transaction)
             val nextReminderDate = schedule.nextPaymentTimestamp
@@ -146,13 +135,6 @@ class SchedulesRepositoryImpl(
     }
 
     override suspend fun updateSchedules(vararg schedule: Schedule) = withContext(Dispatchers.IO) {
-        val currentCurrencyPref = currencyRepo.getCurrencyPreferenceForMonth().first()
-        schedulesDao.update(
-            *schedule.map {
-                it.toEntity(
-                    currencyCode = it.currency?.currencyCode ?: currentCurrencyPref.currencyCode
-                )
-            }.toTypedArray()
-        )
+        schedulesDao.update(*schedule.map(Schedule::toEntity).toTypedArray())
     }
 }

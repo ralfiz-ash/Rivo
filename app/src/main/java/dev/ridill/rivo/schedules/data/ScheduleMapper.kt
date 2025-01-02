@@ -20,7 +20,6 @@ fun ScheduleEntity.toSchedule(): Schedule = Schedule(
     folderId = folderId,
     lastPaymentTimestamp = lastPaymentTimestamp,
     currency = LocaleUtil.currencyForCode(currencyCode)
-
 )
 
 fun Schedule.toTransaction(
@@ -39,7 +38,7 @@ fun Schedule.toTransaction(
     currency = currency
 )
 
-fun Schedule.toEntity(currencyCode: String): ScheduleEntity = ScheduleEntity(
+fun Schedule.toEntity(): ScheduleEntity = ScheduleEntity(
     id = id,
     amount = amount,
     note = note,
@@ -49,7 +48,7 @@ fun Schedule.toEntity(currencyCode: String): ScheduleEntity = ScheduleEntity(
     folderId = folderId,
     nextPaymentTimestamp = nextPaymentTimestamp,
     lastPaymentTimestamp = lastPaymentTimestamp,
-    currencyCode = currencyCode
+    currencyCode = currency.currencyCode
 )
 
 fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(
