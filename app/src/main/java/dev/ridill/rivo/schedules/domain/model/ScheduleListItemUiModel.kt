@@ -1,11 +1,12 @@
 package dev.ridill.rivo.schedules.domain.model
 
-import androidx.compose.runtime.Composable
+import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.schedules.data.local.entity.ScheduleEntity
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDateTime
+import java.util.Currency
 
 sealed class ScheduleListItemUiModel {
     data class ScheduleItem(
@@ -13,6 +14,7 @@ sealed class ScheduleListItemUiModel {
         val amount: Double,
         val note: String?,
         val type: TransactionType,
+        val currency: Currency,
         val lastPaymentTimestamp: LocalDateTime?,
         val nextPaymentTimestamp: LocalDateTime?,
         val canMarkPaid: Boolean
@@ -25,14 +27,14 @@ sealed class ScheduleListItemUiModel {
             amount = scheduleItem.amount,
             note = scheduleItem.note,
             type = scheduleItem.type,
+            currency = LocaleUtil.currencyForCode(scheduleItem.currencyCode),
             lastPaymentTimestamp = scheduleItem.lastPaymentTimestamp,
             nextPaymentTimestamp = scheduleItem.nextPaymentTimestamp,
             canMarkPaid = canMarkPaid
         )
 
         val amountFormatted: String
-            @Composable
-            get() = TextFormat.currencyAmount(amount)
+            get() = TextFormat.currency(amount = amount, currency = currency)
     }
 
     data class TypeSeparator(val label: UiText) : ScheduleListItemUiModel()

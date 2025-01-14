@@ -54,6 +54,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.util.LocaleUtil
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.PartOfDay
 import dev.ridill.rivo.core.ui.components.ListLabel
@@ -511,6 +512,7 @@ private fun PreviewDashboardScreen() {
                         id = it.toLong(),
                         note = "Really long transaction note",
                         amount = 200.0,
+                        currency = LocaleUtil.defaultCurrency,
                         type = TransactionType.DEBIT
                     )
                 }

@@ -55,5 +55,6 @@ fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(
     id = id,
     note = note,
     amount = amount,
+    currency = LocaleUtil.currencyForCode(currencyCode),
     type = type
 )
