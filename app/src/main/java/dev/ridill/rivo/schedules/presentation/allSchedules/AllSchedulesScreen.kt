@@ -281,7 +281,10 @@ private fun ScheduleItem(
                 tooltipText = stringResource(R.string.cd_mark_as_paid)
             ) {
                 IconButton(
-                    onClick = onMarkPaidClick,
+                    onClick = {
+                        onMarkPaidClick()
+                        isRevealed = false
+                    },
                 ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.ic_outline_double_tick),

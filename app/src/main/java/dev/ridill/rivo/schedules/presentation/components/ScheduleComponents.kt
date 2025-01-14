@@ -2,6 +2,7 @@ package dev.ridill.rivo.schedules.presentation.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.NewLine
@@ -131,6 +133,7 @@ fun ActiveScheduleItem(
 ) {
     ElevatedCard(
         modifier = modifier
+            .widthIn(max = ActiveScheduleMaxWidth)
     ) {
         Text(
             text = buildAnnotatedString {
@@ -170,6 +173,8 @@ fun ActiveScheduleItem(
         )
     }
 }
+
+private val ActiveScheduleMaxWidth = 200.dp
 
 @Preview(showBackground = true)
 @Composable
