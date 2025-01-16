@@ -60,7 +60,6 @@ import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.navigation.destinations.FolderDetailsScreenSpec
 import dev.ridill.rivo.core.ui.theme.PaddingScrollEnd
 import dev.ridill.rivo.core.ui.theme.spacing
-import dev.ridill.rivo.core.ui.util.LocalCurrencyPreference
 import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.core.ui.util.isEmpty
 import dev.ridill.rivo.core.ui.util.mergedContentDescription
@@ -71,7 +70,6 @@ import dev.ridill.rivo.transactions.domain.model.TransactionType
 import dev.ridill.rivo.transactions.presentation.components.NewTransactionFab
 import dev.ridill.rivo.transactions.presentation.components.TransactionListItem
 import java.time.LocalDate
-import java.util.Currency
 import kotlin.math.absoluteValue
 
 @Composable
@@ -138,7 +136,6 @@ fun FolderDetailsScreen(
                     folderName = state.folderName,
                     isExcluded = state.isExcluded,
                     aggregateAmount = state.aggregateAmount,
-                    currency = LocalCurrencyPreference.current,
                     aggregateType = state.aggregateType,
                     createdTimestamp = state.createdTimestampFormatted,
                     modifier = Modifier
@@ -247,7 +244,6 @@ private fun FolderDetails(
     folderName: String,
     isExcluded: Boolean,
     aggregateAmount: Double,
-    currency: Currency,
     aggregateType: AggregateType,
     createdTimestamp: String,
     modifier: Modifier = Modifier
@@ -269,7 +265,6 @@ private fun FolderDetails(
 
         AggregateAmountAndCreatedDate(
             aggregateAmount = aggregateAmount,
-            currency = currency,
             aggregateType = aggregateType,
             date = createdTimestamp,
             modifier = Modifier
@@ -284,7 +279,6 @@ private fun FolderDetails(
 @Composable
 private fun AggregateAmountAndCreatedDate(
     aggregateAmount: Double,
-    currency: Currency,
     aggregateType: AggregateType,
     date: String,
     modifier: Modifier = Modifier
@@ -296,7 +290,6 @@ private fun AggregateAmountAndCreatedDate(
     ) {
         AggregateAmount(
             amount = aggregateAmount,
-            currency = currency,
             type = aggregateType,
             modifier = Modifier
                 .weight(weight = Float.One, fill = false)
@@ -340,7 +333,6 @@ private fun FolderCreatedDate(
 @Composable
 private fun AggregateAmount(
     amount: Double,
-    currency: Currency,
     type: AggregateType,
     modifier: Modifier = Modifier
 ) {
@@ -348,7 +340,7 @@ private fun AggregateAmount(
         AggregateType.BALANCED -> stringResource(R.string.cd_folder_aggregate_amount_balanced)
         else -> stringResource(
             R.string.cd_folder_aggregate_amount_unbalanced,
-            TextFormat.currency(amount, currency),
+            TextFormat.number(amount),
             stringResource(type.labelRes)
         )
     }
@@ -363,7 +355,7 @@ private fun AggregateAmount(
                 .alignBy(LastBaseline)
         ) {
             AmountWithTypeIndicator(
-                value = TextFormat.currency(it.absoluteValue, currency),
+                value = TextFormat.number(it.absoluteValue),
                 type = type
             )
         }

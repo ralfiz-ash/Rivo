@@ -94,6 +94,7 @@ import dev.ridill.rivo.core.ui.components.FadedVisibility
 import dev.ridill.rivo.core.ui.components.ListLabel
 import dev.ridill.rivo.core.ui.components.ListSeparator
 import dev.ridill.rivo.core.ui.components.RivoModalBottomSheet
+import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.components.RivoRangeSlider
 import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
@@ -653,7 +654,7 @@ private fun TagInfoCard(
             SpacerSmall()
 
             AmountWithTypeIndicator(
-                value = TextFormat.currencyAmount(aggregateAmount.absoluteValue),
+                value = TextFormat.number(aggregateAmount.absoluteValue),
                 type = aggregateType
             )
         }
@@ -719,7 +720,7 @@ private fun ListLabelAndAggAmount(
                 else -> typeFilter.labelRes
             }
         ),
-        TextFormat.currencyAmount(aggregateAmount?.absoluteValue.orZero())
+        TextFormat.number(aggregateAmount?.absoluteValue.orZero())
     )
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -738,11 +739,18 @@ private fun ListLabelAndAggAmount(
         SpacerSmall()
 
         AnimatedVisibility(visible = isAggValid) {
-            VerticalNumberSpinnerContent(aggregateAmount.orZero()) { amount ->
-                AmountWithTypeIndicator(
-                    value = TextFormat.currencyAmount(amount.absoluteValue),
-                    type = aggType ?: AggregateType.BALANCED
-                )
+            RivoPlainTooltip(
+                tooltipText = stringResource(R.string.aggregated_amounts_not_currency_matched_message)
+            ) {
+                VerticalNumberSpinnerContent(aggregateAmount.orZero()) { amount ->
+                    AmountWithTypeIndicator(
+                        value = buildString {
+                            append("*")
+                            append(TextFormat.number(amount.absoluteValue))
+                        },
+                        type = aggType ?: AggregateType.BALANCED
+                    )
+                }
             }
         }
     }

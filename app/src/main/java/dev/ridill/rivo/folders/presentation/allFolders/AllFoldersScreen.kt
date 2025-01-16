@@ -139,7 +139,7 @@ fun AllFoldersScreen(
                                             name = item.folderDetails.name,
                                             created = item.folderDetails.createdDateFormatted,
                                             excluded = item.folderDetails.excluded,
-                                            aggregateAmount = TextFormat.compactAmount(
+                                            aggregateAmount = TextFormat.compactNumber(
                                                 item.folderDetails.aggregate.absoluteValue
                                             ),
                                             aggregateType = item.folderDetails.aggregateType,

@@ -83,6 +83,22 @@ object TextFormat {
         .format(value)
 
     @Composable
+    fun compactNumber(
+        value: Double,
+        locale: Locale = LocaleUtil.defaultLocale,
+        compactStyle: CompactDecimalFormat.CompactStyle = CompactDecimalFormat.CompactStyle.SHORT,
+        maxFractionDigits: Int = DEFAULT_MAX_FRACTION_DIGITS,
+        minFractionDigits: Int = DEFAULT_MIN_FRACTION_DIGITS,
+        isGroupingUsed: Boolean = true
+    ): String = CompactDecimalFormat.getInstance(locale, compactStyle)
+        .apply {
+            maximumFractionDigits = maxFractionDigits
+            minimumFractionDigits = minFractionDigits
+            this.isGroupingUsed = isGroupingUsed
+        }
+        .format(value)
+
+    @Composable
     fun compactAmount(
         value: Double,
         locale: Locale = LocaleUtil.defaultLocale,

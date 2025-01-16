@@ -40,7 +40,6 @@ import dev.ridill.rivo.BuildConfig
 import dev.ridill.rivo.R
 import dev.ridill.rivo.account.domain.model.AuthState
 import dev.ridill.rivo.core.domain.util.BuildUtil
-import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.tryOrNull
 import dev.ridill.rivo.core.ui.components.BackArrowButton
@@ -151,13 +150,11 @@ fun SettingsScreen(
 
             SimpleSettingsPreference(
                 titleRes = R.string.preference_base_currency,
-                summary = buildString {
-                    append(currencyPreference.displayName)
-                    append(String.WhiteSpace)
-                    append("(")
-                    append(currencyPreference.currencyCode)
-                    append(")")
-                },
+                summary = stringResource(
+                    R.string.preference_base_currency_summary,
+                    currencyPreference.displayName,
+                    currencyPreference.currencyCode
+                ),
                 onClick = navigateToCurrencySelection
             )
 
