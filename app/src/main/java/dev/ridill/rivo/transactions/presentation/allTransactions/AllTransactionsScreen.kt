@@ -56,6 +56,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -97,6 +98,7 @@ import dev.ridill.rivo.core.ui.components.RivoModalBottomSheet
 import dev.ridill.rivo.core.ui.components.RivoPlainTooltip
 import dev.ridill.rivo.core.ui.components.RivoRangeSlider
 import dev.ridill.rivo.core.ui.components.RivoScaffold
+import dev.ridill.rivo.core.ui.components.SmallDisplayText
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.components.SpacerMedium
 import dev.ridill.rivo.core.ui.components.SpacerSmall
@@ -828,7 +830,8 @@ private fun FilterOptionsSheet(
     }
     RivoModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        modifier = modifier
+        modifier = modifier,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     ) {
         Column(
             modifier = Modifier
@@ -840,15 +843,22 @@ private fun FilterOptionsSheet(
                 ),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
         ) {
-            TextButton(
-                onClick = onClearAllFiltersClick,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                    .align(Alignment.End)
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.medium)
             ) {
-                Text(
-                    text = stringResource(R.string.clear_all),
-                    textDecoration = TextDecoration.Underline
-                )
+                SmallDisplayText(stringResource(R.string.filter))
+                TextButton(
+                    onClick = onClearAllFiltersClick
+                ) {
+                    Text(
+                        text = stringResource(R.string.clear_all),
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
             }
 
             if (showDateFilter) {

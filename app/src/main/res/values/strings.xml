@@ -494,4 +494,5 @@
     <string name="convert_to_normal_transaction">Convert to normal transaction</string>
     <string name="value_bracket_copy">%s (Copy)</string>
     <string name="aggregated_amounts_not_currency_matched_message">Aggregated amounts may include multiple currencies and they are not automatically converted</string>
+    <string name="filter">Filter</string>
 </resources>
