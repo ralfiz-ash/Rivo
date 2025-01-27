@@ -394,7 +394,7 @@
     <string name="recent_spends_list_empty_message">Create a new transaction to get started</string>
     <string name="top_tags_list_empty_message">Your top tags will appear here</string>
     <string name="all_transactions_list_empty_message">You don\'t have any transactions yet</string>
-    <string name="all_tags_list_empty_message">You don\'t have any tags yet</string>
+    <string name="all_tags_list_empty_message">Create some tags to organize your transactions</string>
     <string name="folders_list_empty_message">You don\'t have any Folders yet</string>
     <string name="transactions_in_folder_list_empty_message">There aren\'t any transactions in this folder</string>
     <string name="search_folder">Search Folder</string>
