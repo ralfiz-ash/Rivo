@@ -114,6 +114,7 @@
     <string name="cd_clear_tag_selection">Clear tag selection</string>
     <string name="cd_delete_selected_tags">Delete selected tags</string>
     <string name="cd_show_options">Show options</string>
+    <string name="cd_tap_to_view_full_amount">Tap to view full amount</string>
 
     <!-- Error Messages -->
     <string name="error_no_internet_connection">No internet connection</string>
