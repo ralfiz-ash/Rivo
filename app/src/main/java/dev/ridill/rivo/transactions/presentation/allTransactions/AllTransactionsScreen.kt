@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -74,7 +73,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -89,6 +87,7 @@ import dev.ridill.rivo.core.domain.util.Zero
 import dev.ridill.rivo.core.domain.util.orZero
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BackArrowButton
+import dev.ridill.rivo.core.ui.components.BodySmallText
 import dev.ridill.rivo.core.ui.components.ConfirmationDialog
 import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
 import dev.ridill.rivo.core.ui.components.FadedVisibility
@@ -102,6 +101,7 @@ import dev.ridill.rivo.core.ui.components.SmallDisplayText
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.components.SpacerMedium
 import dev.ridill.rivo.core.ui.components.SpacerSmall
+import dev.ridill.rivo.core.ui.components.TitleLargeText
 import dev.ridill.rivo.core.ui.components.VerticalNumberSpinnerContent
 import dev.ridill.rivo.core.ui.components.listEmptyIndicator
 import dev.ridill.rivo.core.ui.components.slideInHorizontallyWithFadeIn
@@ -574,7 +574,6 @@ private fun TagsInfoList(
                             name = tag.name,
                             color = tag.color,
                             isExcluded = tag.excluded,
-                            createdTimestamp = tag.createdTimestampFormatted,
                             aggregateAmount = tag.aggregate,
                             aggregateType = tag.aggregateType,
                             modifier = Modifier
@@ -589,14 +588,13 @@ private fun TagsInfoList(
     }
 }
 
-private const val TAG_INFO_CARD_WIDTH_FRACTION = 0.80f
+private const val TAG_INFO_CARD_WIDTH_FRACTION = 0.64f
 
 @Composable
 private fun TagInfoCard(
     name: String,
     color: Color,
     isExcluded: Boolean,
-    createdTimestamp: String,
     aggregateAmount: Double,
     aggregateType: AggregateType,
     modifier: Modifier = Modifier
@@ -608,57 +606,47 @@ private fun TagInfoCard(
             containerColor = color,
             contentColor = contentColor
         ),
-        modifier = Modifier
+        modifier = modifier
             .exclusionGraphicsLayer(isExcluded)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(MaterialTheme.spacing.medium)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(MaterialTheme.spacing.medium),
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
-                ) {
-                    if (isExcluded) {
-                        ExcludedIndicatorSmall()
-                    }
-
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            lineBreak = LineBreak.Heading
-                        ),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                    )
+                if (isExcluded) {
+                    ExcludedIndicatorSmall()
                 }
 
-                Text(
-                    text = stringResource(R.string.created_colon_timestamp_value, createdTimestamp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = contentColor
-                        .copy(alpha = ContentAlpha.SUB_CONTENT),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                TitleLargeText(
+                    text = name,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontWeight = FontWeight.SemiBold,
+//                        lineBreak = LineBreak.Heading
                 )
             }
 
-            SpacerSmall()
-
-            AmountWithTypeIndicator(
-                value = TextFormat.number(aggregateAmount.absoluteValue),
-                type = aggregateType
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+            ) {
+                AmountWithTypeIndicator(
+                    value = TextFormat.number(aggregateAmount.absoluteValue),
+                    type = aggregateType,
+                    modifier = Modifier
+                        .alignByBaseline()
+                )
+                BodySmallText(
+                    text = stringResource(R.string.aggregate_abr),
+                    modifier = Modifier
+                        .alignByBaseline()
+                )
+            }
         }
     }
 }

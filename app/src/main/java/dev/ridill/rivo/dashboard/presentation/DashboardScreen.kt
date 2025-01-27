@@ -1,7 +1,11 @@
 package dev.ridill.rivo.dashboard.presentation
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.LastBaseline
@@ -413,6 +419,7 @@ private fun SpentAmountAndAllTransactionsButton(
     onAllTransactionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val amountMarqueeFocusRequester = remember { FocusRequester() }
     val contentColor = LocalContentColor.current
     val spentAmountContentDescription = stringResource(
         R.string.cd_recent_spent_amount,
@@ -440,7 +447,20 @@ private fun SpentAmountAndAllTransactionsButton(
                     style = MaterialTheme.typography.headlineMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = contentColor
+                    color = contentColor,
+                    modifier = Modifier
+                        .clickable(
+                            onClick = { amountMarqueeFocusRequester.requestFocus() },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClickLabel = stringResource(R.string.cd_tap_to_view_full_amount)
+                        )
+                        .basicMarquee(
+                            iterations = EXPENDITURE_MARQUEE_COUNT,
+                            animationMode = MarqueeAnimationMode.WhileFocused
+                        )
+                        .focusRequester(amountMarqueeFocusRequester)
+                        .focusable()
                 )
             }
 
@@ -466,6 +486,8 @@ private fun SpentAmountAndAllTransactionsButton(
         }
     }
 }
+
+private const val EXPENDITURE_MARQUEE_COUNT = 2
 
 @Composable
 private fun ActiveSchedulesRow(

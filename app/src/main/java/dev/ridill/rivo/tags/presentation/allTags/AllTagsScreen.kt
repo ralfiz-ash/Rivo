@@ -146,7 +146,6 @@ fun AllTagsScreen(
                     contentType = tagsLazyPagingItems.itemContentType { "TagListItem" }
                 ) { index ->
                     tagsLazyPagingItems[index]?.let { item ->
-
                         val selected = item.id in state.selectedIds
                         val clickableModifier = if (state.multiSelectionModeActive) Modifier
                             .toggleable(
@@ -167,7 +166,10 @@ fun AllTagsScreen(
                             name = item.name,
                             color = item.color,
                             excluded = item.excluded,
-                            createdTimestamp = item.createdTimestamp.format(DateUtil.Formatters.localizedDateMedium),
+                            createdTimestamp = stringResource(
+                                R.string.created_colon_timestamp_value,
+                                item.createdTimestamp.format(DateUtil.Formatters.localizedDateMedium)
+                            ),
                             tonalElevation = if (selected) MaterialTheme.elevation.level1 else MaterialTheme.elevation.level0,
                             modifier = Modifier
                                 .fillParentMaxWidth()
