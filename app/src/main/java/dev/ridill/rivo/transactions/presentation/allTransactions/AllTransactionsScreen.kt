@@ -556,7 +556,7 @@ private fun TagsInfoList(
             }
             LazyRow(
                 modifier = Modifier
-                    .matchParentSize(),
+                    .fillMaxWidth(),
                 contentPadding = PaddingValues(
                     start = MaterialTheme.spacing.medium,
                     end = PaddingScrollEnd
@@ -577,7 +577,6 @@ private fun TagsInfoList(
                             aggregateAmount = tag.aggregate,
                             aggregateType = tag.aggregateType,
                             modifier = Modifier
-                                .fillParentMaxHeight()
                                 .fillParentMaxWidth(TAG_INFO_CARD_WIDTH_FRACTION)
                                 .animateItem()
                         )
@@ -625,10 +624,9 @@ private fun TagInfoCard(
 
                 TitleLargeText(
                     text = name,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    fontWeight = FontWeight.SemiBold,
-//                        lineBreak = LineBreak.Heading
+                    fontWeight = FontWeight.SemiBold
                 )
             }
 
