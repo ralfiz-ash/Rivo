@@ -129,6 +129,7 @@ fun ActiveScheduleItem(
     note: String?,
     amount: String,
     type: TransactionType,
+    paymentDay: String,
     modifier: Modifier = Modifier
 ) {
     ElevatedCard(
@@ -162,6 +163,11 @@ fun ActiveScheduleItem(
                         }
                     }
                 }
+
+                append(String.WhiteSpace)
+                append(stringResource(R.string.on_the_txt))
+                append(String.WhiteSpace)
+                append(paymentDay)
             },
             style = MaterialTheme.typography.titleMedium,
             maxLines = 2,

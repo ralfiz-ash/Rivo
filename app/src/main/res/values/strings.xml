@@ -462,6 +462,7 @@
     <string name="schedule_reminder">Schedule Reminder</string>
     <string name="budget_includes_credit_amount_of_value">Budget amount shown here includes a credit amount of %s</string>
     <string name="for_txt">for</string>
+    <string name="on_the_txt">on the</string>
     <string name="due_on_date">Due on %s</string>
     <string name="schedules_this_month">Schedules this month</string>
     <string name="created_colon_timestamp_value">Created: %s</string>

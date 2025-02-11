@@ -512,6 +512,7 @@ private fun ActiveSchedulesRow(
                 note = schedule.note,
                 amount = schedule.amountFormatted,
                 type = schedule.type,
+                paymentDay = schedule.dayFormatted,
                 modifier = Modifier
                     .animateItem()
             )
@@ -535,7 +536,8 @@ private fun PreviewDashboardScreen() {
                         note = "Really long transaction note",
                         amount = 200.0,
                         currency = LocaleUtil.defaultCurrency,
-                        type = TransactionType.DEBIT
+                        type = TransactionType.DEBIT,
+                        nextPaymentDateTime = DateUtil.now()
                     )
                 }
             ),

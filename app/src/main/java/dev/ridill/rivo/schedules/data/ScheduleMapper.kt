@@ -56,5 +56,6 @@ fun ScheduleEntity.toActiveSchedule(): ActiveSchedule = ActiveSchedule(
     note = note,
     amount = amount,
     currency = LocaleUtil.currencyForCode(currencyCode),
-    type = type
+    type = type,
+    nextPaymentDateTime = nextPaymentTimestamp!!
 )

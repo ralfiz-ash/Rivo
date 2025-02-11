@@ -97,24 +97,47 @@ object DateUtil {
         val localizedDateMediumTimeShort: DateTimeFormatter
             get() = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
 
+        /**
+         * Eg. MAR 2025
+         */
         val MMMM_yyyy_spaceSep: DateTimeFormatter
             get() = DateTimeFormatter.ofPattern("MMMM yyyy")
 
+        /**
+         * Eg. MAR 99
+         */
         val MMM_yy_spaceSep: DateTimeFormatter
             get() = DateTimeFormatter.ofPattern("MMM yy")
 
+        /**
+         * Eg. 1st Mon
+         */
         val ddth_EEE_spaceSep: DateTimeFormatter
             get() = DateTimeFormatterBuilder()
                 .appendText(ChronoField.DAY_OF_MONTH, ordinalsMap)
                 .appendPattern(" EEE")
                 .toFormatter()
 
+        /**
+         * Eg. MAR 27th
+         */
         val MMM_ddth_spaceSep: DateTimeFormatter
             get() = DateTimeFormatterBuilder()
                 .appendPattern("MMM ")
                 .appendText(ChronoField.DAY_OF_MONTH, ordinalsMap)
                 .toFormatter()
 
+        /**
+         * Eg. 1st / 2nd / 3rd
+         */
+        val dayOfMonthOrdinal: DateTimeFormatter
+            get() = DateTimeFormatterBuilder()
+                .appendText(ChronoField.DAY_OF_MONTH, ordinalsMap)
+                .toFormatter()
+
+        /**
+         * Eg. Today / Tomorrow / 5 days ago
+         */
         fun prettyDateAgo(
             date: LocalDate
         ): UiText {
