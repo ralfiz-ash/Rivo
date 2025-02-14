@@ -20,10 +20,12 @@ import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.BuildUtil
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.Zero
+import dev.ridill.rivo.core.domain.util.asStateFlow
 import dev.ridill.rivo.core.domain.util.logI
 import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.onboarding.domain.model.DataRestoreState
 import dev.ridill.rivo.onboarding.domain.model.OnboardingPage
+import dev.ridill.rivo.onboarding.domain.model.SignInAndDataRestoreState
 import dev.ridill.rivo.settings.domain.backup.BackupWorkManager
 import dev.ridill.rivo.settings.domain.modal.BackupDetails
 import dev.ridill.rivo.settings.domain.repositoty.BackupRepository
@@ -34,9 +36,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
@@ -51,78 +57,120 @@ class OnboardingViewModel @Inject constructor(
     private val cryptoManager: CryptoManager
 ) : ViewModel(), OnboardingActions {
 
-    val authState = authRepo.getAuthState()
+    val signInAndDataRestoreState = savedStateHandle
+        .getStateFlow(SIGN_IN_AND_DATA_RESTORE_STATE, SignInAndDataRestoreState.SIGN_IN)
+    private val authState = authRepo.getAuthState()
     private val _dataRestoreState = MutableStateFlow(DataRestoreState.IDLE)
-    val dataRestoreState get() = _dataRestoreState.asStateFlow()
-    val showEncryptionPasswordInput = savedStateHandle
+    private val dataRestoreState get() = _dataRestoreState.asStateFlow()
+    private val showEncryptionPasswordInput = savedStateHandle
         .getStateFlow(SHOW_ENCRYPTION_PASSWORD_INPUT, false)
+    private val _appRestartTimer = MutableStateFlow(Duration.ZERO)
 
     val budgetInput = savedStateHandle.getStateFlow(BUDGET_INPUT, "")
 
+    val state = combineTuple(
+        signInAndDataRestoreState,
+        authState,
+        dataRestoreState,
+        showEncryptionPasswordInput,
+        _appRestartTimer.asStateFlow()
+    ).mapLatest { (
+                      signInAndDataRestoreState,
+                      authState,
+                      dataRestoreState,
+                      showEncryptionPasswordInput,
+                      appRestartTimer
+                  ) ->
+        OnboardingState(
+            signInAndDataRestoreState = signInAndDataRestoreState,
+            authState = authState,
+            dataRestoreState = dataRestoreState,
+            showEncryptionPasswordInput = showEncryptionPasswordInput,
+            appRestartTimer = appRestartTimer
+        )
+    }.onStart { collectRestoreWorkState() }
+        .asStateFlow(viewModelScope, OnboardingState())
+
     val events = eventBus.eventFlow
 
-    init {
-        collectRestoreWorkState()
+    private var hasRestoreJobRunThisSession: Boolean = false
+    private var restoreWorkStateCollectionJob: Job? = null
+    private fun collectRestoreWorkState() {
+        restoreWorkStateCollectionJob?.cancel()
+        restoreWorkStateCollectionJob = viewModelScope.launch {
+            combineTuple(
+                backupWorkManager.getRestoreDataDownloadWorkInfoFlow(),
+                backupWorkManager.getImmediateDataRestoreWorkInfoFlow()
+            ).collectLatest { (downloadInfo, restoreInfo) ->
+                val isDownloadRunning = downloadInfo?.state == WorkInfo.State.RUNNING
+                val isRestoreRunning = restoreInfo?.state == WorkInfo.State.RUNNING
+                _dataRestoreState.update {
+                    when {
+                        isDownloadRunning -> DataRestoreState.DOWNLOADING_DATA
+                        isRestoreRunning -> DataRestoreState.RESTORE_IN_PROGRESS
+                        else -> it
+                    }
+                }
+
+                if (isDownloadRunning || isRestoreRunning) {
+                    hasRestoreJobRunThisSession = true
+                }
+
+                when {
+                    restoreInfo?.state == WorkInfo.State.SUCCEEDED -> {
+                        _dataRestoreState.update { DataRestoreState.COMPLETED }
+                        savedStateHandle[AVAILABLE_BACKUP] = null
+                        preferencesManager.concludeOnboarding()
+                        startAppRestartProcedure()
+                    }
+
+                    downloadInfo?.state == WorkInfo.State.FAILED -> {
+                        _dataRestoreState.update { DataRestoreState.FAILED }
+                        if (hasRestoreJobRunThisSession) eventBus.send(
+                            OnboardingEvent.ShowUiMessage(
+                                downloadInfo.outputData.getString(BackupWorkManager.KEY_MESSAGE)
+                                    ?.let { UiText.DynamicString(it) }
+                                    ?: UiText.StringResource(
+                                        R.string.error_app_data_restore_failed,
+                                        true
+                                    )
+                            )
+                        )
+                    }
+
+                    restoreInfo?.state == WorkInfo.State.FAILED -> {
+                        _dataRestoreState.update { DataRestoreState.FAILED }
+                        if (hasRestoreJobRunThisSession) eventBus.send(
+                            OnboardingEvent.ShowUiMessage(
+                                restoreInfo.outputData.getString(BackupWorkManager.KEY_MESSAGE)
+                                    ?.let { UiText.DynamicString(it) }
+                                    ?: UiText.StringResource(
+                                        R.string.error_app_data_restore_failed,
+                                        true
+                                    )
+                            )
+                        )
+                    }
+
+                    else -> Unit
+                }
+            }
+        }
     }
 
-    private var hasRestoreJobRunThisSession: Boolean = false
-    private fun collectRestoreWorkState() = viewModelScope.launch {
-        combineTuple(
-            backupWorkManager.getRestoreDataDownloadWorkInfoFlow(),
-            backupWorkManager.getImmediateDataRestoreWorkInfoFlow()
-        ).collectLatest { (downloadInfo, restoreInfo) ->
-            val isDownloadRunning = downloadInfo?.state == WorkInfo.State.RUNNING
-            val isRestoreRunning = restoreInfo?.state == WorkInfo.State.RUNNING
-            _dataRestoreState.update {
-                when {
-                    isDownloadRunning -> DataRestoreState.DOWNLOADING_DATA
-                    isRestoreRunning -> DataRestoreState.RESTORE_IN_PROGRESS
-                    else -> it
-                }
+    private var appRestartJob: Job? = null
+    private fun startAppRestartProcedure() {
+        appRestartJob?.cancel(CancellationException("TimerStopped"))
+        appRestartJob = viewModelScope.launch {
+            _appRestartTimer.update { 5.seconds }
+            while (_appRestartTimer.value > 0.seconds) {
+                delay(1.seconds)
+                _appRestartTimer.update { it - 1.seconds }
             }
-
-            if (isDownloadRunning || isRestoreRunning) {
-                hasRestoreJobRunThisSession = true
-            }
-
-            when {
-                restoreInfo?.state == WorkInfo.State.SUCCEEDED -> {
-                    _dataRestoreState.update { DataRestoreState.COMPLETED }
-                    savedStateHandle[AVAILABLE_BACKUP] = null
-                    preferencesManager.concludeOnboarding()
-                    delay(5.seconds)
-                    eventBus.send(OnboardingEvent.RestartApplication)
-                }
-
-                downloadInfo?.state == WorkInfo.State.FAILED -> {
-                    _dataRestoreState.update { DataRestoreState.FAILED }
-                    if (hasRestoreJobRunThisSession) eventBus.send(
-                        OnboardingEvent.ShowUiMessage(
-                            downloadInfo.outputData.getString(BackupWorkManager.KEY_MESSAGE)
-                                ?.let { UiText.DynamicString(it) }
-                                ?: UiText.StringResource(
-                                    R.string.error_app_data_restore_failed,
-                                    true
-                                )
-                        )
-                    )
-                }
-
-                restoreInfo?.state == WorkInfo.State.FAILED -> {
-                    _dataRestoreState.update { DataRestoreState.FAILED }
-                    if (hasRestoreJobRunThisSession) eventBus.send(
-                        OnboardingEvent.ShowUiMessage(
-                            restoreInfo.outputData.getString(BackupWorkManager.KEY_MESSAGE)
-                                ?.let { UiText.DynamicString(it) }
-                                ?: UiText.StringResource(
-                                    R.string.error_app_data_restore_failed,
-                                    true
-                                )
-                        )
-                    )
-                }
-
-                else -> Unit
+        }
+        appRestartJob?.invokeOnCompletion { cause ->
+            if (cause == null) viewModelScope.launch {
+                eventBus.send(OnboardingEvent.RestartApplication)
             }
         }
     }
@@ -132,13 +180,13 @@ class OnboardingViewModel @Inject constructor(
             if (BuildUtil.isNotificationRuntimePermissionNeeded())
                 eventBus.send(OnboardingEvent.LaunchNotificationPermissionRequest)
             else
-                eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN))
+                eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN_AND_DATA_RESTORE))
         }
     }
 
     override fun onSkipPermissionsClick() {
         viewModelScope.launch {
-            eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN))
+            eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN_AND_DATA_RESTORE))
         }
     }
 
@@ -149,7 +197,7 @@ class OnboardingViewModel @Inject constructor(
 
             val areAllGranted = result.all { it.value }
             if (areAllGranted)
-                eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN))
+                eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN_AND_DATA_RESTORE))
         }
     }
 
@@ -158,7 +206,7 @@ class OnboardingViewModel @Inject constructor(
         pageChangeJob?.cancel()
         pageChangeJob = viewModelScope.launch {
             when (page) {
-                OnboardingPage.ACCOUNT_SIGN_IN.ordinal -> {
+                OnboardingPage.ACCOUNT_SIGN_IN_AND_DATA_RESTORE.ordinal -> {
                     onAccountPageReached()
                 }
             }
@@ -166,10 +214,16 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private suspend fun onAccountPageReached() {
-        val isUserUnAuthenticated = authRepo.getAuthState().first() == AuthState.UnAuthenticated
-        if (isUserUnAuthenticated) {
-            delay(400L)
-            eventBus.send(OnboardingEvent.StartAutoSignInFlow(true))
+        when (authRepo.getAuthState().first()) {
+            is AuthState.Authenticated -> {
+                savedStateHandle[SIGN_IN_AND_DATA_RESTORE_STATE] =
+                    SignInAndDataRestoreState.DATA_RESTORE
+            }
+
+            AuthState.UnAuthenticated -> {
+                delay(400L)
+                eventBus.send(OnboardingEvent.StartAutoSignInFlow(true))
+            }
         }
     }
 
@@ -202,7 +256,8 @@ class OnboardingViewModel @Inject constructor(
             }
 
             is Result.Success -> {
-                eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.DATA_RESTORE))
+                savedStateHandle[SIGN_IN_AND_DATA_RESTORE_STATE] =
+                    SignInAndDataRestoreState.DATA_RESTORE
             }
         }
     }
@@ -217,12 +272,8 @@ class OnboardingViewModel @Inject constructor(
 
     override fun onSkipSignInClick() {
         viewModelScope.launch {
-            val isAuthenticated = authState.first() is AuthState.Authenticated
             eventBus.send(
-                OnboardingEvent.NavigateToPage(
-                    if (isAuthenticated) OnboardingPage.DATA_RESTORE
-                    else OnboardingPage.SET_BUDGET
-                )
+                OnboardingEvent.NavigateToPage(OnboardingPage.SET_BUDGET)
             )
         }
     }
@@ -235,7 +286,9 @@ class OnboardingViewModel @Inject constructor(
                 is Result.Error -> {
                     when (result.error) {
                         AuthorizationService.AuthorizationError.NEEDS_RESOLUTION -> {
-                            eventBus.send(OnboardingEvent.NavigateToPage(OnboardingPage.ACCOUNT_SIGN_IN))
+                            result.data?.let {
+                                eventBus.send(OnboardingEvent.StartAuthorizationFlow(it))
+                            }
                         }
 
                         AuthorizationService.AuthorizationError.AUTHORIZATION_FAILED -> {
@@ -344,5 +397,6 @@ class OnboardingViewModel @Inject constructor(
 
 private const val BUDGET_INPUT = "BUDGET_INPUT"
 
+private const val SIGN_IN_AND_DATA_RESTORE_STATE = "SIGN_IN_AND_DATA_RESTORE_STATE"
 private const val AVAILABLE_BACKUP = "AVAILABLE_BACKUP"
 private const val SHOW_ENCRYPTION_PASSWORD_INPUT = "SHOW_ENCRYPTION_PASSWORD_INPUT"

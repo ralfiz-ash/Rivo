@@ -94,9 +94,8 @@ fun GoogleSignInButton(
     AndroidView(
         factory = {
             SignInButton(it).apply {
-                setStyle(SignInButton.SIZE_WIDE, SignInButton.COLOR_AUTO)
-
-                setOnClickListener { onClick() }
+                this.setStyle(SignInButton.SIZE_WIDE, SignInButton.COLOR_AUTO)
+                this.setOnClickListener { onClick() }
             }
         },
         modifier = modifier

@@ -1,5 +1,6 @@
 package dev.ridill.rivo.core.ui.navigation.destinations
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,7 +15,6 @@ import dev.ridill.rivo.account.presentation.accountDetails.AccountDetailsViewMod
 import dev.ridill.rivo.account.presentation.util.rememberCredentialService
 import dev.ridill.rivo.core.ui.components.CollectFlowEffect
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
-import dev.ridill.rivo.core.ui.util.findActivity
 
 data object AccountDetailsScreenSpec : ScreenSpec {
     override val route: String
@@ -35,7 +35,8 @@ data object AccountDetailsScreenSpec : ScreenSpec {
         val snackbarController = rememberSnackbarController()
         val context = LocalContext.current
         val credentialService = rememberCredentialService(context = context)
-        CollectFlowEffect(viewModel.events, snackbarController, context) { event ->
+        val activity = LocalActivity.current
+        CollectFlowEffect(viewModel.events, snackbarController, context, activity) { event ->
             when (event) {
                 AccountDetailsViewModel.AccountDetailsEvent.AccountDeleted -> {
                     navController.navigateUp()
@@ -49,10 +50,12 @@ data object AccountDetailsScreenSpec : ScreenSpec {
                 }
 
                 AccountDetailsViewModel.AccountDetailsEvent.StartManualSignInFlow -> {
-                    val result = credentialService.startManualGetCredentialFlow(
-                        activityContext = context.findActivity()
-                    )
-                    viewModel.onCredentialResult(result)
+                    activity?.let {
+                        val result = credentialService.startManualGetCredentialFlow(
+                            activityContext = it
+                        )
+                        viewModel.onCredentialResult(result)
+                    }
                 }
             }
         }

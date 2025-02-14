@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import dev.ridill.rivo.account.domain.model.AuthState
 import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.ui.components.MultiplePermissionsState
 import dev.ridill.rivo.core.ui.components.RivoScaffold
@@ -39,22 +38,19 @@ import dev.ridill.rivo.core.ui.theme.BorderWidthStandard
 import dev.ridill.rivo.core.ui.theme.PrimaryBrandColor
 import dev.ridill.rivo.core.ui.theme.contentColor
 import dev.ridill.rivo.core.ui.theme.spacing
-import dev.ridill.rivo.onboarding.domain.model.DataRestoreState
 import dev.ridill.rivo.onboarding.domain.model.OnboardingPage
-import dev.ridill.rivo.onboarding.presentation.components.AccountSignInPage
-import dev.ridill.rivo.onboarding.presentation.components.DataRestorePage
 import dev.ridill.rivo.onboarding.presentation.components.PermissionsPage
 import dev.ridill.rivo.onboarding.presentation.components.SetBudgetPage
+import dev.ridill.rivo.onboarding.presentation.components.SignInAndDataRestore
 import dev.ridill.rivo.onboarding.presentation.components.WelcomeMessagePage
+import kotlin.String
 
 @Composable
 fun OnboardingScreen(
     snackbarController: SnackbarController,
     pagerState: PagerState,
     permissionsState: MultiplePermissionsState,
-    authState: AuthState,
-    restoreState: DataRestoreState,
-    showEncryptionPasswordInput: Boolean,
+    state: OnboardingState,
     budgetInput: () -> String,
     actions: OnboardingActions
 ) {
@@ -105,22 +101,19 @@ fun OnboardingScreen(
                             )
                         }
 
-                        OnboardingPage.ACCOUNT_SIGN_IN.ordinal -> {
-                            AccountSignInPage(
-                                authState = authState,
+                        OnboardingPage.ACCOUNT_SIGN_IN_AND_DATA_RESTORE.ordinal -> {
+                            SignInAndDataRestore(
+                                state = state.signInAndDataRestoreState,
+                                authState = state.authState,
                                 onSignInClick = actions::onSignInClick,
                                 onSignInSkip = actions::onSkipSignInClick,
-                            )
-                        }
-
-                        OnboardingPage.DATA_RESTORE.ordinal -> {
-                            DataRestorePage(
-                                restoreState = restoreState,
+                                restoreState = state.dataRestoreState,
                                 onCheckForBackupClick = actions::onCheckOrRestoreClick,
                                 onSkipClick = actions::onDataRestoreSkip,
-                                showEncryptionPasswordInput = showEncryptionPasswordInput,
+                                showEncryptionPasswordInput = state.showEncryptionPasswordInput,
                                 onEncryptionPasswordInputDismiss = actions::onEncryptionPasswordInputDismiss,
-                                onEncryptionPasswordSubmit = actions::onEncryptionPasswordSubmit
+                                onEncryptionPasswordSubmit = actions::onEncryptionPasswordSubmit,
+                                appRestartTimer = state.appRestartTimer
                             )
                         }
 
