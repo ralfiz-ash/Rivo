@@ -1,5 +1,7 @@
 package dev.ridill.rivo.onboarding.domain.model
 
+enum class SignInAndDataRestoreState { SIGN_IN, DATA_RESTORE }
+
 enum class DataRestoreState {
     IDLE,
     CHECKING_FOR_BACKUP,

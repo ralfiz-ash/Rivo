@@ -2,6 +2,7 @@ package dev.ridill.rivo.core.ui.navigation.destinations
 
 import android.Manifest
 import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,7 +10,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,7 +19,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import dev.ridill.rivo.R
-import dev.ridill.rivo.account.domain.model.AuthState
 import dev.ridill.rivo.account.presentation.util.rememberCredentialService
 import dev.ridill.rivo.application.RUN_CONFIG_RESTORE_EXTRA
 import dev.ridill.rivo.core.domain.util.BuildUtil
@@ -27,7 +26,6 @@ import dev.ridill.rivo.core.ui.components.CollectFlowEffect
 import dev.ridill.rivo.core.ui.components.rememberMultiplePermissionsLauncher
 import dev.ridill.rivo.core.ui.components.rememberMultiplePermissionsState
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
-import dev.ridill.rivo.core.ui.util.findActivity
 import dev.ridill.rivo.core.ui.util.restartApplication
 import dev.ridill.rivo.onboarding.domain.model.OnboardingPage
 import dev.ridill.rivo.onboarding.presentation.OnboardingScreen
@@ -50,14 +48,12 @@ data object OnboardingScreenSpec : ScreenSpec {
         val pagerState = rememberPagerState(
             pageCount = { OnboardingPage.entries.size }
         )
-        val authState by viewModel.authState.collectAsState(initial = AuthState.UnAuthenticated)
-        val restoreState by viewModel.dataRestoreState.collectAsStateWithLifecycle()
+        val state by viewModel.state.collectAsStateWithLifecycle()
         val budgetInput = viewModel.budgetInput.collectAsStateWithLifecycle()
-        val showEncryptionPasswordInput by viewModel.showEncryptionPasswordInput.collectAsStateWithLifecycle()
 
         val snackbarController = rememberSnackbarController()
         val context = LocalContext.current
-        val activity = context.findActivity()
+        val activity = LocalActivity.current
 
         val permissionsState = rememberMultiplePermissionsState(
             permissions = if (BuildUtil.isNotificationRuntimePermissionNeeded())
@@ -120,11 +116,13 @@ data object OnboardingScreenSpec : ScreenSpec {
                 }
 
                 is OnboardingViewModel.OnboardingEvent.StartAutoSignInFlow -> {
-                    val result = credentialService.startGetCredentialFlow(
-                        filterByAuthorizedUsers = event.filterByAuthorizedAccounts,
-                        activityContext = activity
-                    )
-                    viewModel.onCredentialResult(result)
+                    activity?.let {
+                        val result = credentialService.startGetCredentialFlow(
+                            filterByAuthorizedUsers = event.filterByAuthorizedAccounts,
+                            activityContext = it
+                        )
+                        viewModel.onCredentialResult(result)
+                    }
                 }
 
                 is OnboardingViewModel.OnboardingEvent.StartAuthorizationFlow -> {
@@ -134,7 +132,10 @@ data object OnboardingScreenSpec : ScreenSpec {
                 }
 
                 OnboardingViewModel.OnboardingEvent.StartManualSignInFlow -> {
-                    credentialService.startManualGetCredentialFlow(activity)
+                    activity?.let {
+                        val result = credentialService.startManualGetCredentialFlow(it)
+                        viewModel.onCredentialResult(result)
+                    }
                 }
             }
         }
@@ -143,9 +144,7 @@ data object OnboardingScreenSpec : ScreenSpec {
             snackbarController = snackbarController,
             pagerState = pagerState,
             permissionsState = permissionsState,
-            authState = authState,
-            restoreState = restoreState,
-            showEncryptionPasswordInput = showEncryptionPasswordInput,
+            state = state,
             budgetInput = { budgetInput.value },
             actions = viewModel
         )

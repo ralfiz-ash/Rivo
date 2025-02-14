@@ -115,6 +115,7 @@
     <string name="cd_delete_selected_tags">Delete selected tags</string>
     <string name="cd_show_options">Show options</string>
     <string name="cd_tap_to_view_full_amount">Tap to view full amount</string>
+    <string name="cd_sign_in">Sign in to your account</string>
 
     <!-- Error Messages -->
     <string name="error_no_internet_connection">No internet connection</string>
@@ -344,7 +345,7 @@
     <string name="restoring_app_data">Restoring App Data</string>
     <string name="restoring_app_config">Restoring App Configuration</string>
     <string name="data_restore_in_progress">Data restore in progress</string>
-    <string name="restarting_app">Restarting App</string>
+    <string name="restarting_app_in_time">Restarting App in %s</string>
     <string name="data_restore_caution_message">Please do not close the app while data restore is in progress. The app will automatically restart once the restore process is completed.</string>
     <string name="last_backup">Last Backup</string>
     <string name="date_label">Date: %s</string>
