@@ -387,14 +387,12 @@ private fun RestoreBackupActions(
             onClick = onRestoreClick,
             colors = ButtonDefaults.buttonColors(
                 containerColor = buttonContainerColor,
-                contentColor = buttonContentColor,
-                disabledContainerColor = buttonContainerColor.copy(alpha = ContentAlpha.SUB_CONTENT),
-                disabledContentColor = buttonContentColor.copy(alpha = ContentAlpha.SUB_CONTENT)
+                contentColor = buttonContentColor
             ),
             enabled = !isRestoreInProgress
         ) {
             Text(
-                stringResource(
+                text = stringResource(
                     id = if (isBackupDownloaded) R.string.restore_backup
                     else R.string.check_for_backups
                 )
