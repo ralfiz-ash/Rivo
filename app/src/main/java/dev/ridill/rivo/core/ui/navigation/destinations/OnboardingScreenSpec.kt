@@ -23,6 +23,7 @@ import dev.ridill.rivo.account.presentation.util.rememberCredentialService
 import dev.ridill.rivo.application.RUN_CONFIG_RESTORE_EXTRA
 import dev.ridill.rivo.core.domain.util.BuildUtil
 import dev.ridill.rivo.core.ui.components.CollectFlowEffect
+import dev.ridill.rivo.core.ui.components.FloatingWindowNavigationResultEffect
 import dev.ridill.rivo.core.ui.components.rememberMultiplePermissionsLauncher
 import dev.ridill.rivo.core.ui.components.rememberMultiplePermissionsState
 import dev.ridill.rivo.core.ui.components.rememberSnackbarController
@@ -30,6 +31,7 @@ import dev.ridill.rivo.core.ui.util.restartApplication
 import dev.ridill.rivo.onboarding.domain.model.OnboardingPage
 import dev.ridill.rivo.onboarding.presentation.OnboardingScreen
 import dev.ridill.rivo.onboarding.presentation.OnboardingViewModel
+import java.util.Currency
 
 data object OnboardingScreenSpec : ScreenSpec {
     override val route: String
@@ -79,6 +81,15 @@ data object OnboardingScreenSpec : ScreenSpec {
                 if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
                 result.data?.let(viewModel::onAuthorizationResult)
             }
+        )
+
+        FloatingWindowNavigationResultEffect<Currency>(
+            resultKey = CurrencySelectionSheetSpec.SELECTED_CURRENCY,
+            navBackStackEntry = navBackStackEntry,
+            viewModel,
+            snackbarController,
+            context,
+            onResult = viewModel::onCurrencySelected
         )
 
         CollectFlowEffect(viewModel.events, snackbarController, context) { event ->
@@ -146,6 +157,13 @@ data object OnboardingScreenSpec : ScreenSpec {
             permissionsState = permissionsState,
             state = state,
             budgetInput = { budgetInput.value },
+            navigateToCurrencySelection = {
+                navController.navigate(
+                    CurrencySelectionSheetSpec.routeWithArg(
+                        preSelectedCurrencyCode = state.appCurrency.currencyCode
+                    )
+                )
+            },
             actions = viewModel
         )
     }

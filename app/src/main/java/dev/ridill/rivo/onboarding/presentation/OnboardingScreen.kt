@@ -52,6 +52,7 @@ fun OnboardingScreen(
     permissionsState: MultiplePermissionsState,
     state: OnboardingState,
     budgetInput: () -> String,
+    navigateToCurrencySelection: () -> Unit,
     actions: OnboardingActions
 ) {
     val view = LocalView.current
@@ -121,6 +122,8 @@ fun OnboardingScreen(
                             SetBudgetPage(
                                 input = budgetInput,
                                 onInputChange = actions::onBudgetInputChange,
+                                selectedCurrency = state.appCurrency,
+                                onCurrencyClick = navigateToCurrencySelection,
                                 onStartBudgetingClick = actions::onStartBudgetingClick
                             )
                         }
