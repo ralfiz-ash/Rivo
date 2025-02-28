@@ -1,6 +1,7 @@
 package dev.ridill.rivo.onboarding.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -31,13 +33,16 @@ import dev.ridill.rivo.core.ui.components.AmountVisualTransformation
 import dev.ridill.rivo.core.ui.components.MediumDisplayText
 import dev.ridill.rivo.core.ui.components.SpacerExtraLarge
 import dev.ridill.rivo.core.ui.components.SpacerSmall
+import dev.ridill.rivo.core.ui.theme.BorderWidthStandard
 import dev.ridill.rivo.core.ui.theme.spacing
-import dev.ridill.rivo.core.ui.util.LocalCurrencyPreference
+import java.util.Currency
 
 @Composable
 fun SetBudgetPage(
     input: () -> String,
     onInputChange: (String) -> Unit,
+    selectedCurrency: Currency,
+    onCurrencyClick: () -> Unit,
     onStartBudgetingClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -60,7 +65,9 @@ fun SetBudgetPage(
         SpacerExtraLarge()
         BudgetInput(
             input = input,
-            onValueChange = onInputChange
+            onValueChange = onInputChange,
+            selectedCurrency = selectedCurrency,
+            onCurrencyClick = onCurrencyClick
         )
         SpacerSmall()
         AnimatedVisibility(
@@ -88,6 +95,8 @@ fun SetBudgetPage(
 private fun BudgetInput(
     input: () -> String,
     onValueChange: (String) -> Unit,
+    selectedCurrency: Currency,
+    onCurrencyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val contentColor = LocalContentColor.current
@@ -125,10 +134,15 @@ private fun BudgetInput(
             supportingText = { Text(stringResource(R.string.you_can_change_budget_later_in_settings)) },
             visualTransformation = remember { AmountVisualTransformation() },
             prefix = {
-                Text(
-                    text = LocalCurrencyPreference.current.symbol,
-                    color = contentColor
-                )
+                OutlinedIconButton(
+                    onClick = onCurrencyClick,
+                    border = BorderStroke(BorderWidthStandard, contentColor)
+                ) {
+                    Text(
+                        text = selectedCurrency.symbol,
+                        color = contentColor
+                    )
+                }
             }
         )
     }
