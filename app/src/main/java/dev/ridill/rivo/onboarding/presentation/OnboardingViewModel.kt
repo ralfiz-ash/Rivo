@@ -30,6 +30,7 @@ import dev.ridill.rivo.settings.domain.backup.BackupWorkManager
 import dev.ridill.rivo.settings.domain.modal.BackupDetails
 import dev.ridill.rivo.settings.domain.repositoty.BackupRepository
 import dev.ridill.rivo.settings.domain.repositoty.BudgetPreferenceRepository
+import dev.ridill.rivo.settings.domain.repositoty.CurrencyRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,8 +41,8 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Currency
 import javax.inject.Inject
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -54,6 +55,7 @@ class OnboardingViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager,
     private val backupRepo: BackupRepository,
     private val authRepo: AuthRepository,
+    private val currencyRepo: CurrencyRepository,
     private val cryptoManager: CryptoManager
 ) : ViewModel(), OnboardingActions {
 
@@ -68,25 +70,30 @@ class OnboardingViewModel @Inject constructor(
 
     val budgetInput = savedStateHandle.getStateFlow(BUDGET_INPUT, "")
 
+    private val appCurrency = currencyRepo.getCurrencyPreferenceForMonth()
+
     val state = combineTuple(
         signInAndDataRestoreState,
         authState,
         dataRestoreState,
         showEncryptionPasswordInput,
-        _appRestartTimer.asStateFlow()
+        _appRestartTimer.asStateFlow(),
+        appCurrency
     ).mapLatest { (
                       signInAndDataRestoreState,
                       authState,
                       dataRestoreState,
                       showEncryptionPasswordInput,
-                      appRestartTimer
+                      appRestartTimer,
+                                      appCurrency
                   ) ->
         OnboardingState(
             signInAndDataRestoreState = signInAndDataRestoreState,
             authState = authState,
             dataRestoreState = dataRestoreState,
             showEncryptionPasswordInput = showEncryptionPasswordInput,
-            appRestartTimer = appRestartTimer
+            appRestartTimer = appRestartTimer,
+            appCurrency = appCurrency
         )
     }.onStart { collectRestoreWorkState() }
         .asStateFlow(viewModelScope, OnboardingState())
@@ -160,7 +167,7 @@ class OnboardingViewModel @Inject constructor(
 
     private var appRestartJob: Job? = null
     private fun startAppRestartProcedure() {
-        appRestartJob?.cancel(CancellationException("TimerStopped"))
+        appRestartJob?.cancel()
         appRestartJob = viewModelScope.launch {
             _appRestartTimer.update { 5.seconds }
             while (_appRestartTimer.value > 0.seconds) {
@@ -362,6 +369,10 @@ class OnboardingViewModel @Inject constructor(
 
     override fun onBudgetInputChange(value: String) {
         savedStateHandle[BUDGET_INPUT] = value
+    }
+
+    fun onCurrencySelected(currency: Currency) = viewModelScope.launch {
+        currencyRepo.saveCurrencyPreference(currency)
     }
 
     override fun onStartBudgetingClick() {
