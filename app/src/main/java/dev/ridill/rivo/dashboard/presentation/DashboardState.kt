@@ -9,5 +9,6 @@ data class DashboardState(
     val creditAmount: Double = Double.Zero,
     val monthlyBudgetInclCredits: Double = Double.Zero,
     val activeSchedules: List<ActiveSchedule> = emptyList(),
-    val signedInUsername: String? = null
+    val signedInUsername: String? = null,
+    val showRecentSpendMarqueeTooltip: Boolean = true
 )

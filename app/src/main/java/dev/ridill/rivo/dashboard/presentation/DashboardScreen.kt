@@ -96,6 +96,7 @@ fun DashboardScreen(
     snackbarController: SnackbarController,
     recentSpends: LazyPagingItems<TransactionListItem>,
     state: DashboardState,
+    onRecentSpendClick: () -> Unit,
     navigateToAllTransactions: () -> Unit,
     navigateToAddEditTransaction: (Long?) -> Unit,
     navigateToBottomNavDestination: (BottomNavDestination) -> Unit
@@ -231,7 +232,9 @@ fun DashboardScreen(
                         ListLabel(stringResource(R.string.recent_spends))
 
                         SpentAmountAndAllTransactionsButton(
+                            showMarqueeTooltip = state.showRecentSpendMarqueeTooltip,
                             amount = state.spentAmount,
+                            onRecentSpendClick = onRecentSpendClick,
                             onAllTransactionsClick = navigateToAllTransactions,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -415,7 +418,9 @@ private fun Balance(
 
 @Composable
 private fun SpentAmountAndAllTransactionsButton(
+    showMarqueeTooltip: Boolean,
     amount: Double,
+    onRecentSpendClick: () -> Unit,
     onAllTransactionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -450,7 +455,10 @@ private fun SpentAmountAndAllTransactionsButton(
                     color = contentColor,
                     modifier = Modifier
                         .clickable(
-                            onClick = { amountMarqueeFocusRequester.requestFocus() },
+                            onClick = {
+                                onRecentSpendClick()
+                                amountMarqueeFocusRequester.requestFocus()
+                            },
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClickLabel = stringResource(R.string.cd_tap_to_view_full_amount)
@@ -473,7 +481,8 @@ private fun SpentAmountAndAllTransactionsButton(
                     alpha = ContentAlpha.SUB_CONTENT
                 ),
                 fontWeight = FontWeight.Normal,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
@@ -545,7 +554,8 @@ private fun PreviewDashboardScreen() {
             navigateToAddEditTransaction = {},
             snackbarController = rememberSnackbarController(),
             navigateToBottomNavDestination = {},
-            recentSpends = flowOf(PagingData.empty<TransactionListItem>()).collectAsLazyPagingItems()
+            recentSpends = flowOf(PagingData.empty<TransactionListItem>()).collectAsLazyPagingItems(),
+            onRecentSpendClick = {}
         )
     }
 }

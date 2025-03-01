@@ -79,6 +79,7 @@ data object DashboardScreenSpec : ScreenSpec {
             snackbarController = snackbarController,
             recentSpends = recentSpendsLazyPagingItems,
             state = state,
+            onRecentSpendClick = viewModel::onRecentSpendClick,
             navigateToAllTransactions = {
                 navController.navigate(AllTransactionsScreenSpec.route)
             },

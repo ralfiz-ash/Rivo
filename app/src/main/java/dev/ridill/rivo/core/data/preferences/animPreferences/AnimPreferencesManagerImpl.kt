@@ -27,16 +27,27 @@ class AnimPreferencesManagerImpl(
             } else throw cause
         }
         .map { preferences ->
+            val showDashboardRecentSpendMarqueeTooltip =
+                preferences[Keys.SHOW_DASHBOARD_RECENT_SPEND_MARQUEE_TOOLTIP].orTrue()
             val showScheduleItemActionPreview =
                 preferences[Keys.SHOW_SCHEDULE_ITEM_ACTION_PREVIEW].orTrue()
             val showTxInFolderItemActionPreview =
                 preferences[Keys.SHOW_TX_IN_FOLDER_ITEM_ACTION_PREVIEW].orTrue()
 
             AnimPreferences(
+                showDashboardRecentSpendMarqueeTooltip = showDashboardRecentSpendMarqueeTooltip,
                 showScheduleItemActionPreview = showScheduleItemActionPreview,
                 showTxInFolderItemActionPreview = showTxInFolderItemActionPreview
             )
         }
+
+    override suspend fun disableDashboardRecentSpendMarqueeTooltip() {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[Keys.SHOW_DASHBOARD_RECENT_SPEND_MARQUEE_TOOLTIP] = false
+            }
+        }
+    }
 
     override suspend fun disableScheduleItemActionPreview() {
         withContext(Dispatchers.IO) {
@@ -55,6 +66,8 @@ class AnimPreferencesManagerImpl(
     }
 
     private object Keys {
+        val SHOW_DASHBOARD_RECENT_SPEND_MARQUEE_TOOLTIP =
+            booleanPreferencesKey("SHOW_DASHBOARD_RECENT_SPEND_MARQUEE_TOOLTIP")
         val SHOW_SCHEDULE_ITEM_ACTION_PREVIEW =
             booleanPreferencesKey("SHOW_SCHEDULE_ITEM_ACTION_PREVIEW")
         val SHOW_TX_IN_FOLDER_ITEM_ACTION_PREVIEW =

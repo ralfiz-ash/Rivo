@@ -10,6 +10,7 @@ interface AnimPreferencesManager {
 
     val preferences: Flow<AnimPreferences>
 
+    suspend fun disableDashboardRecentSpendMarqueeTooltip()
     suspend fun disableScheduleItemActionPreview()
     suspend fun disableTxInFolderItemActionPreview()
 }

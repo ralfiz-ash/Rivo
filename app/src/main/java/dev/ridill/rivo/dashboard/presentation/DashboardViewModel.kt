@@ -6,6 +6,7 @@ import androidx.paging.cachedIn
 import com.zhuinden.flowcombinetuplekt.combineTuple
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.ridill.rivo.R
+import dev.ridill.rivo.core.data.preferences.animPreferences.AnimPreferencesManager
 import dev.ridill.rivo.core.domain.notification.NotificationHelper
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.asStateFlow
@@ -15,12 +16,14 @@ import dev.ridill.rivo.dashboard.domain.repository.DashboardRepository
 import dev.ridill.rivo.transactions.domain.model.Transaction
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val repo: DashboardRepository,
+    private val animPreferencesManager: AnimPreferencesManager,
     private val notificationHelper: NotificationHelper<Transaction>,
     private val eventBus: EventBus<DashboardEvent>
 ) : ViewModel() {
@@ -49,20 +52,26 @@ class DashboardViewModel @Inject constructor(
     val recentSpendsPagingData = repo.getRecentSpends()
         .cachedIn(viewModelScope)
 
+    private val showRecentSpendMarqueeTooltip = animPreferencesManager.preferences
+        .mapLatest { it.showDashboardRecentSpendMarqueeTooltip }
+        .distinctUntilChanged()
+
     val state = combineTuple(
         budgetInclCredits,
         totalDebit,
         totalCredit,
         balance,
         activeSchedules,
-        signedInUsername
+        signedInUsername,
+        showRecentSpendMarqueeTooltip
     ).map { (
                 budgetInclCredits,
                 spentAmount,
                 creditAmount,
                 balance,
                 activeSchedules,
-                signedInUsername
+                signedInUsername,
+                showRecentSpendMarqueeTooltip
             ) ->
         DashboardState(
             balance = balance,
@@ -70,7 +79,8 @@ class DashboardViewModel @Inject constructor(
             creditAmount = creditAmount,
             monthlyBudgetInclCredits = budgetInclCredits,
             activeSchedules = activeSchedules,
-            signedInUsername = signedInUsername
+            signedInUsername = signedInUsername,
+            showRecentSpendMarqueeTooltip = showRecentSpendMarqueeTooltip
         )
     }.asStateFlow(viewModelScope, DashboardState())
 
@@ -98,6 +108,12 @@ class DashboardViewModel @Inject constructor(
 
     private fun cancelNotifications() {
         notificationHelper.dismissAllNotifications()
+    }
+
+    fun onRecentSpendClick() {
+        viewModelScope.launch {
+            animPreferencesManager.disableDashboardRecentSpendMarqueeTooltip()
+        }
     }
 
     sealed interface DashboardEvent {
