@@ -194,6 +194,7 @@ fun FolderDetailsScreen(
                                     tag = item.tag,
                                     excluded = item.excluded,
                                     onClick = { navigateToAddEditTransaction(item.id) },
+                                    onRevealed = actions::onTransactionSwipeActionRevealed,
                                     onRemoveFromFolderClick = {
                                         actions.onRemoveTransactionFromFolderClick(item.id)
                                     },
@@ -386,13 +387,19 @@ private fun TransactionInFolderItem(
     excluded: Boolean,
     onClick: () -> Unit,
     onRemoveFromFolderClick: () -> Unit,
+    onRevealed: () -> Unit,
     showSwipePreview: Boolean,
     modifier: Modifier = Modifier
 ) {
     var isRevealed by remember { mutableStateOf(false) }
     SwipeActionsContainer(
         isRevealed = isRevealed,
-        onRevealedChange = { isRevealed = it },
+        onRevealedChange = { revealed ->
+            isRevealed = revealed
+            if (revealed) {
+                onRevealed()
+            }
+        },
         actions = {
             RivoPlainTooltip(
                 tooltipText = stringResource(R.string.cd_remove_from_folder)

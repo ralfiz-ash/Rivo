@@ -19,6 +19,4 @@ data class RivoPreferences(
     val encryptionPasswordHash: String?,
     val fatalBackupError: FatalBackupError?,
     val showAutoDetectTxInfo: Boolean,
-    val showScheduleItemActionPreview: Boolean,
-    val showTxInFolderItemActionPreview: Boolean
 )

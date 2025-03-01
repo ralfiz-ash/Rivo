@@ -4,6 +4,7 @@ interface AllSchedulesActions {
     fun onNotificationWarningClick()
     fun onNotificationRationaleDismiss()
     fun onNotificationRationaleAgree()
+    fun onScheduleActionRevealed()
     fun onMarkSchedulePaidClick(id: Long)
     fun onScheduleLongPress(id: Long)
     fun onScheduleSelectionToggle(id: Long)

@@ -20,6 +20,8 @@ import dev.ridill.rivo.application.RivoViewModel
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.data.preferences.PreferencesManagerImpl
+import dev.ridill.rivo.core.data.preferences.animPreferences.AnimPreferencesManager
+import dev.ridill.rivo.core.data.preferences.animPreferences.AnimPreferencesManagerImpl
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
 import dev.ridill.rivo.core.domain.crypto.DefaultCryptoManager
 import dev.ridill.rivo.core.domain.service.ExpEvalService
@@ -46,19 +48,36 @@ object AppModule {
         .fallbackToDestructiveMigration()
         .build()
 
+    @AppPreferences
     @Singleton
     @Provides
-    fun provideDataStoreInstance(
+    fun provideAppPrefDataStoreInstance(
         @ApplicationContext context: Context
     ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
         corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
-        produceFile = { context.preferencesDataStoreFile(PreferencesManager.NAME) }
+        produceFile = { context.preferencesDataStoreFile(PreferencesManager.NAME) },
+        migrations = listOf()
     )
 
     @Provides
     fun providePreferencesManager(
-        dataStore: DataStore<Preferences>
+        @AppPreferences dataStore: DataStore<Preferences>
     ): PreferencesManager = PreferencesManagerImpl(dataStore)
+
+    @AnimPreferences
+    @Singleton
+    @Provides
+    fun provideAnimPrefDataStoreInstance(
+        @ApplicationContext context: Context
+    ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+        produceFile = { context.preferencesDataStoreFile(AnimPreferencesManager.NAME) }
+    )
+
+    @Provides
+    fun provideAnimPreferencesManager(
+        @AnimPreferences dataStore: DataStore<Preferences>
+    ): AnimPreferencesManager = AnimPreferencesManagerImpl(dataStore)
 
     @Provides
     fun provideExpressionEvaluationService(): ExpEvalService = ExpEvalService()
@@ -104,3 +123,11 @@ annotation class ApplicationScope
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class Encrypted
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AppPreferences
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AnimPreferences

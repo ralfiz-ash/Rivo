@@ -205,7 +205,7 @@ fun SwipeActionsContainer(
     var runPreviewAnimation by remember { mutableStateOf(animatePreview) }
     LaunchedEffect(gesturesEnabled, actionsSide, actionsRowWidth, runPreviewAnimation) {
         val previewOffset = actionsRowWidth * previewFraction * actionsSide.directionMultiplier
-        delay(1.seconds)
+        delay(PreviewAnimInitialDelay)
         while (gesturesEnabled && runPreviewAnimation) {
             offset.animateTo(
                 targetValue = previewOffset,
@@ -218,7 +218,7 @@ fun SwipeActionsContainer(
                     stiffness = Spring.StiffnessMedium
                 )
             )
-            delay(3.seconds)
+            delay(PreviewAnimIterationDelay)
         }
     }
 
@@ -333,6 +333,9 @@ fun SwipeActionsContainer(
         )
     }
 }
+
+private val PreviewAnimInitialDelay = 1.seconds
+private val PreviewAnimIterationDelay = 3.seconds
 
 enum class SwipeActionsSide(
     val directionMultiplier: Int

@@ -17,6 +17,7 @@ import dev.ridill.rivo.folders.domain.model.AggregateType
 import dev.ridill.rivo.folders.domain.repository.FolderDetailsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -46,7 +47,8 @@ class FolderDetailsViewModel @Inject constructor(
     private val aggregateAmount = folderDetails
         .mapLatest { it?.aggregate.orZero() }
         .distinctUntilChanged()
-//    private val currency = folderDetails
+
+    //    private val currency = folderDetails
 //        .mapLatest { it?.currency ?: LocaleUtil.defaultCurrency }
 //        .distinctUntilChanged()
     private val aggregateType = folderDetails
@@ -120,9 +122,16 @@ class FolderDetailsViewModel @Inject constructor(
         }
     }
 
+    override fun onTransactionSwipeActionRevealed() {
+        viewModelScope.launch {
+            if (shouldShowActionPreview.first()) {
+                repo.disableActionPreview()
+            }
+        }
+    }
+
     override fun onRemoveTransactionFromFolderClick(id: Long) {
         viewModelScope.launch {
-            repo.disableActionPreview()
             repo.removeTransactionFromFolderById(id)
             eventBus.send(FolderDetailsEvent.TransactionRemovedFromGroup(id))
         }

@@ -13,6 +13,7 @@ import dev.ridill.rivo.core.domain.util.asStateFlow
 import dev.ridill.rivo.core.ui.util.UiText
 import dev.ridill.rivo.schedules.domain.repository.AllSchedulesRepository
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -83,9 +84,16 @@ class AllSchedulesViewModel @Inject constructor(
         }
     }
 
+    override fun onScheduleActionRevealed() {
+        viewModelScope.launch {
+            if (showActionPreview.first()) {
+                repo.disableActionPreview()
+            }
+        }
+    }
+
     override fun onMarkSchedulePaidClick(id: Long) {
         viewModelScope.launch {
-            repo.disableActionPreview()
             when (val resource = repo.markScheduleAsPaid(id)) {
                 is Resource.Error -> {
                     resource.message?.let {

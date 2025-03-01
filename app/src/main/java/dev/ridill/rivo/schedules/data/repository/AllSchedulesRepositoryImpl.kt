@@ -8,7 +8,7 @@ import androidx.paging.map
 import androidx.room.withTransaction
 import dev.ridill.rivo.R
 import dev.ridill.rivo.core.data.db.RivoDatabase
-import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.animPreferences.AnimPreferencesManager
 import dev.ridill.rivo.core.domain.model.Resource
 import dev.ridill.rivo.core.domain.util.DateUtil
 import dev.ridill.rivo.core.domain.util.UtilConstants
@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
@@ -34,7 +33,7 @@ class AllSchedulesRepositoryImpl(
     private val db: RivoDatabase,
     private val dao: SchedulesDao,
     private val repo: SchedulesRepository,
-    private val preferencesManager: PreferencesManager
+    private val animPreferencesManager: AnimPreferencesManager,
 ) : AllSchedulesRepository {
     private val _currentDate = MutableStateFlow(DateUtil.dateNow())
     private val currentDate = _currentDate.asStateFlow()
@@ -119,12 +118,12 @@ class AllSchedulesRepositoryImpl(
         repo.deleteSchedulesByIds(ids)
     }
 
-    override fun shouldShowActionPreview(): Flow<Boolean> = preferencesManager.preferences
-        .map { it.showScheduleItemActionPreview }
+    override fun shouldShowActionPreview(): Flow<Boolean> = animPreferencesManager.preferences
+        .mapLatest { it.showScheduleItemActionPreview }
         .distinctUntilChanged()
 
     override suspend fun disableActionPreview() =
-        preferencesManager.disableScheduleItemActionPreview()
+        animPreferencesManager.disableScheduleItemActionPreview()
 }
 
 class ScheduleNotFoundThrowable : Throwable("Schedule not found")

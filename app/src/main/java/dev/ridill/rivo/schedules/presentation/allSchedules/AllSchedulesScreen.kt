@@ -179,6 +179,7 @@ fun AllSchedulesScreen(
                                     nextPaymentTimestamp = item.nextPaymentTimestamp,
                                     lastPaymentTimestamp = item.lastPaymentTimestamp,
                                     canMarkPaid = item.canMarkPaid,
+                                    onActionRevealed = actions::onScheduleActionRevealed,
                                     onMarkPaidClick = { actions.onMarkSchedulePaidClick(item.id) },
                                     onClick = { navigateToAddEditSchedule(item.id) },
                                     onLongPress = {
@@ -248,6 +249,7 @@ private fun ScheduleItem(
     nextPaymentTimestamp: LocalDateTime?,
     lastPaymentTimestamp: LocalDateTime?,
     canMarkPaid: Boolean,
+    onActionRevealed: () -> Unit,
     onMarkPaidClick: () -> Unit,
     onClick: () -> Unit,
     onLongPress: () -> Unit,
@@ -275,7 +277,12 @@ private fun ScheduleItem(
 
     SwipeActionsContainer(
         isRevealed = isRevealed,
-        onRevealedChange = { isRevealed = it },
+        onRevealedChange = { revealed ->
+            isRevealed = revealed
+            if (revealed) {
+                onActionRevealed()
+            }
+        },
         actions = {
             RivoPlainTooltip(
                 tooltipText = stringResource(R.string.cd_mark_as_paid)
