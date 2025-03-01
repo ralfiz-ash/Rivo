@@ -100,6 +100,26 @@ fun TitleMediumText(
 )
 
 @Composable
+fun TitleSmallText(
+    text: String,
+    modifier: Modifier = Modifier,
+    maxLines: Int = 2,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
+    fontWeight: FontWeight = FontWeight.SemiBold,
+    textDecoration: TextDecoration? = null,
+    color: Color = Color.Unspecified,
+) = Text(
+    text = text,
+    style = MaterialTheme.typography.titleSmall,
+    modifier = modifier,
+    maxLines = maxLines,
+    overflow = overflow,
+    fontWeight = fontWeight,
+    textDecoration = textDecoration,
+    color = color
+)
+
+@Composable
 fun BodyLargeText(
     text: String,
     modifier: Modifier = Modifier,

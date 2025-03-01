@@ -463,8 +463,7 @@
     <string name="schedule_reminder">Schedule Reminder</string>
     <string name="budget_includes_credit_amount_of_value">Budget amount shown here includes a credit amount of %s</string>
     <string name="for_txt">for</string>
-    <string name="on_the_txt">on the</string>
-    <string name="due_on_date">Due on %s</string>
+    <string name="due_on_colon_date">Due on: %s</string>
     <string name="schedules_this_month">Schedules this month</string>
     <string name="created_colon_timestamp_value">Created: %s</string>
     <string name="initializing_app">Initializing %s</string>
@@ -498,4 +497,5 @@
     <string name="value_bracket_copy">%s (Copy)</string>
     <string name="aggregated_amounts_not_currency_matched_message">Aggregated amounts may include multiple currencies and they are not automatically converted</string>
     <string name="filter">Filter</string>
+    <string name="of_txt">of</string>
 </resources>

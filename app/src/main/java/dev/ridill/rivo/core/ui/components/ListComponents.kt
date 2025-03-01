@@ -3,10 +3,10 @@ package dev.ridill.rivo.core.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.requiredWidthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -72,8 +72,8 @@ fun ListItemLeadingContentContainer(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxHeight()
-                .widthIn(min = ContainerMinWidth)
+                .requiredWidthIn(min = ContainerMinWidth)
+                .wrapContentHeight()
                 .padding(contentPadding)
                 .then(modifier),
             contentAlignment = Alignment.Center,
