@@ -1,12 +1,19 @@
 package dev.ridill.rivo.schedules.presentation.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
@@ -16,18 +23,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,13 +41,14 @@ import dev.ridill.rivo.core.domain.util.One
 import dev.ridill.rivo.core.domain.util.WhiteSpace
 import dev.ridill.rivo.core.ui.components.AmountWithTypeIndicator
 import dev.ridill.rivo.core.ui.components.BodyMediumText
+import dev.ridill.rivo.core.ui.components.BodySmallText
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
-import dev.ridill.rivo.core.ui.components.TitleSmallText
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
 import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.mergedContentDescription
 import dev.ridill.rivo.transactions.domain.model.TransactionType
+import dev.ridill.rivo.transactions.presentation.components.TypeIndicatorIcon
 import java.time.LocalDateTime
 
 @Composable
@@ -135,64 +139,58 @@ fun ActiveScheduleItem(
         modifier = modifier
             .widthIn(max = ActiveScheduleMaxWidth)
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .height(IntrinsicSize.Min)
+                .padding(MaterialTheme.spacing.medium),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
         ) {
-            Text(
-                text = buildAnnotatedString {
-                    append(stringResource(type.labelRes))
-                    append(String.WhiteSpace)
-                    append(stringResource(R.string.of_txt))
-                    append(String.WhiteSpace)
-                    withStyle(
-                        SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    ) {
-                        append(amount)
-                    }
-                    note?.let { text ->
-                        append(String.WhiteSpace)
-                        if (text.isNotEmpty()) {
-                            append(stringResource(R.string.for_txt))
-                            append(String.WhiteSpace)
-                            withStyle(
-                                SpanStyle(
-                                    fontStyle = FontStyle.Italic,
-                                    textDecoration = TextDecoration.Underline
-                                )
-                            ) {
-                                append(text)
-                            }
-                        }
-                    }
-                },
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+            Box(
                 modifier = Modifier
-                    .padding(
-                        horizontal = MaterialTheme.spacing.medium,
-                        vertical = MaterialTheme.spacing.small
+                    .defaultMinSize(minWidth = 30.dp, minHeight = 30.dp)
+                    .height(IntrinsicSize.Max)
+                    .aspectRatio(
+                        ratio = Float.One,
+                        matchHeightConstraintsFirst = true
                     )
-            )
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                TypeIndicatorIcon(type)
+            }
 
-            HorizontalDivider()
-
-            TitleSmallText(
-                text = stringResource(R.string.due_on_colon_date, paymentDay),
+            Column(
                 modifier = Modifier
-                    .padding(
-                        horizontal = MaterialTheme.spacing.medium,
-                        vertical = MaterialTheme.spacing.small
-                    )
+                    .weight(Float.One)
+            ) {
+                BodyMediumText(
+                    text = note.orEmpty()
+                        .ifEmpty { stringResource(type.labelRes) },
+                    color = LocalContentColor.current.copy(
+                        alpha = if (note.isNullOrEmpty()) ContentAlpha.SUB_CONTENT
+                        else Float.One
+                    ),
+                    fontStyle = if (note.isNullOrEmpty()) FontStyle.Italic
+                    else null
+                )
+                BodySmallText(
+                    text = stringResource(R.string.due_on_date, paymentDay),
+                    color = LocalContentColor.current.copy(alpha = ContentAlpha.SUB_CONTENT)
+                )
+            }
+
+            AmountWithTypeIndicator(
+                value = amount,
+                type = type,
+                showTypeIndicator = false
             )
         }
     }
 }
 
-private val ActiveScheduleMaxWidth = 200.dp
+private val ActiveScheduleMaxWidth = 300.dp
 
 @PreviewLightDark
 @Composable
@@ -216,7 +214,7 @@ private fun PreviewActiveScheduleCard() {
     RivoTheme {
         ActiveScheduleItem(
             note = "Test",
-            amount = "100",
+            amount = "Rs.100",
             type = TransactionType.DEBIT,
             paymentDay = "10th Wed",
             modifier = Modifier

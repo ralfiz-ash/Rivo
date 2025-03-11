@@ -523,14 +523,15 @@ private fun ActiveSchedulesRow(
                 type = schedule.type,
                 paymentDay = schedule.dayFormatted,
                 modifier = Modifier
+                    .fillMaxWidth(0.64f)
                     .animateItem()
             )
         }
     }
 }
 
-@PreviewScreenSizes
 @PreviewLightDark
+@PreviewScreenSizes
 @Composable
 private fun PreviewDashboardScreen() {
     RivoTheme {
@@ -542,7 +543,7 @@ private fun PreviewDashboardScreen() {
                 activeSchedules = List(3) {
                     ActiveSchedule(
                         id = it.toLong(),
-                        note = "Really long transaction note",
+                        note = null, // "Really long transaction note",
                         amount = 200.0,
                         currency = LocaleUtil.defaultCurrency,
                         type = TransactionType.DEBIT,

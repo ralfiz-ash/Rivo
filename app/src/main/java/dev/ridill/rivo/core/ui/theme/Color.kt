@@ -12,6 +12,9 @@ val DarkGrayVariant = Color(0xFF191919)
 
 val LightGray = Color(0xFFFAF9F6)
 
+val DebitRed = Color(0xFFEC7D7D)
+val CreditGreen = Color(0xFFC8D6A2)
+
 val md_theme_light_primary = Color(0xFF795900)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFFFFDFA0)

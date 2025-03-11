@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -26,6 +27,7 @@ import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.TextFormat
 import dev.ridill.rivo.folders.domain.model.AggregateType
 import dev.ridill.rivo.transactions.domain.model.TransactionType
+import dev.ridill.rivo.transactions.presentation.components.TypeIndicatorIcon
 
 @Composable
 fun MediumDisplayText(
@@ -143,7 +145,8 @@ fun BodyMediumText(
     overflow: TextOverflow = TextOverflow.Ellipsis,
     color: Color = Color.Unspecified,
     textAlign: TextAlign? = null,
-    textDecoration: TextDecoration? = null
+    textDecoration: TextDecoration? = null,
+    fontStyle: FontStyle? = null
 ) = Text(
     text = text,
     style = MaterialTheme.typography.bodyMedium,
@@ -152,7 +155,8 @@ fun BodyMediumText(
     modifier = modifier,
     color = color,
     textAlign = textAlign,
-    textDecoration = textDecoration
+    textDecoration = textDecoration,
+    fontStyle = fontStyle
 )
 
 @Composable
@@ -243,16 +247,12 @@ fun AmountWithTypeIndicator(
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            color = type?.color ?: LocalContentColor.current,
             modifier = Modifier
                 .weight(weight = Float.One, fill = false)
         )
         if (showTypeIndicator && type != null) {
-            Icon(
-                imageVector = ImageVector.vectorResource(type.iconRes),
-                contentDescription = stringResource(type.labelRes),
-                modifier = Modifier
-                    .size(TypeIndicatorSize)
-            )
+            TypeIndicatorIcon(type)
         }
     }
 }
@@ -276,16 +276,12 @@ fun AmountWithTypeIndicator(
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            color = type?.color ?: LocalContentColor.current,
             modifier = Modifier
                 .weight(weight = Float.One, fill = false)
         )
         if (showTypeIndicator && type != null) {
-            Icon(
-                imageVector = ImageVector.vectorResource(type.iconRes),
-                contentDescription = stringResource(type.labelRes),
-                modifier = Modifier
-                    .size(TypeIndicatorSize)
-            )
+            TypeIndicatorIcon(type)
         }
     }
 }
@@ -323,4 +319,4 @@ fun AmountWithTypeIndicator(
     }
 }
 
-private val TypeIndicatorSize = 16.dp
+private val TypeIndicatorSize = 12.dp

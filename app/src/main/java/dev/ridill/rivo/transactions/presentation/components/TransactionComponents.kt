@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.ridill.rivo.R
@@ -43,13 +44,13 @@ import dev.ridill.rivo.core.ui.components.ExcludedIndicatorSmall
 import dev.ridill.rivo.core.ui.components.ListItemLeadingContentContainer
 import dev.ridill.rivo.core.ui.components.icons.Tags
 import dev.ridill.rivo.core.ui.theme.ContentAlpha
+import dev.ridill.rivo.core.ui.theme.RivoTheme
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.core.ui.util.exclusionGraphicsLayer
 import dev.ridill.rivo.transactions.domain.model.FolderIndicator
 import dev.ridill.rivo.transactions.domain.model.TagIndicator
 import dev.ridill.rivo.transactions.domain.model.TransactionType
 import java.time.LocalDate
-import kotlin.text.ifEmpty
 
 @Composable
 fun TransactionListItem(
@@ -277,6 +278,36 @@ fun NewTransactionFab(
         Icon(
             imageVector = ImageVector.vectorResource(R.drawable.ic_outline_money_add),
             contentDescription = stringResource(R.string.cd_new_transaction_fab)
+        )
+    }
+}
+
+@Composable
+fun TypeIndicatorIcon(
+    type: TransactionType,
+    modifier: Modifier = Modifier
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(type.iconRes),
+        contentDescription = stringResource(type.labelRes),
+        tint = type.color,
+        modifier = modifier
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun PreviewTransactionListItem() {
+    RivoTheme {
+        TransactionListItem(
+            note = "Note",
+            amount = "Rs.1000",
+            date = LocalDate.now(),
+            type = TransactionType.CREDIT,
+            modifier = Modifier,
+            tag = null,
+            folder = null,
+            excluded = false
         )
     }
 }
