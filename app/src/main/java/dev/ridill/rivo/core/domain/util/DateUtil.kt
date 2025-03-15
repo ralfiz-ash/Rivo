@@ -6,6 +6,7 @@ import dev.ridill.rivo.core.ui.util.UiText
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -19,6 +20,7 @@ object DateUtil {
     fun now(zoneId: ZoneId = ZoneId.systemDefault()): LocalDateTime = LocalDateTime.now(zoneId)
 
     fun dateNow(zoneId: ZoneId = ZoneId.systemDefault()): LocalDate = LocalDate.now(zoneId)
+    fun timeNow(zoneId: ZoneId = ZoneId.systemDefault()): LocalTime = LocalTime.now(zoneId)
 
     fun parseDateTime(
         value: String,
@@ -68,7 +70,7 @@ object DateUtil {
 
     fun dateFromMillisWithTime(
         millis: Long,
-        time: LocalDateTime = now(),
+        time: LocalTime = timeNow(),
         zoneId: ZoneId = ZoneId.systemDefault()
     ): LocalDateTime = Instant.ofEpochMilli(millis)
         .atZone(zoneId)

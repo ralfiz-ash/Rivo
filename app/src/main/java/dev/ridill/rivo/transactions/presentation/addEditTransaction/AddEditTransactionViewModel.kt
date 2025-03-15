@@ -304,7 +304,7 @@ class AddEditTransactionViewModel @Inject constructor(
         savedStateHandle[TX_INPUT] = txInput.value.copy(
             timestamp = DateUtil.dateFromMillisWithTime(
                 millis = millis,
-                time = txInput.value.timestamp
+                time = txInput.value.timestamp.toLocalTime()
             )
         )
         savedStateHandle[SHOW_DATE_PICKER] = false
