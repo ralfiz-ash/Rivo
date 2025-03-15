@@ -510,7 +510,8 @@ private fun ActiveSchedulesRow(
             end = PaddingScrollEnd
         ),
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         items(
             items = activeSchedules,
@@ -523,12 +524,15 @@ private fun ActiveSchedulesRow(
                 type = schedule.type,
                 paymentDay = schedule.dayFormatted,
                 modifier = Modifier
-                    .fillMaxWidth(0.64f)
+                    .fillMaxWidth(ACTIVE_SCHEDULE_WIDTH_FRACTION)
+                    .fillParentMaxHeight()
                     .animateItem()
             )
         }
     }
 }
+
+private const val ACTIVE_SCHEDULE_WIDTH_FRACTION = 0.64f
 
 @PreviewLightDark
 @PreviewScreenSizes

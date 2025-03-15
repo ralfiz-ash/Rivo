@@ -6,11 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ElevatedCard
@@ -148,11 +147,9 @@ fun ActiveScheduleItem(
         ) {
             Box(
                 modifier = Modifier
-                    .defaultMinSize(minWidth = 30.dp, minHeight = 30.dp)
-                    .height(IntrinsicSize.Max)
-                    .aspectRatio(
-                        ratio = Float.One,
-                        matchHeightConstraintsFirst = true
+                    .size(
+                        width = ActiveScheduleTypeIndicatorSize,
+                        height = ActiveScheduleTypeIndicatorSize
                     )
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
@@ -173,7 +170,8 @@ fun ActiveScheduleItem(
                         else Float.One
                     ),
                     fontStyle = if (note.isNullOrEmpty()) FontStyle.Italic
-                    else null
+                    else null,
+                    maxLines = 1
                 )
                 BodySmallText(
                     text = stringResource(R.string.due_on_date, paymentDay),
@@ -190,6 +188,7 @@ fun ActiveScheduleItem(
     }
 }
 
+private val ActiveScheduleTypeIndicatorSize = 30.dp
 private val ActiveScheduleMaxWidth = 300.dp
 
 @PreviewLightDark
