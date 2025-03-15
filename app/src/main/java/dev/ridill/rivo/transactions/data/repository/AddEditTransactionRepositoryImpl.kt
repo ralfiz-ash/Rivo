@@ -92,7 +92,8 @@ class AddEditTransactionRepositoryImpl(
                 repetition = repetition,
                 tagId = transaction.tagId,
                 folderId = transaction.folderId,
-                nextPaymentTimestamp = transaction.timestamp
+                nextPaymentTimestamp = transaction.timestamp,
+                currency = transaction.currency
             ) ?: Schedule.fromTransaction(transaction, repetition)
 
         schedulesRepo.saveScheduleAndSetReminder(schedule)
