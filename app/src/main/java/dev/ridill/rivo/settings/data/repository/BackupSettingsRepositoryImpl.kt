@@ -4,7 +4,6 @@ import androidx.work.WorkInfo
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
-import dev.ridill.rivo.core.domain.util.logD
 import dev.ridill.rivo.settings.data.local.ConfigDao
 import dev.ridill.rivo.settings.data.local.ConfigKeys
 import dev.ridill.rivo.settings.data.local.entity.ConfigEntity
