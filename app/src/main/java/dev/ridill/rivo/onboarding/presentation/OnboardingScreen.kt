@@ -36,14 +36,13 @@ import dev.ridill.rivo.core.ui.components.RivoScaffold
 import dev.ridill.rivo.core.ui.components.SnackbarController
 import dev.ridill.rivo.core.ui.theme.BorderWidthStandard
 import dev.ridill.rivo.core.ui.theme.PrimaryBrandColor
-import dev.ridill.rivo.core.ui.theme.contentColor
+import dev.ridill.rivo.core.ui.theme.onPrimaryBrandColor
 import dev.ridill.rivo.core.ui.theme.spacing
 import dev.ridill.rivo.onboarding.domain.model.OnboardingPage
 import dev.ridill.rivo.onboarding.presentation.components.PermissionsPage
 import dev.ridill.rivo.onboarding.presentation.components.SetBudgetPage
 import dev.ridill.rivo.onboarding.presentation.components.SignInAndDataRestore
 import dev.ridill.rivo.onboarding.presentation.components.WelcomeMessagePage
-import kotlin.String
 
 @Composable
 fun OnboardingScreen(
@@ -71,7 +70,7 @@ fun OnboardingScreen(
         }
     }
     CompositionLocalProvider(
-        LocalContentColor provides PrimaryBrandColor.contentColor()
+        LocalContentColor provides onPrimaryBrandColor
     ) {
         RivoScaffold(
             containerColor = PrimaryBrandColor,
