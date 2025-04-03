@@ -28,7 +28,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -216,164 +215,151 @@ fun AddEditTransactionScreen(
             .then(modifier),
         snackbarController = snackbarController
     ) { paddingValues ->
-        Box {
-            Column(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    top = MaterialTheme.spacing.medium,
+                    bottom = PaddingScrollEnd
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
+        ) {
+            TransactionTypeSelector(
+                selectedType = state.transactionType,
+                onValueChange = actions::onTypeChange,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(
-                        top = MaterialTheme.spacing.medium,
-                        bottom = PaddingScrollEnd
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
-            ) {
-                TransactionTypeSelector(
-                    selectedType = state.transactionType,
-                    onValueChange = actions::onTypeChange,
+                    .fillMaxWidth(TRANSACTION_DIRECTION_SELECTOR_WIDTH_FRACTION)
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            AmountInput(
+                currency = state.currency,
+                onCurrencyClick = navigateToCurrencySelection,
+                amount = amountInput,
+                isInputAnExpression = state.isAmountInputAnExpression,
+                onAmountChange = actions::onAmountChange,
+                onExpressionEvalClick = actions::onEvaluateExpressionClick,
+                onTransformClick = navigateToAmountTransformation,
+                onFocusLost = actions::onAmountFocusLost,
+                modifier = Modifier
+                    .padding(horizontal = MaterialTheme.spacing.medium)
+                    .focusRequester(amountFocusRequester)
+            )
+
+            NoteInput(
+                isDuplicateMode = isDuplicateMode,
+                input = noteInput,
+                onValueChange = actions::onNoteChange,
+                modifier = Modifier
+                    .padding(horizontal = MaterialTheme.spacing.medium)
+            )
+
+            if (!isEditMode) {
+                AmountRecommendationsRow(
+                    recommendations = state.amountRecommendations,
+                    onRecommendationClick = {
+                        actions.onRecommendedAmountClick(it)
+                        focusManager.moveFocus(FocusDirection.Down)
+                    },
                     modifier = Modifier
-                        .fillMaxWidth(TRANSACTION_DIRECTION_SELECTOR_WIDTH_FRACTION)
-                        .align(Alignment.CenterHorizontally)
-                )
-
-                AmountInput(
-                    currency = state.currency,
-                    onCurrencyClick = navigateToCurrencySelection,
-                    amount = amountInput,
-                    isInputAnExpression = state.isAmountInputAnExpression,
-                    onAmountChange = actions::onAmountChange,
-                    onExpressionEvalClick = actions::onEvaluateExpressionClick,
-                    onTransformClick = navigateToAmountTransformation,
-                    onFocusLost = actions::onAmountFocusLost,
-                    modifier = Modifier
-                        .padding(horizontal = MaterialTheme.spacing.medium)
-                        .focusRequester(amountFocusRequester)
-                )
-
-                NoteInput(
-                    isDuplicateMode = isDuplicateMode,
-                    input = noteInput,
-                    onValueChange = actions::onNoteChange,
-                    modifier = Modifier
-                        .padding(horizontal = MaterialTheme.spacing.medium)
-                )
-
-                if (!isEditMode) {
-                    AmountRecommendationsRow(
-                        recommendations = state.amountRecommendations,
-                        onRecommendationClick = {
-                            actions.onRecommendedAmountClick(it)
-                            focusManager.moveFocus(FocusDirection.Down)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(AMOUNT_RECOMMENDATION_WIDTH_FRACTION)
-                    )
-                }
-
-                HorizontalDivider()
-
-                TransactionTimestamp(
-                    timestamp = state.timestamp,
-                    onClick = actions::onTimestampClick,
-                    modifier = Modifier
-                        .padding(horizontal = MaterialTheme.spacing.medium)
-                        .align(Alignment.End)
-                )
-
-                FolderIndicator(
-                    folderName = state.linkedFolderName,
-                    onSelectFolderClick = actions::onSelectFolderClick,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                )
-
-                AnimatedVisibility(
-                    visible = state.isScheduleTxMode,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                ) {
-                    TransactionRepeatModeIndicator(
-                        selectedRepeatMode = state.selectedRepetition,
-                        onClick = actions::onRepeatModeClick,
-                        modifier = Modifier
-                            .padding(horizontal = MaterialTheme.spacing.medium)
-                    )
-                }
-                HorizontalDivider()
-
-                SwitchPreference(
-                    titleRes = R.string.exclude_from_expenditure,
-                    value = state.isTransactionExcluded,
-                    onValueChange = actions::onExclusionToggle,
-                    leadingIcon = { ExcludedIcon() }
-                )
-
-                HorizontalDivider()
-
-                TagSelection(
-                    tagsLazyPagingItems = recentTagsLazyPagingItems,
-                    selectedTagId = state.selectedTagId,
-                    onTagClick = actions::onTagSelect,
-                    onViewAllClick = actions::onViewAllTagsClick,
-                    modifier = Modifier
-                        .padding(horizontal = MaterialTheme.spacing.medium)
+                        .fillMaxWidth(AMOUNT_RECOMMENDATION_WIDTH_FRACTION)
                 )
             }
+
+            HorizontalDivider()
+
+            TransactionTimestamp(
+                timestamp = state.timestamp,
+                onClick = actions::onTimestampClick,
+                modifier = Modifier
+                    .padding(horizontal = MaterialTheme.spacing.medium)
+                    .align(Alignment.End)
+            )
+
+            FolderIndicator(
+                folderName = state.linkedFolderName,
+                onSelectFolderClick = actions::onSelectFolderClick,
+                modifier = Modifier
+                    .align(Alignment.Start)
+            )
 
             AnimatedVisibility(
-                visible = state.isLoading,
+                visible = state.isScheduleTxMode,
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
+                    .align(Alignment.Start)
             ) {
-                LinearProgressIndicator(
+                TransactionRepeatModeIndicator(
+                    selectedRepeatMode = state.selectedRepetition,
+                    onClick = actions::onRepeatModeClick,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .padding(horizontal = MaterialTheme.spacing.medium)
                 )
             }
-        }
+            HorizontalDivider()
 
-        if (state.showDeleteConfirmation) {
-            ConfirmationDialog(
-                title = if (state.isScheduleTxMode) pluralStringResource(
-                    R.plurals.delete_schedules_confirmation_title,
-                    Int.One
-                )
-                else pluralStringResource(
-                    R.plurals.delete_transactions_confirmation_title,
-                    Int.One
-                ),
-                content = stringResource(R.string.action_irreversible_message),
-                onConfirm = actions::onDeleteConfirm,
-                onDismiss = actions::onDeleteDismiss
+            SwitchPreference(
+                titleRes = R.string.exclude_from_expenditure,
+                value = state.isTransactionExcluded,
+                onValueChange = actions::onExclusionToggle,
+                leadingIcon = { ExcludedIcon() }
+            )
+
+            HorizontalDivider()
+
+            TagSelection(
+                tagsLazyPagingItems = recentTagsLazyPagingItems,
+                selectedTagId = state.selectedTagId,
+                onTagClick = actions::onTagSelect,
+                onViewAllClick = actions::onViewAllTagsClick,
+                modifier = Modifier
+                    .padding(horizontal = MaterialTheme.spacing.medium)
             )
         }
+    }
 
-        if (state.showDatePicker) {
-            RivoDatePickerDialog(
-                onDismiss = actions::onDateSelectionDismiss,
-                onConfirm = actions::onDateSelectionConfirm,
-                onPickTimeClick = actions::onPickTimeClick,
-                state = datePickerState
+    if (state.showDeleteConfirmation) {
+        ConfirmationDialog(
+            title = if (state.isScheduleTxMode) pluralStringResource(
+                R.plurals.delete_schedules_confirmation_title,
+                Int.One
             )
-        }
+            else pluralStringResource(
+                R.plurals.delete_transactions_confirmation_title,
+                Int.One
+            ),
+            content = stringResource(R.string.action_irreversible_message),
+            onConfirm = actions::onDeleteConfirm,
+            onDismiss = actions::onDeleteDismiss
+        )
+    }
 
-        if (state.showTimePicker) {
-            RivoTimePickerDialog(
-                onDismiss = actions::onTimeSelectionDismiss,
-                onConfirm = actions::onTimeSelectionConfirm,
-                onPickDateClick = actions::onPickDateClick,
-                state = timePickerState
-            )
-        }
+    if (state.showDatePicker) {
+        RivoDatePickerDialog(
+            onDismiss = actions::onDateSelectionDismiss,
+            onConfirm = actions::onDateSelectionConfirm,
+            onPickTimeClick = actions::onPickTimeClick,
+            state = datePickerState
+        )
+    }
 
-        if (state.showRepeatModeSelection) {
-            RepetitionSelectionSheet(
-                onDismiss = actions::onRepeatModeDismiss,
-                selectedRepetition = state.selectedRepetition,
-                onRepetitionSelect = actions::onRepetitionSelect,
-            )
-        }
+    if (state.showTimePicker) {
+        RivoTimePickerDialog(
+            onDismiss = actions::onTimeSelectionDismiss,
+            onConfirm = actions::onTimeSelectionConfirm,
+            onPickDateClick = actions::onPickDateClick,
+            state = timePickerState
+        )
+    }
+
+    if (state.showRepeatModeSelection) {
+        RepetitionSelectionSheet(
+            onDismiss = actions::onRepeatModeDismiss,
+            selectedRepetition = state.selectedRepetition,
+            onRepetitionSelect = actions::onRepetitionSelect,
+        )
     }
 }
 
