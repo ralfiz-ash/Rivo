@@ -9,7 +9,8 @@ import java.time.LocalDateTime
 data class BackupDetails(
     val name: String,
     val id: String,
-    val timestamp: String
+    val timestamp: String,
+    val hashSalt: String?
 ) : Parcelable {
     fun getParsedTimestamp(): LocalDateTime? = DateUtil.parseDateTimeOrNull(timestamp)
 }

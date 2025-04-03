@@ -4,6 +4,7 @@ import androidx.work.WorkInfo
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
+import dev.ridill.rivo.core.domain.util.logD
 import dev.ridill.rivo.settings.data.local.ConfigDao
 import dev.ridill.rivo.settings.data.local.ConfigKeys
 import dev.ridill.rivo.settings.data.local.entity.ConfigEntity
@@ -77,11 +78,9 @@ class BackupSettingsRepositoryImpl(
     override suspend fun isCurrentPasswordMatch(currentPasswordInput: String): Boolean {
         val securityPreferences = securityPreferencesManager.preferences.first()
         val passwordHash = securityPreferences.backupEncryptionHash
-        val passwordHashSalt = securityPreferences.backupEncryptionHashSalt
-        return cryptoManager.areEqual(
+        return cryptoManager.areHashesMatch(
             value = currentPasswordInput,
-            hash2 = passwordHash,
-            commonSalt = passwordHashSalt
+            hash2 = passwordHash
         )
     }
 

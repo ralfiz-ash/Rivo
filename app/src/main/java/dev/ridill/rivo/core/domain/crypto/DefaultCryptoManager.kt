@@ -1,9 +1,6 @@
 package dev.ridill.rivo.core.domain.crypto
 
-import android.security.keystore.KeyProperties
-import dev.ridill.rivo.core.domain.util.logD
-import java.security.MessageDigest
-import java.security.SecureRandom
+import org.mindrot.jbcrypt.BCrypt
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -57,25 +54,14 @@ class DefaultCryptoManager : CryptoManager {
         iv = iv
     ).doFinal(encryptedData)
 
-    @OptIn(ExperimentalStdlibApi::class)
-    override fun generateSalt(): HashSaltString {
-        val saltBytes = ByteArray(CryptoManager.SALT_LENGTH)
-        SecureRandom().nextBytes(saltBytes)
-        return saltBytes.toHexString()
-    }
+    override fun generateSalt(): HashSaltString =
+        BCrypt.gensalt(CryptoManager.HASH_LOG_ROUNDS)
 
-    @OptIn(ExperimentalStdlibApi::class)
     override fun saltedHash(message: String, salt: String): Pair<HashString, HashSaltString> {
-        val saltedMessage = "$salt$message"
-        val hashResult = MessageDigest.getInstance(KeyProperties.DIGEST_SHA256)
-            .digest(saltedMessage.toByteArray()).toHexString()
-        logD("DefaultCryptoManager") { "saltedHash() called with: message = $message, saltString = $salt, saltedMessage = $saltedMessage, resultHash = $hashResult" }
-        return hashResult to salt
+        val hash = BCrypt.hashpw(message, salt)
+        return hash to salt
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    override fun areEqual(value: String?, hash2: String?, commonSalt: HashSaltString?): Boolean {
-        val (valueHash, _) = saltedHash(value.orEmpty(), commonSalt ?: generateSalt())
-        return MessageDigest.isEqual(valueHash.hexToByteArray(), hash2?.hexToByteArray())
-    }
+    override fun areHashesMatch(value: String?, hash2: String?): Boolean =
+        BCrypt.checkpw(value, hash2)
 }

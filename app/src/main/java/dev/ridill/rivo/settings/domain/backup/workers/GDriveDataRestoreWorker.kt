@@ -36,7 +36,7 @@ class GDriveDataRestoreWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         startForegroundService()
         try {
-            val passwordHash = inputData.getString(BackupWorkManager.KEY_PASSWORD_HASH).orEmpty()
+            val password = inputData.getString(BackupWorkManager.KEY_PASSWORD).orEmpty()
                 .ifEmpty { throw InvalidEncryptionPasswordThrowable() }
             val passwordHashSalt = inputData.getString(BackupWorkManager.KEY_PASSWORD_HASH_SALT)
                 .orEmpty().ifEmpty { throw InvalidEncryptionPasswordThrowable() }
@@ -45,7 +45,7 @@ class GDriveDataRestoreWorker @AssistedInject constructor(
                 ?: throw BackupDownloadFailedThrowable()
             logI(GDriveDataRestoreWorker::class.simpleName) { "Starting data restore from cache" }
             repo.performAppDataRestoreFromCache(
-                passwordHash = passwordHash,
+                password = password,
                 passwordSalt = passwordHashSalt,
                 timestamp = timestamp
             )

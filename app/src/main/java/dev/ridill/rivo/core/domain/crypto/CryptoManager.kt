@@ -16,21 +16,17 @@ interface CryptoManager {
 
     fun generateSalt(): HashSaltString
     fun saltedHash(message: String, salt: String = generateSalt()): Pair<HashString, HashSaltString>
-    fun areEqual(
-        value: String?,
-        hash2: String?,
-        commonSalt: HashSaltString?
-    ): Boolean
+    fun areHashesMatch(value: String?, hash2: String?): Boolean
 
     companion object {
         const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
         private const val BLOCK_MODE = KeyProperties.BLOCK_MODE_CBC
         private const val PADDING = KeyProperties.ENCRYPTION_PADDING_PKCS7
         const val TRANSFORMATION = "$ALGORITHM/$BLOCK_MODE/$PADDING"
-        const val SALT_LENGTH = 32
         const val ITERATION_COUNT = 65536
         const val KEY_LENGTH = 128
         const val KEY_ALGORITHM = "PBKDF2WithHmacSha256"
+        const val HASH_LOG_ROUNDS = 15
     }
 }
 

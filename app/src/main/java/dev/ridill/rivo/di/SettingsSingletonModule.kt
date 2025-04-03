@@ -107,7 +107,8 @@ object SettingsSingletonModule {
         configDao: ConfigDao,
         backupWorkManager: BackupWorkManager,
         schedulesRepository: SchedulesRepository,
-        authRepository: AuthRepository
+        authRepository: AuthRepository,
+        cryptoManager: CryptoManager,
     ): BackupRepository = BackupRepositoryImpl(
         backupService = backupService,
         gDriveApi = gDriveApi,
@@ -116,7 +117,8 @@ object SettingsSingletonModule {
         configDao = configDao,
         backupWorkManager = backupWorkManager,
         schedulesRepository = schedulesRepository,
-        authRepo = authRepository
+        authRepo = authRepository,
+        cryptoManager = cryptoManager
     )
 
     @Provides

@@ -3,7 +3,8 @@ package dev.ridill.rivo.settings.domain.backup
 import android.content.Context
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
-import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.crypto.HashSaltString
+import dev.ridill.rivo.core.domain.crypto.HashString
 import dev.ridill.rivo.core.domain.util.logI
 import dev.ridill.rivo.core.domain.util.toByteArray
 import dev.ridill.rivo.core.domain.util.toInt
@@ -31,8 +32,8 @@ class BackupService(
         BadPaddingException::class
     )
     suspend fun restoreBackupFromCache(
-        password: String,
-        passwordSalt: String,
+        passwordHash: HashString,
+        passwordSalt: HashSaltString,
         timestamp: LocalDateTime
     ) = withContext(Dispatchers.IO) {
         val dbPath = database.openHelper.readableDatabase.path
@@ -70,7 +71,7 @@ class BackupService(
                 val decryptedBytes = cryptoManager.decrypt(
                     encryptedData = dataBytes,
                     iv = ivBytes,
-                    password = password,
+                    password = passwordHash,
                     salt = passwordSalt
                 )
 
@@ -143,7 +144,7 @@ class BackupService(
     )
     suspend fun buildBackupFile(
         password: String,
-        passwordSalt: String,
+        passwordSalt: HashSaltString,
     ): File = withContext(Dispatchers.IO) {
         val dbFile = context.getDatabasePath(RivoDatabase.NAME)
         val dbWalFile = File(dbFile.path + SQLITE_WAL_FILE_SUFFIX)
@@ -181,7 +182,7 @@ class BackupService(
         }
 
         logI { "Create DB backup file" }
-        val encryptedBackupFile = File(cachePath, backupFileName())
+        val encryptedBackupFile = File(cachePath, DB_BACKUP_FILE_NAME)
         if (encryptedBackupFile.exists()) encryptedBackupFile.delete()
         dbCache.inputStream().buffered().use dbCacheInputStream@{
             val rawBytes = readSafely(it)
@@ -214,8 +215,6 @@ class BackupService(
         writableDb.query("PRAGMA wal_checkpoint(FULL);")
         writableDb.query("PRAGMA wal_checkpoint(TRUNCATE);")
     }
-
-    private fun backupFileName(): String = "${DateUtil.now()}-$DB_BACKUP_FILE_NAME"
 
     fun doesRestoreCacheExist(timestamp: LocalDateTime): Boolean {
         val cachePath = context.externalCacheDir ?: throw RestoreFailedThrowable()
@@ -275,7 +274,7 @@ class BackupService(
 private const val DB_TEMP_CACHE_FILENAME = "DBBackupCache.backup"
 private const val SQLITE_WAL_FILE_SUFFIX = "-wal"
 private const val SQLITE_SHM_FILE_SUFFIX = "-shm"
-const val DB_BACKUP_FILE_NAME = "Rivo_db.backup"
+val DB_BACKUP_FILE_NAME get() = "Rivo_db.backup"
 private const val RESTORE_CACHE_FILE = "RestoreCache.backup"
 
 class BackupCachingFailedThrowable : Throwable("Failed to create backup cache")

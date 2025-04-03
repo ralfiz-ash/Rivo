@@ -10,7 +10,7 @@ interface BackupRepository {
     suspend fun performAppDataBackup()
     suspend fun downloadAndCacheBackupData(fileId: String, timestamp: LocalDateTime)
     suspend fun performAppDataRestoreFromCache(
-        passwordHash: String,
+        password: String,
         passwordSalt: String,
         timestamp: LocalDateTime
     )
