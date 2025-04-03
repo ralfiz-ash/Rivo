@@ -8,6 +8,7 @@ import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.settings.data.local.ConfigDao
@@ -52,12 +53,14 @@ object SettingsViewModelModule {
     fun provideBackupSettingsRepository(
         dao: ConfigDao,
         preferencesManager: PreferencesManager,
+        securityPreferencesManager: SecurityPreferencesManager,
         backupWorkManager: BackupWorkManager,
         cryptoManager: CryptoManager
     ): BackupSettingsRepository = BackupSettingsRepositoryImpl(
         dao = dao,
         preferencesManager = preferencesManager,
         backupWorkManager = backupWorkManager,
+        securityPreferencesManager = securityPreferencesManager,
         cryptoManager = cryptoManager
     )
 

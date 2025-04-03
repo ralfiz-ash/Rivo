@@ -12,6 +12,7 @@ import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.account.domain.service.AccessTokenService
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
 import dev.ridill.rivo.core.domain.notification.NotificationHelper
 import dev.ridill.rivo.schedules.domain.repository.SchedulesRepository
@@ -102,6 +103,7 @@ object SettingsSingletonModule {
         backupService: BackupService,
         gDriveApi: GDriveApi,
         preferencesManager: PreferencesManager,
+        securityPreferencesManager: SecurityPreferencesManager,
         configDao: ConfigDao,
         backupWorkManager: BackupWorkManager,
         schedulesRepository: SchedulesRepository,
@@ -110,6 +112,7 @@ object SettingsSingletonModule {
         backupService = backupService,
         gDriveApi = gDriveApi,
         preferencesManager = preferencesManager,
+        securityPreferencesManager = securityPreferencesManager,
         configDao = configDao,
         backupWorkManager = backupWorkManager,
         schedulesRepository = schedulesRepository,

@@ -3,7 +3,9 @@ package dev.ridill.rivo.settings.data.repository
 import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.gson.Gson
+import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.data.util.tryNetworkCall
 import dev.ridill.rivo.core.domain.model.DataError
 import dev.ridill.rivo.core.domain.model.Result
@@ -24,7 +26,6 @@ import dev.ridill.rivo.settings.domain.backup.DB_BACKUP_FILE_NAME
 import dev.ridill.rivo.settings.domain.backup.RestoreFailedThrowable
 import dev.ridill.rivo.settings.domain.modal.BackupDetails
 import dev.ridill.rivo.settings.domain.modal.BackupInterval
-import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.settings.domain.repositoty.BackupRepository
 import dev.ridill.rivo.settings.domain.repositoty.FatalBackupError
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,7 @@ class BackupRepositoryImpl(
     private val backupService: BackupService,
     private val gDriveApi: GDriveApi,
     private val preferencesManager: PreferencesManager,
+    private val securityPreferencesManager: SecurityPreferencesManager,
     private val configDao: ConfigDao,
     private val backupWorkManager: BackupWorkManager,
     private val schedulesRepository: SchedulesRepository,
@@ -80,8 +82,12 @@ class BackupRepositoryImpl(
     )
     override suspend fun performAppDataBackup() = withContext(Dispatchers.IO) {
         logI { "Performing Data Backup" }
-        val passwordHash = preferencesManager.preferences.first()
-            .encryptionPasswordHash.orEmpty()
+        val securityPreferences = securityPreferencesManager.preferences.first()
+        val passwordHash = securityPreferences
+            .backupEncryptionHash.orEmpty()
+            .ifEmpty { throw InvalidEncryptionPasswordThrowable() }
+        val passwordHashSalt = securityPreferences
+            .backupEncryptionHashSalt.orEmpty()
             .ifEmpty { throw InvalidEncryptionPasswordThrowable() }
         val email = authRepo.getSignedInAccount()?.email
             ?: throw GoogleAuthException()
@@ -97,7 +103,10 @@ class BackupRepositoryImpl(
             logD { "Create backup folder metadata - $createBackupFolderMetadataPart" }
             backupFolder = gDriveApi.createFolder(createBackupFolderMetadataPart)
         }
-        val backupFile = backupService.buildBackupFile(passwordHash)
+        val backupFile = backupService.buildBackupFile(
+            password = passwordHash,
+            passwordSalt = passwordHashSalt
+        )
         val metadataMap = mapOf(
             "name" to backupFile.name,
             "parents" to listOf(backupFolder.id)
@@ -162,11 +171,19 @@ class BackupRepositoryImpl(
     )
     override suspend fun performAppDataRestoreFromCache(
         passwordHash: String,
+        passwordSalt: String,
         timestamp: LocalDateTime
     ) = withContext(Dispatchers.IO) {
         logI { "Restoring Backup from cache" }
-        backupService.restoreBackupFromCache(passwordHash, timestamp)
-        preferencesManager.updateEncryptionPasswordHash(passwordHash)
+        backupService.restoreBackupFromCache(
+            password = passwordHash,
+            passwordSalt = passwordSalt,
+            timestamp = timestamp
+        )
+        securityPreferencesManager.updateBackupEncryptionHash(
+            hash = passwordHash,
+            salt = passwordSalt
+        )
         preferencesManager.updateLastBackupTimestamp(timestamp)
         logI { "Updated last backup timestamp" }
     }

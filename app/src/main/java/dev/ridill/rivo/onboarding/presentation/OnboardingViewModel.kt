@@ -85,7 +85,7 @@ class OnboardingViewModel @Inject constructor(
                       dataRestoreState,
                       showEncryptionPasswordInput,
                       appRestartTimer,
-                                      appCurrency
+                      appCurrency
                   ) ->
         OnboardingState(
             signInAndDataRestoreState = signInAndDataRestoreState,
@@ -352,11 +352,12 @@ class OnboardingViewModel @Inject constructor(
     override fun onEncryptionPasswordSubmit(password: String) {
         val backupDetails = savedStateHandle.get<BackupDetails?>(AVAILABLE_BACKUP)
             ?: return
-        val passwordHash = cryptoManager.hash(password)
+        val (passwordHash, hashSalt) = cryptoManager.saltedHash(password)
         savedStateHandle[SHOW_ENCRYPTION_PASSWORD_INPUT] = false
         backupWorkManager.runImmediateRestoreWork(
             backupDetails = backupDetails,
-            passwordHash = passwordHash
+            passwordHash = passwordHash,
+            passwordHashSalt = hashSalt
         )
     }
 

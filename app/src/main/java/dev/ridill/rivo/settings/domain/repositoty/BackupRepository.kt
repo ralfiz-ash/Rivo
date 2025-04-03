@@ -9,7 +9,12 @@ interface BackupRepository {
     suspend fun checkForBackup(): Result<BackupDetails, DataError>
     suspend fun performAppDataBackup()
     suspend fun downloadAndCacheBackupData(fileId: String, timestamp: LocalDateTime)
-    suspend fun performAppDataRestoreFromCache(passwordHash: String, timestamp: LocalDateTime)
+    suspend fun performAppDataRestoreFromCache(
+        passwordHash: String,
+        passwordSalt: String,
+        timestamp: LocalDateTime
+    )
+
     suspend fun tryClearLocalCache()
     suspend fun setBackupError(error: FatalBackupError?)
     suspend fun restoreAppConfig()
