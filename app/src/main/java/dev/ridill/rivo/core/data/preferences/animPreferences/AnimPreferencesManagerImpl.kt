@@ -11,7 +11,7 @@ import dev.ridill.rivo.core.domain.util.orTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
@@ -26,7 +26,7 @@ class AnimPreferencesManagerImpl(
                 emit(emptyPreferences())
             } else throw cause
         }
-        .map { preferences ->
+        .mapLatest { preferences ->
             val showDashboardRecentSpendMarqueeTooltip =
                 preferences[Keys.SHOW_DASHBOARD_RECENT_SPEND_MARQUEE_TOOLTIP].orTrue()
             val showScheduleItemActionPreview =

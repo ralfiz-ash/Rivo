@@ -2,6 +2,7 @@ package dev.ridill.rivo.settings.data.repository
 
 import androidx.work.WorkInfo
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
 import dev.ridill.rivo.settings.data.local.ConfigDao
 import dev.ridill.rivo.settings.data.local.ConfigKeys
@@ -14,19 +15,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 class BackupSettingsRepositoryImpl(
     private val dao: ConfigDao,
     private val preferencesManager: PreferencesManager,
+    private val securityPreferencesManager: SecurityPreferencesManager,
     private val backupWorkManager: BackupWorkManager,
     private val cryptoManager: CryptoManager
 ) : BackupSettingsRepository {
 
     override fun getLastBackupTime(): Flow<LocalDateTime?> = preferencesManager.preferences
-        .map { it.lastBackupDateTime }
+        .mapLatest { it.lastBackupDateTime }
         .distinctUntilChanged()
 
     override fun getImmediateBackupWorkInfo(): Flow<WorkInfo?> =
@@ -72,30 +74,29 @@ class BackupSettingsRepositoryImpl(
         backupWorkManager.schedulePeriodicBackupWork(backupInterval)
     }
 
-    override suspend fun isCurrentPasswordMatch(currentPasswordInput: String): Boolean =
-        preferencesManager.preferences.first().encryptionPasswordHash?.let {
-            cryptoManager.areDigestsEqual(
-                hash1 = cryptoManager.hash(currentPasswordInput),
-                hash2 = it
-            )
-        } ?: false
-
+    override suspend fun isCurrentPasswordMatch(currentPasswordInput: String): Boolean {
+        val securityPreferences = securityPreferencesManager.preferences.first()
+        val passwordHash = securityPreferences.backupEncryptionHash
+        return cryptoManager.areHashesMatch(
+            value = currentPasswordInput,
+            hash2 = passwordHash
+        )
+    }
 
     override suspend fun updateEncryptionPassword(password: String): Unit =
         withContext(Dispatchers.IO) {
-            val passwordHash = cryptoManager.hash(password)
-            preferencesManager.updateEncryptionPasswordHash(passwordHash)
+            val (hash, salt) = cryptoManager.saltedHash(password)
+            securityPreferencesManager.updateBackupEncryptionHash(hash = hash, salt = salt)
         }
 
     override fun getFatalBackupError(): Flow<FatalBackupError?> = preferencesManager
         .preferences
-        .map { it.fatalBackupError }
+        .mapLatest { it.fatalBackupError }
         .distinctUntilChanged()
 
     override fun isEncryptionPasswordAvailable(): Flow<Boolean> =
-        preferencesManager.preferences
-            .map { it.encryptionPasswordHash }
-            .map { !it.isNullOrEmpty() }
+        securityPreferencesManager.preferences
+            .mapLatest { it.hasValidBackupEncryptionPassword }
             .distinctUntilChanged()
 }
 

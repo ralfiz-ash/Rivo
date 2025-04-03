@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.zhuinden.flowcombinetuplekt.combineTuple
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.ridill.rivo.R
-import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.domain.util.Empty
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.asStateFlow
@@ -15,7 +15,7 @@ import dev.ridill.rivo.settings.domain.repositoty.BackupSettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BackupEncryptionViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val preferencesManager: PreferencesManager,
+    private val securityPreferencesManager: SecurityPreferencesManager,
     private val repo: BackupSettingsRepository,
     private val eventBus: EventBus<BackupEncryptionEvent>
 ) : ViewModel(), BackupEncryptionActions {
@@ -34,26 +34,29 @@ class BackupEncryptionViewModel @Inject constructor(
 
     private val showPasswordInput = savedStateHandle.getStateFlow(SHOW_PASSWORD_INPUT, false)
 
-    private val hasExistingPassword = preferencesManager.preferences
-        .map { it.encryptionPasswordHash }
-        .map { !it.isNullOrEmpty() }
+    private val hasExistingPassword = securityPreferencesManager.preferences
+        .mapLatest { it.hasValidBackupEncryptionPassword }
         .distinctUntilChanged()
 
     private val isLoading = MutableStateFlow(false)
+    private val isPasswordUpdateButtonLoading = MutableStateFlow(false)
 
     val state = combineTuple(
         showPasswordInput,
         hasExistingPassword,
-        isLoading
-    ).map { (
-                showPasswordInput,
-                hasExistingPassword,
-                isLoading
-            ) ->
+        isLoading,
+        isPasswordUpdateButtonLoading
+    ).mapLatest { (
+                      showPasswordInput,
+                      hasExistingPassword,
+                      isLoading,
+                      isPasswordUpdateButtonLoading,
+                  ) ->
         BackupEncryptionState(
             hasExistingPassword = hasExistingPassword,
             showPasswordInput = showPasswordInput,
-            isLoading = isLoading
+            isLoading = isLoading,
+            isPasswordUpdateButtonLoading = isPasswordUpdateButtonLoading
         )
     }.asStateFlow(viewModelScope, BackupEncryptionState())
 
@@ -74,7 +77,7 @@ class BackupEncryptionViewModel @Inject constructor(
     }
 
     fun onBiometricAuthSucceeded() = viewModelScope.launch {
-        preferencesManager.updateEncryptionPasswordHash(null)
+        securityPreferencesManager.updateBackupEncryptionHash(null, null)
     }
 
     override fun onNewPasswordChange(value: String) {
@@ -92,7 +95,7 @@ class BackupEncryptionViewModel @Inject constructor(
 
     override fun onPasswordUpdateConfirm() {
         viewModelScope.launch {
-            isLoading.update { true }
+            isPasswordUpdateButtonLoading.update { true }
             val currentPassword = currentPassword.value
             val newPassword = newPassword.value
             val confirmNewPassword = confirmNewPassword.value
@@ -109,13 +112,13 @@ class BackupEncryptionViewModel @Inject constructor(
                             )
                         )
                     )
-                    isLoading.update { false }
+                    isPasswordUpdateButtonLoading.update { false }
                     return@launch
                 }
             }
 
             if (newPassword != confirmNewPassword) {
-                isLoading.update { false }
+                isPasswordUpdateButtonLoading.update { false }
                 savedStateHandle[SHOW_PASSWORD_INPUT] = false
                 clearPasswordInputs()
                 eventBus.send(
@@ -130,7 +133,7 @@ class BackupEncryptionViewModel @Inject constructor(
             }
 
             repo.updateEncryptionPassword(newPassword)
-            isLoading.update { false }
+            isPasswordUpdateButtonLoading.update { false }
             savedStateHandle[SHOW_PASSWORD_INPUT] = false
             eventBus.send(BackupEncryptionEvent.PasswordUpdated)
             clearPasswordInputs()

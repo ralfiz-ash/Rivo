@@ -11,7 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.ridill.rivo.R
 import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.account.presentation.util.AuthorizationService
-import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.EventBus
 import dev.ridill.rivo.core.domain.util.asStateFlow
@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,7 +35,7 @@ class BackupSettingsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val backupSettingsRepo: BackupSettingsRepository,
     private val authRepo: AuthRepository,
-    private val preferencesManager: PreferencesManager,
+    private val securityPreferencesManager: SecurityPreferencesManager,
     private val eventBus: EventBus<BackupSettingsEvent>
 ) : ViewModel(), BackupSettingsActions {
 
@@ -68,17 +68,17 @@ class BackupSettingsViewModel @Inject constructor(
         isEncryptionPasswordAvailable,
         fatalBackupError,
         showBackupRunningMessage
-    ).map { (
-                authState,
-                backupInterval,
-                showBackupIntervalSelection,
-                lastBackupDateTime,
-                isBackupRunning,
-                isEncryptionPasswordAvailable,
-                fatalBackupError,
-                showBackupRunningMessage
+    ).mapLatest { (
+                      authState,
+                      backupInterval,
+                      showBackupIntervalSelection,
+                      lastBackupDateTime,
+                      isBackupRunning,
+                      isEncryptionPasswordAvailable,
+                      fatalBackupError,
+                      showBackupRunningMessage
 
-            ) ->
+                  ) ->
         BackupSettingsState(
             authState = authState,
             backupInterval = backupInterval,
@@ -149,7 +149,7 @@ class BackupSettingsViewModel @Inject constructor(
 
     override fun onBackupIntervalPreferenceClick() {
         viewModelScope.launch {
-            if (preferencesManager.preferences.first().encryptionPasswordHash.isNullOrEmpty()) {
+            if (securityPreferencesManager.preferences.first().hasValidBackupEncryptionPassword) {
                 eventBus.send(BackupSettingsEvent.NavigateToBackupEncryptionScreen)
                 return@launch
             }
@@ -170,7 +170,7 @@ class BackupSettingsViewModel @Inject constructor(
 
     override fun onBackupNowClick() {
         viewModelScope.launch {
-            if (preferencesManager.preferences.first().encryptionPasswordHash.isNullOrEmpty()) {
+            if (!securityPreferencesManager.preferences.first().hasValidBackupEncryptionPassword) {
                 eventBus.send(BackupSettingsEvent.NavigateToBackupEncryptionScreen)
                 return@launch
             }

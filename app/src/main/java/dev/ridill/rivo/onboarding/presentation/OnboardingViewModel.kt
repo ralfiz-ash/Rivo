@@ -15,7 +15,6 @@ import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.account.presentation.util.AuthorizationService
 import dev.ridill.rivo.account.presentation.util.CredentialService
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
-import dev.ridill.rivo.core.domain.crypto.CryptoManager
 import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.BuildUtil
 import dev.ridill.rivo.core.domain.util.EventBus
@@ -55,8 +54,7 @@ class OnboardingViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager,
     private val backupRepo: BackupRepository,
     private val authRepo: AuthRepository,
-    private val currencyRepo: CurrencyRepository,
-    private val cryptoManager: CryptoManager
+    private val currencyRepo: CurrencyRepository
 ) : ViewModel(), OnboardingActions {
 
     val signInAndDataRestoreState = savedStateHandle
@@ -85,7 +83,7 @@ class OnboardingViewModel @Inject constructor(
                       dataRestoreState,
                       showEncryptionPasswordInput,
                       appRestartTimer,
-                                      appCurrency
+                      appCurrency
                   ) ->
         OnboardingState(
             signInAndDataRestoreState = signInAndDataRestoreState,
@@ -352,11 +350,10 @@ class OnboardingViewModel @Inject constructor(
     override fun onEncryptionPasswordSubmit(password: String) {
         val backupDetails = savedStateHandle.get<BackupDetails?>(AVAILABLE_BACKUP)
             ?: return
-        val passwordHash = cryptoManager.hash(password)
         savedStateHandle[SHOW_ENCRYPTION_PASSWORD_INPUT] = false
         backupWorkManager.runImmediateRestoreWork(
             backupDetails = backupDetails,
-            passwordHash = passwordHash
+            password = password,
         )
     }
 

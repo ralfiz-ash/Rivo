@@ -16,7 +16,6 @@ data class RivoPreferences(
     val appAutoLockInterval: AppAutoLockInterval,
     val isAppLocked: Boolean,
     val screenSecurityEnabled: Boolean,
-    val encryptionPasswordHash: String?,
     val fatalBackupError: FatalBackupError?,
     val showAutoDetectTxInfo: Boolean,
 )

@@ -53,7 +53,8 @@ class BackupWorkManager(
         const val KEY_MESSAGE = "KEY_MESSAGE"
         const val KEY_BACKUP_FILE_ID = "KEY_BACKUP_FILE_ID"
         const val KEY_BACKUP_TIMESTAMP = "KEY_BACKUP_DATE"
-        const val KEY_PASSWORD_HASH = "KEY_PASSWORD_HASH"
+        const val KEY_PASSWORD = "KEY_PASSWORD_HASH"
+        const val KEY_PASSWORD_HASH_SALT = "KEY_PASSWORD_HASH_SALT"
 
         const val RESTORE_WORKER_NOTIFICATION_ID = "RESTORE_WORKER_NOTIFICATION"
         const val BACKUP_WORKER_NOTIFICATION_ID = "BACKUP_WORKER_NOTIFICATION"
@@ -114,7 +115,7 @@ class BackupWorkManager(
     fun getImmediateBackupWorkInfoFlow(): Flow<WorkInfo?> = workManager
         .getWorkInfoByIdFlow(oneTimeBackupWorkName.toUUID())
 
-    fun runImmediateRestoreWork(backupDetails: BackupDetails, passwordHash: String) {
+    fun runImmediateRestoreWork(backupDetails: BackupDetails, password: String) {
         val dataDownloadWorkRequest = OneTimeWorkRequestBuilder<GDriveDataDownloadWorker>()
             .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
             .addTag(dataRestoreWorkerTag)
@@ -132,7 +133,8 @@ class BackupWorkManager(
             .setId(oneTimeRestoreWorkName.toUUID())
             .setInputData(
                 workDataOf(
-                    KEY_PASSWORD_HASH to passwordHash
+                    KEY_PASSWORD to password,
+                    KEY_PASSWORD_HASH_SALT to backupDetails.hashSalt,
                 )
             )
             .setConstraints(

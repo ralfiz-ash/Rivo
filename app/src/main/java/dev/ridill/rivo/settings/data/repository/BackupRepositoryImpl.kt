@@ -3,8 +3,11 @@ package dev.ridill.rivo.settings.data.repository
 import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.gson.Gson
+import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.core.data.preferences.PreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
 import dev.ridill.rivo.core.data.util.tryNetworkCall
+import dev.ridill.rivo.core.domain.crypto.CryptoManager
 import dev.ridill.rivo.core.domain.model.DataError
 import dev.ridill.rivo.core.domain.model.Result
 import dev.ridill.rivo.core.domain.util.DateUtil
@@ -24,10 +27,11 @@ import dev.ridill.rivo.settings.domain.backup.DB_BACKUP_FILE_NAME
 import dev.ridill.rivo.settings.domain.backup.RestoreFailedThrowable
 import dev.ridill.rivo.settings.domain.modal.BackupDetails
 import dev.ridill.rivo.settings.domain.modal.BackupInterval
-import dev.ridill.rivo.account.domain.repository.AuthRepository
 import dev.ridill.rivo.settings.domain.repositoty.BackupRepository
 import dev.ridill.rivo.settings.domain.repositoty.FatalBackupError
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -43,6 +47,8 @@ class BackupRepositoryImpl(
     private val backupService: BackupService,
     private val gDriveApi: GDriveApi,
     private val preferencesManager: PreferencesManager,
+    private val cryptoManager: CryptoManager,
+    private val securityPreferencesManager: SecurityPreferencesManager,
     private val configDao: ConfigDao,
     private val backupWorkManager: BackupWorkManager,
     private val schedulesRepository: SchedulesRepository,
@@ -54,18 +60,19 @@ class BackupRepositoryImpl(
             val email = authRepo.getSignedInAccount()?.email
                 ?: throw GoogleAuthException()
             val backupFolderName = backupFolderName(email)
+            logD { "Checking Backup folder - $backupFolderName" }
             val backupFolder = gDriveApi.getFilesList(
                 q = "trashed=false and name = '$backupFolderName'"
-            ).files.firstOrNull()
-                ?: throw NoBackupFoundThrowable()
+            ).files.firstOrNull() ?: throw NoBackupFoundThrowable()
             logD { "Backup folder - $backupFolder" }
-            val backupFile = gDriveApi.getFilesList(
-                q = "trashed=false and '${backupFolder.id}' in parents and name contains '$DB_BACKUP_FILE_NAME'",
-            ).files.firstOrNull()
-                ?: throw NoBackupFoundThrowable()
-
+            logD { "Checking backup file in backup folder: ${backupFolder.id}" }
+            val backupFiles = gDriveApi.getFilesList(
+                q = "trashed=false and '${backupFolder.id}' in parents and name = '$DB_BACKUP_FILE_NAME'",
+            ).files
+            logD { "Files in backup folder: ${backupFolder.name} = ${backupFiles.map { it.id }}" }
+            val backupFile = backupFiles.firstOrNull() ?: throw NoBackupFoundThrowable()
+            logD { "Backup Found - $backupFile" }
             val backupDetails = backupFile.toBackupDetails()
-            logD { "Backup Found - $backupDetails" }
             Result.Success(backupDetails)
         }
 
@@ -80,12 +87,17 @@ class BackupRepositoryImpl(
     )
     override suspend fun performAppDataBackup() = withContext(Dispatchers.IO) {
         logI { "Performing Data Backup" }
-        val passwordHash = preferencesManager.preferences.first()
-            .encryptionPasswordHash.orEmpty()
+        val securityPreferences = securityPreferencesManager.preferences.first()
+        val passwordHash = securityPreferences
+            .backupEncryptionHash.orEmpty()
+            .ifEmpty { throw InvalidEncryptionPasswordThrowable() }
+        val passwordHashSalt = securityPreferences
+            .backupEncryptionHashSalt.orEmpty()
             .ifEmpty { throw InvalidEncryptionPasswordThrowable() }
         val email = authRepo.getSignedInAccount()?.email
             ?: throw GoogleAuthException()
         val backupFolderName = backupFolderName(email)
+        logD { "Checking Backup folder - $backupFolderName" }
         var backupFolder = gDriveApi.getFilesList(
             q = "name = '$backupFolderName' and trashed=false"
         ).files.firstOrNull()
@@ -94,13 +106,21 @@ class BackupRepositoryImpl(
             val createBackupFolderRequest = CreateGDriveFolderRequestDto(backupFolderName(email))
             val createBackupFolderMetadataPart = Gson().toJson(createBackupFolderRequest)
                 .toRequestBody(JSON_MIME_TYPE.toMediaTypeOrNull())
-            logD { "Create backup folder metadata - $createBackupFolderMetadataPart" }
+            logD { "Create backup folder request - $createBackupFolderRequest" }
             backupFolder = gDriveApi.createFolder(createBackupFolderMetadataPart)
         }
-        val backupFile = backupService.buildBackupFile(passwordHash)
+        val backupFile = backupService.buildBackupFile(
+            password = passwordHash,
+            passwordSalt = passwordHashSalt
+        )
         val metadataMap = mapOf(
             "name" to backupFile.name,
-            "parents" to listOf(backupFolder.id)
+            "parents" to listOf(backupFolder.id),
+            "appProperties" to mapOf(
+                GDriveApi.APP_PROPERTIES_KEY_HASH_SALT to passwordHashSalt,
+                GDriveApi.APP_PROPERTIES_KEY_BACKUP_TIMESTAMP to DateUtil.now()
+                    .format(DateUtil.Formatters.isoLocalDateTime)
+            )
         )
         val metadataJson = Gson().toJson(metadataMap)
         val metadataPart = metadataJson.toRequestBody(JSON_MIME_TYPE.toMediaTypeOrNull())
@@ -121,12 +141,17 @@ class BackupRepositoryImpl(
 
         preferencesManager.updateLastBackupTimestamp(DateUtil.now())
         val backupFolderFiles = gDriveApi.getFilesList(
-            q = "trashed=false and '${backupFolder.id}' in parents"
+            q = "trashed=false and '${backupFolder.id}' in parents and name = '$DB_BACKUP_FILE_NAME'"
         ).files
-        for (file in backupFolderFiles) {
-            if (file.id == gDriveBackup.id) continue
-            gDriveApi.deleteFile(file.id)
-        }
+        logD { "Files in backup folder: ${backupFolder.name} = ${backupFolderFiles.map { it.id }}" }
+        backupFolderFiles
+            .filter { it.id != gDriveBackup.id }
+            .map {
+                async {
+                    logI { "Deleting file ${it.id}" }
+                    gDriveApi.deleteFile(it.id)
+                }
+            }.awaitAll()
         logI { "Cleaned up Drive" }
     }
 
@@ -161,12 +186,21 @@ class BackupRepositoryImpl(
         BadPaddingException::class
     )
     override suspend fun performAppDataRestoreFromCache(
-        passwordHash: String,
+        password: String,
+        passwordSalt: String,
         timestamp: LocalDateTime
     ) = withContext(Dispatchers.IO) {
         logI { "Restoring Backup from cache" }
-        backupService.restoreBackupFromCache(passwordHash, timestamp)
-        preferencesManager.updateEncryptionPasswordHash(passwordHash)
+        val (passwordHash, hashSalt) = cryptoManager.saltedHash(password, passwordSalt)
+        backupService.restoreBackupFromCache(
+            passwordHash = passwordHash,
+            passwordSalt = passwordSalt,
+            timestamp = timestamp
+        )
+        securityPreferencesManager.updateBackupEncryptionHash(
+            hash = passwordHash,
+            salt = hashSalt
+        )
         preferencesManager.updateLastBackupTimestamp(timestamp)
         logI { "Updated last backup timestamp" }
     }
@@ -177,7 +211,7 @@ class BackupRepositoryImpl(
         }
     }
 
-    private fun backupFolderName(email: String): String = "Rivo $email backup"
+    private fun backupFolderName(email: String): String = "Rivo_Debug $email backup"
 
     override suspend fun setBackupError(error: FatalBackupError?) =
         preferencesManager.updateFatalBackupError(error)

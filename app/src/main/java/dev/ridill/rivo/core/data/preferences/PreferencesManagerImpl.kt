@@ -35,7 +35,7 @@ class PreferencesManagerImpl(
             } else throw cause
         }
         .mapLatest { preferences ->
-            val showOnboarding = preferences[Keys.SHOW_ONBOARDING] ?: true
+            val showOnboarding = preferences[Keys.SHOW_ONBOARDING].orTrue()
             val appTheme = AppTheme.valueOf(
                 preferences[Keys.APP_THEME] ?: AppTheme.SYSTEM_DEFAULT.name
             )
@@ -52,7 +52,6 @@ class PreferencesManagerImpl(
             )
             val isAppLocked = preferences[Keys.IS_APP_LOCKED].orFalse()
             val screenSecurityEnabled = preferences[Keys.SCREEN_SECURITY_ENABLED].orFalse()
-            val encryptionPasswordHash = preferences[Keys.ENCRYPTION_PASSWORD_HASH]
             val fatalBackupError = tryOrNull {
                 preferences[Keys.FATAL_BACKUP_ERROR]?.let { FatalBackupError.valueOf(it) }
             }
@@ -69,7 +68,6 @@ class PreferencesManagerImpl(
                 appAutoLockInterval = appAutoLockInterval,
                 isAppLocked = isAppLocked,
                 screenSecurityEnabled = screenSecurityEnabled,
-                encryptionPasswordHash = encryptionPasswordHash,
                 fatalBackupError = fatalBackupError,
                 showAutoDetectTxInfo = showAutoDetectTxInfo,
             )
@@ -155,14 +153,6 @@ class PreferencesManagerImpl(
         }
     }
 
-    override suspend fun updateEncryptionPasswordHash(hash: String?) {
-        withContext(Dispatchers.IO) {
-            dataStore.edit { preferences ->
-                preferences[Keys.ENCRYPTION_PASSWORD_HASH] = hash.orEmpty()
-            }
-        }
-    }
-
     override suspend fun updateFatalBackupError(error: FatalBackupError?) {
         withContext(Dispatchers.IO) {
             dataStore.edit { preferences ->
@@ -191,7 +181,6 @@ class PreferencesManagerImpl(
         val APP_AUTO_LOCK_INTERVAL = stringPreferencesKey("APP_AUTO_LOCK_INTERVAL")
         val IS_APP_LOCKED = booleanPreferencesKey("IS_APP_LOCKED")
         val SCREEN_SECURITY_ENABLED = booleanPreferencesKey("SCREEN_SECURITY_ENABLED")
-        val ENCRYPTION_PASSWORD_HASH = stringPreferencesKey("ENCRYPTION_PASSWORD_HASH")
         val FATAL_BACKUP_ERROR = stringPreferencesKey("FATAL_BACKUP_ERROR")
         val SHOW_AUTO_DETECT_TX_INFO = booleanPreferencesKey("SHOW_AUTO_DETECT_TX_INFO")
     }

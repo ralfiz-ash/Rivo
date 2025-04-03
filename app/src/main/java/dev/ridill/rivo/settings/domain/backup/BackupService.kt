@@ -3,7 +3,8 @@ package dev.ridill.rivo.settings.domain.backup
 import android.content.Context
 import dev.ridill.rivo.core.data.db.RivoDatabase
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
-import dev.ridill.rivo.core.domain.util.DateUtil
+import dev.ridill.rivo.core.domain.crypto.HashSaltString
+import dev.ridill.rivo.core.domain.crypto.HashString
 import dev.ridill.rivo.core.domain.util.logI
 import dev.ridill.rivo.core.domain.util.toByteArray
 import dev.ridill.rivo.core.domain.util.toInt
@@ -31,7 +32,8 @@ class BackupService(
         BadPaddingException::class
     )
     suspend fun restoreBackupFromCache(
-        password: String,
+        passwordHash: HashString,
+        passwordSalt: HashSaltString,
         timestamp: LocalDateTime
     ) = withContext(Dispatchers.IO) {
         val dbPath = database.openHelper.readableDatabase.path
@@ -46,85 +48,92 @@ class BackupService(
         val encryptedDataCache = File(cachePath, buildRestoreCacheFileName(timestamp))
         if (!encryptedDataCache.exists()) throw RestoreFailedThrowable()
 
-        encryptedDataCache.inputStream().buffered().use encryptedDataCacheInputStream@{ inputStream ->
-            val ivSizeBytes = ByteArray(Int.SIZE_BYTES)
-            inputStream.read(ivSizeBytes)
-            val ivSize = ivSizeBytes.toInt()
+        encryptedDataCache.inputStream().buffered()
+            .use encryptedDataCacheInputStream@{ inputStream ->
+                val ivSizeBytes = ByteArray(Int.SIZE_BYTES)
+                inputStream.read(ivSizeBytes)
+                val ivSize = ivSizeBytes.toInt()
 
-            logI { "Read iv data" }
-            var ivBytesLeft = ivSize
-            var ivBytes = ByteArray(0)
-            while (ivBytesLeft > 0) {
-                ensureActive()
-                val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, ivBytesLeft))
-                val bytesRead = inputStream.read(data)
-                ivBytes += data.copyOfRange(0, bytesRead)
-                ivBytesLeft -= bytesRead
+                logI { "Read iv data" }
+                var ivBytesLeft = ivSize
+                var ivBytes = ByteArray(0)
+                while (ivBytesLeft > 0) {
+                    ensureActive()
+                    val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, ivBytesLeft))
+                    val bytesRead = inputStream.read(data)
+                    ivBytes += data.copyOfRange(0, bytesRead)
+                    ivBytesLeft -= bytesRead
+                }
+
+                logI { "Read encrypted data" }
+                val dataBytes = readSafely(inputStream)
+                logI { "Decrypt data" }
+                val decryptedBytes = cryptoManager.decrypt(
+                    encryptedData = dataBytes,
+                    iv = ivBytes,
+                    password = passwordHash,
+                    salt = passwordSalt
+                )
+
+                logI { "Write decrypted data to decrypted cache" }
+                decryptedDataCache.outputStream().buffered().use decryptedDataCacheOutputStream@{
+                    writeSafely(decryptedBytes, it)
+                }
             }
-
-            logI { "Read encrypted data" }
-            val dataBytes = readSafely(inputStream)
-            logI { "Decrypt data" }
-            val decryptedBytes = cryptoManager.decrypt(dataBytes, ivBytes, password)
-
-            logI { "Write decrypted data to decrypted cache" }
-            decryptedDataCache.outputStream().buffered().use decryptedDataCacheOutputStream@{
-                writeSafely(decryptedBytes, it)
-            }
-        }
 
         logI { "Write decrypted cache to DB files" }
-        decryptedDataCache.inputStream().buffered().buffered().use decryptedDataCacheInputStream@{ inputStream ->
-            // Read DB Data
-            dbFile.outputStream().buffered().use dbOutputStream@{
-                val dbSizeBytes = ByteArray(Int.SIZE_BYTES)
-                inputStream.read(dbSizeBytes)
-                val dbSize = dbSizeBytes.toInt()
+        decryptedDataCache.inputStream().buffered().buffered()
+            .use decryptedDataCacheInputStream@{ inputStream ->
+                // Read DB Data
+                dbFile.outputStream().buffered().use dbOutputStream@{
+                    val dbSizeBytes = ByteArray(Int.SIZE_BYTES)
+                    inputStream.read(dbSizeBytes)
+                    val dbSize = dbSizeBytes.toInt()
 
-                var bytesLeft = dbSize
-                while (bytesLeft > 0) {
-                    ensureActive()
-                    val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
-                    val bytesRead = inputStream.read(data)
-                    bytesLeft -= bytesRead
-                    it.write(data)
+                    var bytesLeft = dbSize
+                    while (bytesLeft > 0) {
+                        ensureActive()
+                        val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
+                        val bytesRead = inputStream.read(data)
+                        bytesLeft -= bytesRead
+                        it.write(data)
+                    }
+                }
+
+                // Read WAL Data
+                dbWalFile.outputStream().buffered().use walOutputStream@{
+                    val walSizeBytes = ByteArray(Int.SIZE_BYTES)
+                    val sizeBytesRead = inputStream.read(walSizeBytes)
+                    if (sizeBytesRead == -1) return@walOutputStream
+                    val walSize = walSizeBytes.toInt()
+
+                    var bytesLeft = walSize
+                    while (bytesLeft > 0) {
+                        ensureActive()
+                        val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
+                        val bytesRead = inputStream.read(data)
+                        bytesLeft -= bytesRead
+                        it.write(data)
+                    }
+                }
+
+                // Read SHM Data
+                dbShmFile.outputStream().buffered().use shmOutputStream@{
+                    val shmSizeBytes = ByteArray(Int.SIZE_BYTES)
+                    val sizeBytesRead = inputStream.read(shmSizeBytes)
+                    if (sizeBytesRead == -1) return@shmOutputStream
+                    val shmSize = shmSizeBytes.toInt()
+
+                    var bytesLeft = shmSize
+                    while (bytesLeft > 0) {
+                        ensureActive()
+                        val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
+                        val bytesRead = inputStream.read(data)
+                        bytesLeft -= bytesRead
+                        it.write(data)
+                    }
                 }
             }
-
-            // Read WAL Data
-            dbWalFile.outputStream().buffered().use walOutputStream@{
-                val walSizeBytes = ByteArray(Int.SIZE_BYTES)
-                val sizeBytesRead = inputStream.read(walSizeBytes)
-                if (sizeBytesRead == -1) return@walOutputStream
-                val walSize = walSizeBytes.toInt()
-
-                var bytesLeft = walSize
-                while (bytesLeft > 0) {
-                    ensureActive()
-                    val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
-                    val bytesRead = inputStream.read(data)
-                    bytesLeft -= bytesRead
-                    it.write(data)
-                }
-            }
-
-            // Read SHM Data
-            dbShmFile.outputStream().buffered().use shmOutputStream@{
-                val shmSizeBytes = ByteArray(Int.SIZE_BYTES)
-                val sizeBytesRead = inputStream.read(shmSizeBytes)
-                if (sizeBytesRead == -1) return@shmOutputStream
-                val shmSize = shmSizeBytes.toInt()
-
-                var bytesLeft = shmSize
-                while (bytesLeft > 0) {
-                    ensureActive()
-                    val data = ByteArray(minOf(DEFAULT_BUFFER_SIZE, bytesLeft))
-                    val bytesRead = inputStream.read(data)
-                    bytesLeft -= bytesRead
-                    it.write(data)
-                }
-            }
-        }
         checkpointDb()
     }
 
@@ -134,7 +143,8 @@ class BackupService(
         BadPaddingException::class
     )
     suspend fun buildBackupFile(
-        password: String
+        password: String,
+        passwordSalt: HashSaltString,
     ): File = withContext(Dispatchers.IO) {
         val dbFile = context.getDatabasePath(RivoDatabase.NAME)
         val dbWalFile = File(dbFile.path + SQLITE_WAL_FILE_SUFFIX)
@@ -172,18 +182,23 @@ class BackupService(
         }
 
         logI { "Create DB backup file" }
-        val encryptedBackupFile = File(cachePath, backupFileName())
+        val encryptedBackupFile = File(cachePath, DB_BACKUP_FILE_NAME)
         if (encryptedBackupFile.exists()) encryptedBackupFile.delete()
         dbCache.inputStream().buffered().use dbCacheInputStream@{
             val rawBytes = readSafely(it)
             logI { "Encrypt temp backup cache data" }
-            val encryptionResult = cryptoManager.encrypt(rawBytes, password)
-            encryptedBackupFile.outputStream().buffered().use backupFileOutputStream@{ outputStream ->
-                logI { "Write encrypted temp backup cache data to backup file" }
-                writeSafely(encryptionResult.iv.size.toByteArray(), outputStream)
-                writeSafely(encryptionResult.iv, outputStream)
-                writeSafely(encryptionResult.data, outputStream)
-            }
+            val encryptionResult = cryptoManager.encrypt(
+                rawData = rawBytes,
+                password = password,
+                salt = passwordSalt
+            )
+            encryptedBackupFile.outputStream().buffered()
+                .use backupFileOutputStream@{ outputStream ->
+                    logI { "Write encrypted temp backup cache data to backup file" }
+                    writeSafely(encryptionResult.iv.size.toByteArray(), outputStream)
+                    writeSafely(encryptionResult.iv, outputStream)
+                    writeSafely(encryptionResult.data, outputStream)
+                }
         }
 
         encryptedBackupFile
@@ -200,8 +215,6 @@ class BackupService(
         writableDb.query("PRAGMA wal_checkpoint(FULL);")
         writableDb.query("PRAGMA wal_checkpoint(TRUNCATE);")
     }
-
-    private fun backupFileName(): String = "${DateUtil.now()}-$DB_BACKUP_FILE_NAME"
 
     fun doesRestoreCacheExist(timestamp: LocalDateTime): Boolean {
         val cachePath = context.externalCacheDir ?: throw RestoreFailedThrowable()
@@ -220,10 +233,11 @@ class BackupService(
         val restoreDataCache = File(cachePath, buildRestoreCacheFileName(dateTime))
         if (restoreDataCache.exists() && !refreshCache) return@withContext
         dataStream.use downloadedInputStream@{ inputStream ->
-            restoreDataCache.outputStream().buffered().use restoreCacheOutputStream@{ outputStream ->
-                val data = readSafely(inputStream)
-                writeSafely(data, outputStream)
-            }
+            restoreDataCache.outputStream().buffered()
+                .use restoreCacheOutputStream@{ outputStream ->
+                    val data = readSafely(inputStream)
+                    writeSafely(data, outputStream)
+                }
         }
     }
 
@@ -260,7 +274,7 @@ class BackupService(
 private const val DB_TEMP_CACHE_FILENAME = "DBBackupCache.backup"
 private const val SQLITE_WAL_FILE_SUFFIX = "-wal"
 private const val SQLITE_SHM_FILE_SUFFIX = "-shm"
-const val DB_BACKUP_FILE_NAME = "Rivo_db.backup"
+val DB_BACKUP_FILE_NAME get() = "Rivo_db.backup"
 private const val RESTORE_CACHE_FILE = "RestoreCache.backup"
 
 class BackupCachingFailedThrowable : Throwable("Failed to create backup cache")

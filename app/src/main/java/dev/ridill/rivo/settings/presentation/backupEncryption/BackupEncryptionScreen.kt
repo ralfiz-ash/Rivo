@@ -61,13 +61,14 @@ fun BackupEncryptionScreen(
     navigateUp: () -> Unit
 ) {
     RivoScaffold(
+        isLoading = state.isLoading,
         topBar = {
             TopAppBar(
                 title = {},
                 navigationIcon = { BackArrowButton(onClick = navigateUp) }
             )
         },
-        snackbarController = snackbarController
+        snackbarController = snackbarController,
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -118,6 +119,7 @@ fun BackupEncryptionScreen(
                 onNewPasswordChange = actions::onNewPasswordChange,
                 confirmNewPassword = confirmNewPassword,
                 onConfirmNewPasswordChange = actions::onConfirmNewPasswordChange,
+                isLoading = state.isPasswordUpdateButtonLoading,
                 onConfirmClick = actions::onPasswordUpdateConfirm
             )
         }
@@ -138,6 +140,7 @@ private fun PasswordUpdateSheet(
     confirmNewPassword: () -> String,
     onConfirmNewPasswordChange: (String) -> Unit,
     onConfirmClick: () -> Unit,
+    isLoading: Boolean,
     modifier: Modifier = Modifier
 ) {
     val confirmEnabled by remember(hasExistingPassword) {
@@ -209,7 +212,7 @@ private fun PasswordUpdateSheet(
 
             ButtonWithLoadingIndicator(
                 textRes = R.string.action_confirm,
-                loading = false,
+                loading = isLoading,
                 onClick = onConfirmClick,
                 modifier = Modifier
                     .fillMaxWidth(),

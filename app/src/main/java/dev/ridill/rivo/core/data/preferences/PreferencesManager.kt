@@ -24,7 +24,6 @@ interface PreferencesManager {
     suspend fun updateAppAutoLockInterval(interval: AppAutoLockInterval)
     suspend fun updateAppLocked(locked: Boolean)
     suspend fun updateScreenSecurityEnabled(enabled: Boolean)
-    suspend fun updateEncryptionPasswordHash(hash: String?)
     suspend fun updateFatalBackupError(error: FatalBackupError?)
     suspend fun toggleShowAutoDetectTxInfoFalse()
 }

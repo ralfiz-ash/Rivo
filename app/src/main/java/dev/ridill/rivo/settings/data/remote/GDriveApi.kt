@@ -17,14 +17,20 @@ import retrofit2.http.Query
 import retrofit2.http.Streaming
 
 interface GDriveApi {
+
+    companion object {
+        const val APP_PROPERTIES_KEY_HASH_SALT = "hashSalt"
+        const val APP_PROPERTIES_KEY_BACKUP_TIMESTAMP = "backupTimestamp"
+    }
+
     @Multipart
-    @POST("upload/drive/v3/files?spaces=$APP_DATA_SPACE&fields=$QUERY_PARAM_FIELDS")
+    @POST("upload/drive/v3/files?spaces=$APP_DATA_SPACE&fields=$QUERY_PARAM_FIELDS_FOLDER")
     suspend fun createFolder(
         @Part(METADATA_PART_KEY) metadata: RequestBody
     ): GDriveFileDto
 
     @Multipart
-    @POST("upload/drive/v3/files?uploadType=multipart&spaces=$APP_DATA_SPACE&&fields=$QUERY_PARAM_FIELDS")
+    @POST("upload/drive/v3/files?uploadType=multipart&spaces=$APP_DATA_SPACE&&fields=$QUERY_PARAM_FIELDS_FILE")
     suspend fun uploadFile(
         @Part(METADATA_PART_KEY) metadata: RequestBody,
         @Part file: MultipartBody.Part
@@ -49,7 +55,8 @@ interface GDriveApi {
 }
 
 private const val DEFAULT_ORDER_BY = "createdTime desc"
-private const val QUERY_PARAM_FILE_FIELDS = "files(id,name,parents)"
-private const val QUERY_PARAM_FIELDS = "id,name,parents"
+private const val QUERY_PARAM_FILE_FIELDS = "files(id,name,parents,appProperties)"
+private const val QUERY_PARAM_FIELDS_FOLDER = "id,name,parents"
+private const val QUERY_PARAM_FIELDS_FILE = "id,name,parents,appProperties"
 const val METADATA_PART_KEY = "Metadata"
 const val MEDIA_PART_KEY = "Media"

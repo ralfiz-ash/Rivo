@@ -212,6 +212,7 @@ dependencies {
     implementation(libs.com.github.zhuinden.flow.combinetuple.kt)
     implementation(libs.com.jakewharton.timber)
     implementation(libs.com.notkamui.keval)
+    implementation(libs.org.mindrot.jbcrypt)
 
     // Test
     testImplementation(libs.com.google.truth)
