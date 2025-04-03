@@ -50,6 +50,7 @@ lottie-compose = "6.5.2"
 flow-combinetuple-kt = "1.2.0"
 timber-logging = "5.0.1"
 keval = "1.1.1"
+bcrypt = "0.4"
 
 com-google-truth = "1.4.4"
 
@@ -140,6 +141,7 @@ com-airbnb-android-lottie-compose = { group = "com.airbnb.android", name = "lott
 com-github-zhuinden-flow-combinetuple-kt = { group = "com.github.Zhuinden", name = "flow-combinetuple-kt", version.ref = "flow-combinetuple-kt" }
 com-jakewharton-timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber-logging" }
 com-notkamui-keval = { group = "com.notkamui.libs", name = "keval", version.ref = "keval" }
+org-mindrot-jbcrypt = { group = "org.mindrot", name = "jbcrypt", version.ref = "bcrypt" }
 
 # Test
 com-google-truth = { group = "com.google.truth", name = "truth", version.ref = "com-google-truth" }
