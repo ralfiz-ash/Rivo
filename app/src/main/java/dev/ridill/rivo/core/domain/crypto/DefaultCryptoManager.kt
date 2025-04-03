@@ -1,7 +1,9 @@
 package dev.ridill.rivo.core.domain.crypto
 
 import android.security.keystore.KeyProperties
+import dev.ridill.rivo.core.domain.util.logD
 import java.security.MessageDigest
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -11,23 +13,23 @@ import javax.crypto.spec.SecretKeySpec
 
 class DefaultCryptoManager : CryptoManager {
 
-    private fun getEncryptCipher(password: String): Cipher = Cipher
+    private fun getEncryptCipher(password: String, salt: String): Cipher = Cipher
         .getInstance(CryptoManager.TRANSFORMATION)
         .apply {
-            init(Cipher.ENCRYPT_MODE, createKey(password))
+            init(Cipher.ENCRYPT_MODE, createKey(password, salt))
         }
 
-    private fun getDecryptCipher(password: String, iv: ByteArray): Cipher = Cipher
+    private fun getDecryptCipher(password: String, salt: String, iv: ByteArray): Cipher = Cipher
         .getInstance(CryptoManager.TRANSFORMATION)
         .apply {
-            init(Cipher.DECRYPT_MODE, createKey(password), IvParameterSpec(iv))
+            init(Cipher.DECRYPT_MODE, createKey(password, salt), IvParameterSpec(iv))
         }
 
-    private fun createKey(password: String): SecretKey {
+    private fun createKey(password: String, salt: String): SecretKey {
         val factory = SecretKeyFactory.getInstance(CryptoManager.KEY_ALGORITHM)
         val keySpec = PBEKeySpec(
             password.toCharArray(),
-            CryptoManager.SALT.toByteArray(),
+            salt.toByteArray(),
             CryptoManager.ITERATION_COUNT,
             CryptoManager.KEY_LENGTH
         )
@@ -35,8 +37,8 @@ class DefaultCryptoManager : CryptoManager {
         return SecretKeySpec(key.encoded, CryptoManager.ALGORITHM)
     }
 
-    override fun encrypt(rawData: ByteArray, password: String): EncryptionResult {
-        val cipher = getEncryptCipher(password)
+    override fun encrypt(rawData: ByteArray, password: String, salt: String): EncryptionResult {
+        val cipher = getEncryptCipher(password = password, salt = salt)
         val encryptedData = cipher.doFinal(rawData)
         return EncryptionResult(
             data = encryptedData,
@@ -44,15 +46,36 @@ class DefaultCryptoManager : CryptoManager {
         )
     }
 
-    override fun decrypt(encryptedData: ByteArray, iv: ByteArray, password: String): ByteArray =
-        getDecryptCipher(password, iv).doFinal(encryptedData)
+    override fun decrypt(
+        encryptedData: ByteArray,
+        iv: ByteArray,
+        password: String,
+        salt: String
+    ): ByteArray = getDecryptCipher(
+        password = password,
+        salt = salt,
+        iv = iv
+    ).doFinal(encryptedData)
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun hash(message: String): String =
-        MessageDigest.getInstance(KeyProperties.DIGEST_SHA256)
-            .digest(message.toByteArray()).toHexString()
+    override fun generateSalt(): HashSaltString {
+        val saltBytes = ByteArray(CryptoManager.SALT_LENGTH)
+        SecureRandom().nextBytes(saltBytes)
+        return saltBytes.toHexString()
+    }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun areDigestsEqual(hash1: String?, hash2: String?): Boolean =
-        MessageDigest.isEqual(hash1?.hexToByteArray(), hash2?.hexToByteArray())
+    override fun saltedHash(message: String, salt: String): Pair<HashString, HashSaltString> {
+        val saltedMessage = "$salt$message"
+        val hashResult = MessageDigest.getInstance(KeyProperties.DIGEST_SHA256)
+            .digest(saltedMessage.toByteArray()).toHexString()
+        logD("DefaultCryptoManager") { "saltedHash() called with: message = $message, saltString = $salt, saltedMessage = $saltedMessage, resultHash = $hashResult" }
+        return hashResult to salt
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun areEqual(value: String?, hash2: String?, commonSalt: HashSaltString?): Boolean {
+        val (valueHash, _) = saltedHash(value.orEmpty(), commonSalt ?: generateSalt())
+        return MessageDigest.isEqual(valueHash.hexToByteArray(), hash2?.hexToByteArray())
+    }
 }

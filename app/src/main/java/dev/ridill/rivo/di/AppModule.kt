@@ -22,6 +22,8 @@ import dev.ridill.rivo.core.data.preferences.PreferencesManager
 import dev.ridill.rivo.core.data.preferences.PreferencesManagerImpl
 import dev.ridill.rivo.core.data.preferences.animPreferences.AnimPreferencesManager
 import dev.ridill.rivo.core.data.preferences.animPreferences.AnimPreferencesManagerImpl
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManager
+import dev.ridill.rivo.core.data.preferences.security.SecurityPreferencesManagerImpl
 import dev.ridill.rivo.core.domain.crypto.CryptoManager
 import dev.ridill.rivo.core.domain.crypto.DefaultCryptoManager
 import dev.ridill.rivo.core.domain.service.ExpEvalService
@@ -79,6 +81,21 @@ object AppModule {
         @AnimPreferences dataStore: DataStore<Preferences>
     ): AnimPreferencesManager = AnimPreferencesManagerImpl(dataStore)
 
+    @SecurityPreferences
+    @Singleton
+    @Provides
+    fun provideSecurityPrefDataStoreInstance(
+        @ApplicationContext context: Context
+    ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+        produceFile = { context.preferencesDataStoreFile(SecurityPreferencesManager.NAME) }
+    )
+
+    @Provides
+    fun provideSecurityPreferencesManager(
+        @SecurityPreferences dataStore: DataStore<Preferences>
+    ): SecurityPreferencesManager = SecurityPreferencesManagerImpl(dataStore)
+
     @Provides
     fun provideExpressionEvaluationService(): ExpEvalService = ExpEvalService()
 
@@ -131,3 +148,7 @@ annotation class AppPreferences
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class AnimPreferences
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class SecurityPreferences

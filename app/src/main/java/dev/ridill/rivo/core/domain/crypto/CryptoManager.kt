@@ -4,21 +4,30 @@ import android.security.keystore.KeyProperties
 import javax.crypto.BadPaddingException
 import javax.crypto.IllegalBlockSizeException
 
+typealias HashString = String
+typealias HashSaltString = String
+
 interface CryptoManager {
     @Throws(IllegalBlockSizeException::class, BadPaddingException::class)
-    fun encrypt(rawData: ByteArray, password: String): EncryptionResult
+    fun encrypt(rawData: ByteArray, password: String, salt: String): EncryptionResult
 
     @Throws(IllegalBlockSizeException::class, BadPaddingException::class)
-    fun decrypt(encryptedData: ByteArray, iv: ByteArray, password: String): ByteArray
-    fun hash(message: String): String
-    fun areDigestsEqual(hash1: String?, hash2: String?): Boolean
+    fun decrypt(encryptedData: ByteArray, iv: ByteArray, password: String, salt: String): ByteArray
+
+    fun generateSalt(): HashSaltString
+    fun saltedHash(message: String, salt: String = generateSalt()): Pair<HashString, HashSaltString>
+    fun areEqual(
+        value: String?,
+        hash2: String?,
+        commonSalt: HashSaltString?
+    ): Boolean
 
     companion object {
         const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
         private const val BLOCK_MODE = KeyProperties.BLOCK_MODE_CBC
         private const val PADDING = KeyProperties.ENCRYPTION_PADDING_PKCS7
         const val TRANSFORMATION = "$ALGORITHM/$BLOCK_MODE/$PADDING"
-        const val SALT = "RivoSalt"
+        const val SALT_LENGTH = 32
         const val ITERATION_COUNT = 65536
         const val KEY_LENGTH = 128
         const val KEY_ALGORITHM = "PBKDF2WithHmacSha256"
