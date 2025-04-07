@@ -498,4 +498,5 @@
     <string name="aggregated_amounts_not_currency_matched_message">Aggregated amounts may include multiple currencies and they are not automatically converted</string>
     <string name="filter">Filter</string>
     <string name="of_txt">of</string>
+    <string name="developer_name">Remijius_Brian</string>
 </resources>
